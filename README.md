@@ -37,13 +37,13 @@ Pip installable package available.
 ```python
     import chemdraw
 
-    mol = "C1=CC=CC=C1C"
+    mol = "O=C(C)Oc1ccccc1C(=O)O"
     mod_drawer = chemdraw.Drawer(mol, title=mol)
     fig = mod_drawer.draw()
     fig.show()
 ```
-* Image may be distorted from viewer, but real image is not. 
-* 
+**Image may be distorted from viewer, but real image is not.**
+
 ![example 1 image](./examples/imgs/example_1.svg)
 
 
