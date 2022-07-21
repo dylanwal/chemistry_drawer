@@ -7,7 +7,7 @@ def main():
     # mol = "C1=CC=CC=C1C"
 
     config = chemdraw.DrawerConfig()
-    config.debug = True
+    # config.debug.debug = True
     mod_drawer = chemdraw.Drawer(mol, title=mol, config=config)
     fig = mod_drawer.draw()
     fig.write_html("temp.html", auto_open=True)
@@ -34,17 +34,17 @@ def main_time():
     start = time.time()
     mod_drawer = chemdraw.Drawer(mol, title=mol)
     stop = time.time()
-    print(stop-start)
+    print("parsing:", stop-start)
 
     start = time.time()
     fig = mod_drawer.draw()
     stop = time.time()
-    print(stop - start)
+    print("drawing", stop - start)
 
     start = time.time()
     fig.write_html("temp.html", auto_open=True)
     stop = time.time()
-    print(stop - start)
+    print("rendering", stop - start)
 
 
 def main_grid():
@@ -67,4 +67,6 @@ def main_grid():
 
 if __name__ == "__main__":
     main()
+    # main_time()
+    # main_profile()
     # main_grid()

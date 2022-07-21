@@ -3,8 +3,8 @@ import math
 import plotly.graph_objs as go
 import numpy as np
 
-from chemdraw.drawer import Drawer, DrawerConfig
-from chemdraw.mole_file import Molecule
+from chemdraw.drawers.drawer import Drawer, DrawerConfig
+from chemdraw.objects.molecule import Molecule
 
 
 class GridConfig:

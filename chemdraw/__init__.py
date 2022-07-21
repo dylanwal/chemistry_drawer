@@ -1,3 +1,3 @@
-from chemdraw.mole_file import Molecule
-from chemdraw.drawer import Drawer, DrawerConfig
-from chemdraw.grid import GridDrawer, GridConfig
+from chemdraw.objects.molecule import Molecule
+from chemdraw.drawers.drawer import Drawer, DrawerConfig
+from chemdraw.drawers.drawer_grid import GridDrawer, GridConfig
