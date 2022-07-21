@@ -1,12 +1,14 @@
-import vizialization as viz
+import chemdraw
 
 
 def main():
     # mol = "CC12CCC%11C(C1CCC2O[Si](C)(OC3CCC4C3(CCC5C4CCC6=CC(=O)CCC56C)C)OC7CCC8C7(CCC9C8CCC%10=CC(=O)CCC9%10C)C)CCC%12=CC(=O)CCC%11%12C"
-    # mol = "C(C(C#N)NC)C2=CC=C1OCOC1=C2"
-    mol = "C1=CC=CC=C1C"
+    mol = "C(C(C#N)NC)C2=CC=C1OCOC1=C2"
+    # mol = "C1=CC=CC=C1C"
 
-    mod_drawer = viz.Drawer(mol, title=mol)
+    config = chemdraw.DrawerConfig()
+    config.debug = True
+    mod_drawer = chemdraw.Drawer(mol, title=mol, config=config)
     fig = mod_drawer.draw()
     fig.write_html("temp.html", auto_open=True)
 
@@ -17,7 +19,7 @@ def main_profile():
     # mol = "C(C(C#N)NC)C2=CC=C1OCOC1=C2"
     
     with cProfile.Profile() as pr:
-        mod_drawer = viz.Drawer(mol, title=mol)
+        mod_drawer = chemdraw.Drawer(mol, title=mol)
         fig = mod_drawer.draw()
         
     pr.print_stats(sort="cumtime")
@@ -30,7 +32,7 @@ def main_time():
     # mol = "C(C(C#N)NC)C2=CC=C1OCOC1=C2"
 
     start = time.time()
-    mod_drawer = viz.Drawer(mol, title=mol)
+    mod_drawer = chemdraw.Drawer(mol, title=mol)
     stop = time.time()
     print(stop-start)
 
@@ -59,7 +61,7 @@ def main_grid():
         "CCCC1(CC(O1)C2=CC(=NC2=O)OC)O"
     ]
 
-    drawer = viz.GridDrawer(molecules)
+    drawer = chemdraw.GridDrawer(molecules)
     drawer.draw_png()
 
 

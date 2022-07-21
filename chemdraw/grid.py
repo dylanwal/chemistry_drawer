@@ -4,7 +4,7 @@ import plotly.graph_objs as go
 import numpy as np
 
 from chemdraw.drawer import Drawer, DrawerConfig
-from chemdraw.mole_file import MoleFile
+from chemdraw.mole_file import Molecule
 
 
 class GridConfig:
@@ -125,7 +125,7 @@ def png_table(imgs: list[str], shape: tuple[int, int], file_name: str = "molecul
 class GridDrawer:
 
     def __init__(self,
-                 molecules: list[str] | list[MoleFile],
+                 molecules: list[str] | list[Molecule],
                  shape: tuple | list = None,  # [columns, rows]
                  config: GridConfig = None
                  ):

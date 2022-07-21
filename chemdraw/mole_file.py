@@ -1,9 +1,10 @@
 import enum
 
 import numpy as np
+from rdkit import Chem
 
-import chemdraw.rings
 from chemdraw.errors import MoleParsingError
+from chemdraw.utils import normalise
 
 
 def parse_mol_file(file: str) -> tuple[dict, list[list], list[list]]:
@@ -70,26 +71,18 @@ def get_block_last_index(file_list: list[str]) -> int:
 
 #######################################################################################################################
 
-def get_rings(graph: np.ndarray) -> list[list[int]]:
-    return [[]]  # vizialization.rings.get_rings(graph)
-
-
-def normalise(vector: np.ndarray) -> np.ndarray:
-    """
-    Object is guaranteed to be a unit quaternion after calling this
-    operation UNLESS the object is equivalent to Quaternion(0)
-    """
-    n = np.sqrt(np.dot(vector, vector))
-    if n > 0:
-        return vector / n
-    else:
-        return vector
-
-
 class BondType(enum.Enum):
     single = 1
     double = 2
     triple = 3
+
+
+class BondAlignment(enum.Enum):
+    center = 0
+    left = 1
+    right = 2
+
+
 
 
 class Bond:
@@ -100,12 +93,14 @@ class Bond:
         self._x = None  # [x0, x1]
         self._y = None  # [y0, y1]
         self.atoms = []
-        self.rings = []
         self._vector = None
         self._perpendicular = None
         self._alignment = None
         self._center = None
         self.parent = parent
+
+        # for show
+        self.number = id_
 
     def __repr__(self) -> str:
         return f"{self.atoms[0].symbol} -> {self.atoms[1].symbol} || {self.type_.name}"
@@ -156,18 +151,23 @@ class Bond:
 
         return self._alignment
 
+    @alignment.setter
+    def alignment(self, value: int | str):
+        if isinstance(value, int):
+            self._alignment = BondAlignment(value)
+            return
+        else:
+            values = set(item.name for item in BondAlignment)
+            if value in values:
+                self._alignment = BondAlignment[value]
+                return
+
+        raise
+
     def _get_alignment(self) -> int:
         # only look at double bonds
         if self.type_ != BondType.double:
             return 0
-
-        # aromatic rings
-        if self.rings:
-            for ring in self.rings:
-                if ring.aromatic:
-                    self._alignment = alignment_decision(self.vector, np.array(
-                        [ring.center[0] - self.center[0], ring.center[1] - self.center[1]]))
-                    return self._alignment
 
         # general
         if self.atoms[0].number_of_bonds == 2 and self.atoms[1].number_of_bonds == 2:
@@ -220,15 +220,16 @@ class Atom:
 
     def __init__(self, row: list[str], id_: int, parent):
         self.id_ = id_
+        self.number = id_
         self._x = float(row[0])
         self._y = float(row[1])
         self.symbol = row[3]
         self.number_hydrogens = Atom.atom_valency[self.symbol]
         self.bonds = []
-        self.rings = []
         self._vector = None
         self._number_of_bonds = None
         self.parent = parent
+        self._atom_number_position = None
 
     def __repr__(self) -> str:
         return f"{self.symbol} ({self.id_}) at [{self.x}, {self.y}] with {len(self.bonds)}"
@@ -269,60 +270,36 @@ class Atom:
 
         return self._number_of_bonds
 
+    def get_atom_number_position(self, alignment: str, offset: float) -> tuple[float, float]:
+        if self._atom_number_position is not None:
+            return self._atom_number_position
+
+        if direction == "left":
+            return atom.x + offset, atom.y
+        elif direction == "right":
+            return atom.x - offset, atom.y
+        elif direction == "top":
+            return atom.x, atom.y + offset
+        elif direction == "bottom":
+            return atom.x, atom.y - offset
+        else:  # best
+            if atom.bonds < 2:
+                return
+
+    return 1, 1
+
     def add_bond(self, bond):
         self.bonds.append(bond)
         self.number_hydrogens -= bond.type_.value
 
 
-class Ring:
-    def __init__(self, atom_ids: list[int], id_: int, parent):
-        self.id_ = id_
-        self.atom_ids = atom_ids
-        self.atoms = []
-        self.bonds = []
-        self._ring_center = None
-        self.parent = parent
 
-    @property
-    def center(self) -> np.ndarray:
-        """ [x,y] """
-        if self._ring_center is None:
-            center = np.empty(2, dtype="float64")
-            center[0] = np.mean([atom.x for atom in self.atoms])
-            center[1] = np.mean([atom.y for atom in self.atoms])
-            self._ring_center = center
+class Molecule:
+    def __init__(self, molecule: str, name: str = None, position: np.ndarray = np.array([0, 0])):
+        if isinstance(molecule, str):
+            mol = Chem.MolFromSmiles(molecule)
+            (Chem.MolToMolBlock(mol)
 
-        return self._ring_center + self.parent.offset
-
-    @property
-    def aromatic(self) -> bool:
-        double_bond_count = len([True for bond in self.bonds if bond.type_ == BondType.double])
-        return len(self.bonds) / double_bond_count == 0.5
-
-    def add(self, atoms: list):
-        # add atoms to ring
-        self.atoms = atoms
-
-        # add bonds to ring
-        bonds = []
-        for atom in atoms:
-            for bond in atom.bonds:
-                if bond in bonds:
-                    self.bonds.append(bond)
-                else:
-                    bonds.append(bond)
-
-        # add ring to atoms
-        for atom in self.atoms:
-            atom.rings.append(self)
-
-        # add ring to bond
-        for bond in self.bonds:
-            bond.rings.append(self)
-
-
-class MoleFile:
-    def __init__(self, text: str, name: str = None, position: np.ndarray = np.array([0, 0])):
         self.name = name
         self.text = text
 
@@ -344,13 +321,10 @@ class MoleFile:
         # atom, bond, ring lists
         self.atoms: list[Atom] = [Atom(row, i, self) for i, row in enumerate(self.atom_block)]
         self.bonds: list[Bond] = [Bond(row, i, self) for i, row in enumerate(self._bond_block)]
-        self.rings: list[Ring] = [Ring(row, i, self) for i, row in enumerate(get_rings(self._bond_block[:, :2]))]
-        self.number_rings = len(self.rings)
         self.position = position
         self._center = self._get_center()
 
         self._add_bond_atoms()
-        self._add_rings()
 
     def __repr__(self) -> str:
         text = ""
@@ -370,10 +344,6 @@ class MoleFile:
             # add bonds to atoms
             for atom in bond.atoms:
                 atom.add_bond(bond)
-
-    def _add_rings(self):
-        for ring in self.rings:
-            ring.add([self.atoms[id_] for id_ in ring.atom_ids])
 
     def _get_center(self) -> np.ndarray:
         atoms = np.array([row[:2] for row in self.atom_block], dtype="float64")

@@ -1,7 +1,6 @@
-from rdkit import Chem
 import plotly.graph_objs as go
 
-from chemdraw.mole_file import MoleFile, BondType, Bond, Atom
+from chemdraw.mole_file import Molecule, BondType, Bond, Atom
 from chemdraw.utils import shorten_line
 
 
@@ -58,22 +57,42 @@ class DrawerConfig:
         self.layout_show_axis = False
         self.layout_dragmode = "pan"
 
+        # atom numbers
+        self.atom_number_show = True
+        self.atom_number_font = "Arial"
+        self.atom_number_font_bold = True
+        self.atom_number_font_size = 20
+        self.atom_number_font_color = "black"
+        self.atom_number_alignment = "top"  # ["best", "left", "right", "top", "bottom"]
+        self.atom_number_offset = 0.5
+
         # general options
-        self.fix_zoom = False
+        self.options_fix_zoom = False
 
         # debug options (can significantly increase render times 1 seconds -> 10 seconds)
-        self.center_point = False
-        self.bond_vector = False
-        self.bond_perpendicular = False
-        self.atom_vector = False
+        self._debug = False
+        self.debug_center_point = False
+        self.debug_bond_vector = False
+        self.debug_bond_perpendicular = False
+        self.debug_atom_vector = False
+
+    @property
+    def debug(self) -> bool:
+        return self._debug
+
+    @debug.setter
+    def debug(self, option: bool):
+        self._debug = option
+        self.debug_center_point = option
+        self.debug_bond_vector = option
+        self.debug_bond_perpendicular = option
+        self.debug_atom_vector = option
 
 
 class Drawer:
-    def __init__(self, molecule: str | MoleFile, title: str = None, config: DrawerConfig = None):
+    def __init__(self, molecule: str | Molecule, title: str = None, config: DrawerConfig = None):
         if isinstance(molecule, str):
-            mol = Chem.MolFromSmiles(molecule)
-            molecule = MoleFile(Chem.MolToMolBlock(mol), name=molecule)
-
+            molecule = Molecule(molecule, name=molecule)
         self.molecule = molecule
         self.title = title
         self.config = config if config is not None else DrawerConfig()
@@ -97,14 +116,17 @@ class Drawer:
         fig = self._draw_atoms(fig)
         fig = self._add_title(fig)
 
+        if self.config.atom_number_show:
+            fig = self._add_atom_numbers(fig)
+
         # debug plotting
-        if self.config.center_point:
+        if self.config.debug_center_point:
             fig.add_trace(go.Scatter(x=[0], y=[0], mode="markers", marker=dict(color="red", size=5)))
-        if self.config.bond_vector:
+        if self.config.debug_bond_vector:
             fig = self._add_bond_vectors(fig)
-        if self.config.bond_perpendicular:
+        if self.config.debug_bond_perpendicular:
             fig = self._add_bond_perpendicular(fig)
-        if self.config.atom_vector:
+        if self.config.debug_atom_vector:
             fig = self._add_atom_vector(fig)
 
         return fig
@@ -123,7 +145,7 @@ class Drawer:
         xaxes_kwargs = {
             "visible": self.config.layout_show_axis,
             "range": self.config.layout_range_x,
-            "fixedrange": self.config.fix_zoom,
+            "fixedrange": self.config.options_fix_zoom,
             "layer": "below traces",
         }
 
@@ -142,7 +164,7 @@ class Drawer:
         fig.update_yaxes(**yaxes_kwargs)
         return fig
 
-    ###### title ###########################################################################################################
+    ###### title ######################################################################################################
     def _add_title(self, fig: go.Figure) -> go.Figure:
         if not self.config.title_show or self.title is None:
             return fig
@@ -196,7 +218,7 @@ class Drawer:
 
         return x, y
 
-    ###### atoms ###########################################################################################################
+    ###### atoms ######################################################################################################
     def _draw_atoms(self, fig: go.Figure) -> go.Figure:
         for atom in self.molecule.atoms:
             if not self.config.atom_show_carbons and atom.symbol == "C":
@@ -317,10 +339,10 @@ class Drawer:
         )
 
     def _bond_double_center(self, fig: go.Figure, bond: Bond) -> go.Figure:
-        x_left = bond.x + bond.perpendicular[0] * self.config.bond_double_offset/2
-        x_right = bond.x - bond.perpendicular[0] * self.config.bond_double_offset/2
-        y_left = bond.y + bond.perpendicular[1] * self.config.bond_double_offset/2
-        y_right = bond.y - bond.perpendicular[1] * self.config.bond_double_offset/2
+        x_left = bond.x + bond.perpendicular[0] * self.config.bond_double_offset / 2
+        x_right = bond.x - bond.perpendicular[0] * self.config.bond_double_offset / 2
+        y_left = bond.y + bond.perpendicular[1] * self.config.bond_double_offset / 2
+        y_right = bond.y - bond.perpendicular[1] * self.config.bond_double_offset / 2
         if self.config.bond_double_center_length != 1:
             x0, x1, y0, y1 = shorten_line(x_left[0], x_left[1], y_left[0], y_left[1],
                                           self.config.bond_double_center_length)
@@ -378,6 +400,37 @@ class Drawer:
                                      color=self.config.bond_color, width=self.config.bond_width)
         return fig
 
+    ###### atom numbers ###############################################################################################
+    def _add_atom_numbers(self, fig: go.Figure) -> go.Figure:
+        for atom in self.molecule.atoms:
+            x, y = atom.get_atom_number_position(self.config.atom_number_alignment, self.config.atom_number_offset)
+
+            fig.add_annotation(
+                x=x,
+                y=y,
+                text=self._get_atom_number_text(atom),
+                showarrow=False,
+                font=dict(
+                    family=self.config.atom_number_font,
+                    size=self.config.atom_number_font_size,
+                    color=self.config.atom_number_font_color
+                ),
+                # bgcolor=self.config.atom_bgcolor if self.config.atom_background_shape == "tight" else None,
+                # borderwidth=self.config.atom_borderwidth,
+                # borderpad=self.config.atom_borderpad,
+                # opacity=0.8
+            )
+
+        return fig
+
+    def _get_atom_number_text(self, atom: Atom) -> str:
+        symbol = str(atom.number)
+
+        if self.config.atom_font_bold:
+            symbol = "<b>" + symbol + "</b>"
+
+        return symbol
+
     ###### saving #########################################################################################################
     def draw_img(self, file_location: str = "molecule.svg") -> str:
         fig = self.draw()
@@ -389,7 +442,7 @@ class Drawer:
         fig.write_html(file_location, auto_open=auto_open)
         return file_location
 
-    ###### debug #######################################################################################################
+    ########## debug #######################################################################################################
     def _add_bond_vectors(self, fig: go.Figure) -> go.Figure:
         for bond in self.molecule.bonds:
             fig.add_annotation(
@@ -449,4 +502,3 @@ class Drawer:
             )
 
         return fig
-
