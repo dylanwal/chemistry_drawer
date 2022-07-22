@@ -3,7 +3,7 @@ import math
 import numpy as np
 
 
-def normalise(vector: np.ndarray) -> np.ndarray:
+def normalize(vector: np.ndarray) -> np.ndarray:
     """
     Object is guaranteed to be a unit quaternion after calling this
     operation UNLESS the object is equivalent to Quaternion(0)
@@ -71,7 +71,7 @@ def offset_point_vector(x0: float, y0: float, vector: tuple[float, float] | list
         return x0 + offset * math.copysign(1, vector[0]), y0
 
     # diagonal vector
-    vector = normalise(vector)
+    vector = normalize(vector)
     vector = vector * offset
     return x0 + vector[0], y0 + vector[1]
 

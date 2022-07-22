@@ -66,7 +66,7 @@ def main_grid():
 
 
 if __name__ == "__main__":
-    main()
-    # main_time()
+    # main()
+    main_time()
     # main_profile()
     # main_grid()

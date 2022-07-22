@@ -79,9 +79,9 @@ def _parse_mole_file_main(file: str) -> tuple[dict, list[list], list[list]]:
     bond_block = _split_block(file_list[atom_block_last_index + 1:atom_block_last_index + 2 + bond_block_last_index])
 
     # double checks for parse
-    if first_row["number_atoms"] != len(atom_block):
+    if first_row["ring_size"] != len(atom_block):
         raise MoleParsingError(f"Number of atoms parsed does not match first row atom count. "
-                               f"(first row: {first_row['number_atoms']}, parsed: {len(atom_block)})")
+                               f"(first row: {first_row['ring_size']}, parsed: {len(atom_block)})")
     if first_row["number_bonds"] != len(bond_block):
         raise MoleParsingError("Number of bonds parsed does not match first row bond count. "
                                f"(first row: {first_row['number_bonds']}, parsed: {len(bond_block)})")
@@ -95,7 +95,7 @@ def _parse_first_row(first_row: str) -> dict:
         raise MoleParsingError("First row not correct.", str(first_row))
 
     return {
-        "number_atoms": int(first_row[0]),
+        "ring_size": int(first_row[0]),
         "number_bonds": int(first_row[1]),
         "chiral": bool(first_row[4]),
         "file_version": first_row[10]

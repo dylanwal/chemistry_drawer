@@ -27,6 +27,7 @@ class Atom:
 
         self.number_hydrogens = ATOM_VALENCY[self.symbol]
         self.bonds = []
+        self.rings = []
 
         self._vector = None
         self._number_of_bonds = None
@@ -63,7 +64,7 @@ class Atom:
             for bond in self.bonds:
                 vector += bond.center - self.position
 
-            self._vector = vector_math.normalise(vector/len(self.bonds))
+            self._vector = vector_math.normalize(vector / len(self.bonds))
 
         return self._vector
 
@@ -73,6 +74,10 @@ class Atom:
             self._number_of_bonds = np.sum([bond.type_.value for bond in self.bonds])
 
         return self._number_of_bonds
+
+    @property
+    def in_ring(self) -> bool:
+        return bool(self.rings)
 
     def add_bond(self, bond):
         self.bonds.append(bond)

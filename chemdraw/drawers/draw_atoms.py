@@ -25,6 +25,7 @@ class ConfigDrawerAtoms:
     borderpad = 0  # used when background_shape != tight
     align_offset = 0.3
     scatter_kwargs = dict(hoverinfo="skip")
+    text_y_offset = 0.07
 
     def __repr__(self):
         return f"show: {self.show}"
@@ -81,7 +82,7 @@ def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: li
         xy[counter, :] = [x, y]
         counter += 1
 
-    fig.add_trace(go.Scatter(x=xy[:counter, 0], y=xy[:counter, 1], mode="text", text=symbols,
+    fig.add_trace(go.Scatter(x=xy[:counter, 0], y=xy[:counter, 1] - config.text_y_offset, mode="text", text=symbols,
                              textfont=dict(family=config.font, color=config.font_color, size=config.font_size),
                              **config.scatter_kwargs))
 

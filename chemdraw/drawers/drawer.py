@@ -7,6 +7,7 @@ import chemdraw.drawers.draw_atoms as draw_atoms
 import chemdraw.drawers.draw_bonds as draw_bonds
 import chemdraw.drawers.draw_atom_numbers as draw_atom_numbers
 import chemdraw.drawers.draw_highlights as draw_highlights
+import chemdraw.drawers.draw_ring_highlights as draw_ring_highlights
 
 
 class DrawerConfig:
@@ -35,11 +36,15 @@ class DrawerConfig:
             "function": draw_highlights.draw_highlights,
             "kwargs": ["atoms", "bonds"]  # fig is added by default
         },
+        "ring_highlights": {
+            "function": draw_ring_highlights.draw_ring_highlight,
+            "kwargs": ["rings"]  # fig is added by default
+        }
     }
 
     def __init__(self):
         # general options
-        self.draw_order = ["bonds", "atoms", "atom_numbers", "debug", "title", "highlights"]
+        self.draw_order = ["ring_highlights", "bonds", "atoms", "atom_numbers", "debug", "title", "highlights"]
         self.options_fix_zoom = False
 
         # layout
@@ -61,6 +66,7 @@ class DrawerConfig:
         self.title = draw_title.ConfigDrawerTitle()
         self.debug = draw_debug.ConfigDrawerDebug()
         self.highlights = draw_highlights.ConfigDrawerHighlights()
+        self.ring_highlights = draw_ring_highlights.ConfigDrawerRingHighlights()
 
     def __repr__(self) -> str:
         return f"bonds: {self.bonds.show}, atoms: {self.atoms.show}, atom_numbers: {self.atom_numbers.show}, " \
@@ -119,6 +125,8 @@ class Drawer:
             kwargs_out["bonds"] = getattr(self.molecule, "bonds")
         if "atoms" in kwargs:
             kwargs_out["atoms"] = getattr(self.molecule, "atoms")
+        if "rings" in kwargs:
+            kwargs_out["rings"] = getattr(self.molecule, "rings")
 
         return kwargs_out
 
