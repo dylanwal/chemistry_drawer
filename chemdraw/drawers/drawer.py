@@ -6,6 +6,7 @@ import chemdraw.drawers.draw_title as draw_title
 import chemdraw.drawers.draw_atoms as draw_atoms
 import chemdraw.drawers.draw_bonds as draw_bonds
 import chemdraw.drawers.draw_atom_numbers as draw_atom_numbers
+import chemdraw.drawers.draw_highlights as draw_highlights
 
 
 class DrawerConfig:
@@ -30,11 +31,15 @@ class DrawerConfig:
             "function": draw_atom_numbers.draw_atom_numbers,
             "kwargs": ["atoms"]  # fig is added by default
         },
+        "highlights": {
+            "function": draw_highlights.draw_highlights,
+            "kwargs": ["atoms", "bonds"]  # fig is added by default
+        },
     }
 
     def __init__(self):
         # general options
-        self.draw_order = ["bonds", "atoms", "atom_numbers", "debug", "title"]  # , "highlights"
+        self.draw_order = ["bonds", "atoms", "atom_numbers", "debug", "title", "highlights"]
         self.options_fix_zoom = False
 
         # layout
@@ -55,6 +60,11 @@ class DrawerConfig:
         self.atom_numbers = draw_atom_numbers.ConfigDrawerAtomNumber()
         self.title = draw_title.ConfigDrawerTitle()
         self.debug = draw_debug.ConfigDrawerDebug()
+        self.highlights = draw_highlights.ConfigDrawerHighlights()
+
+    def __repr__(self) -> str:
+        return f"bonds: {self.bonds.show}, atoms: {self.atoms.show}, atom_numbers: {self.atom_numbers.show}, " \
+               f"title: {self.title.show}, debug: {self.debug.debug}"
 
 
 class Drawer:
@@ -65,6 +75,15 @@ class Drawer:
 
         self.title = title
         self.config = config if config is not None else DrawerConfig()
+
+    def __repr__(self) -> str:
+        text = "Drawer for: "
+        if self.title:
+            text += str(self.title)
+        else:
+            text += str(self.molecule)
+
+        return text
 
     def draw(self, fig: go.Figure = None, auto_open: bool = False) -> go.Figure:
         if fig is None:

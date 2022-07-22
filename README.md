@@ -49,8 +49,8 @@ Pip installable package available.
 import chemdraw
 
 mol = "O=C(C)Oc1ccccc1C(=O)O"
-mod_drawer = chemdraw.Drawer(mol, title=mol)
-fig = mod_drawer.draw()
+molecule_drawer = chemdraw.Drawer(mol, title=mol)
+fig = molecule_drawer.draw()
 fig.show()
 ```
 (Image may be distorted from viewer, but real image is not.)

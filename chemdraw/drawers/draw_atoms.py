@@ -10,8 +10,8 @@ class ConfigDrawerAtoms:
     font = "Arial"
     font_bold = True
     font_size = 50
-    colors_add = False
-    font_color_default = "black"
+    colors_add = False  # set 'method' to False
+    font_color = "black"
     colors = {
         "C": "black",
         "O": "red",
@@ -23,8 +23,11 @@ class ConfigDrawerAtoms:
     marker_size = 50  # used when background_shape != tight
     bgcolor = "white"  # set to None to remove bgcolor
     borderpad = 0  # used when background_shape != tight
-    align_offset = 0.4
+    align_offset = 0.3
     scatter_kwargs = dict(hoverinfo="skip")
+
+    def __repr__(self):
+        return f"show: {self.show}"
 
 
 def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
@@ -32,11 +35,11 @@ def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> 
         return fig
 
     if config.method:
-        fig, xy = _add_background_with_markers(fig, config, atoms)
-        return _add_atoms_with_scatter(fig, config, atoms, xy)
+        fig = _add_background_with_markers(fig, config, atoms)
+        return _add_atoms_with_scatter(fig, config, atoms)
     else:
         if config.background_shape != "tight":
-            fig, xy = _add_background_with_markers(fig, config, atoms)
+            fig = _add_background_with_markers(fig, config, atoms)
         return _add_atoms_with_annotations(fig, config, atoms)
 
 
@@ -66,7 +69,7 @@ def _add_atoms_with_annotations(fig: go.Figure, config: ConfigDrawerAtoms, atoms
     return fig
 
 
-def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom], xy: np.ndarray) -> go.Figure:
+def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
     xy = np.empty((len(atoms), 2), dtype="float64")
     counter = 0
     symbols = []
@@ -79,8 +82,7 @@ def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: li
         counter += 1
 
     fig.add_trace(go.Scatter(x=xy[:counter, 0], y=xy[:counter, 1], mode="text", text=symbols,
-                             textfont=dict(family=config.font, color=config.font_color_default,
-                                           size=config.font_size),
+                             textfont=dict(family=config.font, color=config.font_color, size=config.font_size),
                              **config.scatter_kwargs))
 
     return fig
@@ -129,7 +131,7 @@ def _get_color(config: ConfigDrawerAtoms, atom: str) -> str:
         if atom in config.colors:
             return config.colors[atom]
 
-    return config.font_color_default
+    return config.font_color
 
 
 def _add_background_with_markers(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
@@ -151,4 +153,4 @@ def _add_background_with_markers(fig: go.Figure, config: ConfigDrawerAtoms, atom
                    )
     )
 
-    return fig, xy
+    return fig

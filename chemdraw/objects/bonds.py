@@ -40,7 +40,10 @@ class Bond:
         self.number = id_
 
     def __repr__(self) -> str:
-        return f"{self.atoms[0].symbol} -> {self.atoms[1].symbol} || {self.type_.name}"
+        text = f"{self.atoms[0].symbol} ({self.atoms[0].id_}) -> {self.atoms[1].symbol} ({self.atoms[1].id_})"
+        if self.type_ != BondType.single:
+            text += f" || {self.type_.name}"
+        return text
 
     @property
     def x(self) -> np.ndarray:

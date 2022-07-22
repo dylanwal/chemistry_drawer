@@ -6,7 +6,7 @@ from chemdraw.objects.atoms import Atom
 
 
 class ConfigDrawerAtomNumber:
-    show = True
+    show = False
     method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
     font = "Arial"
     font_bold = True
@@ -15,6 +15,9 @@ class ConfigDrawerAtomNumber:
     alignment = "top"  # ["best", "left", "right", "top", "bottom"]
     offset = 0.5
     scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
+
+    def __repr__(self):
+        return f"show: {self.show}"
 
 
 def draw_atom_numbers(fig: go.Figure, config: ConfigDrawerAtomNumber, atoms: list[Atom]) -> go.Figure:
@@ -54,7 +57,9 @@ def _add_atom_numbers_with_scatter(fig: go.Figure, config: ConfigDrawerAtomNumbe
     symbols = [_get_atom_number_text(config, atom) for atom in atoms]
     xy = np.array([atom.get_atom_number_position(config.alignment, config.offset) for atom in atoms])
 
-    fig.add_trace(go.Scatter(x=xy[:,0], y=xy[:,1], mode="text", text=symbols, **config.scatter_kwargs))
+    fig.add_trace(go.Scatter(x=xy[:, 0], y=xy[:, 1], mode="text", text=symbols,
+                             textfont=dict(family=config.font, color=config.font_color, size=config.font_size),
+                             **config.scatter_kwargs))
 
     return fig
 

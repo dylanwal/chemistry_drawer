@@ -2,13 +2,7 @@
 import chemdraw
 
 
-def example_1():
-    mol = "O=C(C)Oc1ccccc1C(=O)O"
-    molecule_drawer = chemdraw.Drawer(mol, title=mol)
-    fig = molecule_drawer.draw_img(".\\imgs\\example_1.svg")
-
-
-def example_2():
+def main():
     molecules = [
         "CCCCCCCCCC",
         "CC(CC(CCC)C)CC",
@@ -22,10 +16,12 @@ def example_2():
         "CCCC1(CC(O1)C2=CC(=NC2=O)OC)O"
     ]
 
+    config = chemdraw.DrawerConfig()
+    config.atoms.method = True
+
     drawer = chemdraw.GridDrawer(molecules)
-    drawer.draw_png("example_2")
+    drawer.draw_html(auto_open=True)
 
 
 if __name__ == "__main__":
-    # example_1()
-    example_2()
+    main()

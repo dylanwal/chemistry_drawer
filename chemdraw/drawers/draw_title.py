@@ -16,6 +16,9 @@ class ConfigDrawerTitle:
     pad_structure = 1
     line_height = 0.3
 
+    def __repr__(self):
+        return f"show: {self.show}"
+
 
 def draw_title(fig: go.Figure, config: ConfigDrawerTitle, title: str, molecule: Molecule) -> go.Figure:
     if not config.show or title is None:

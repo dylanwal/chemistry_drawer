@@ -12,6 +12,9 @@ class ConfigDrawerDebug:
     show_bond_perpendicular = False
     show_atom_vector = False
 
+    def __repr__(self):
+        return f"show: {self.debug}"
+
     @property
     def debug(self) -> bool:
         """ Turn on all debugging."""

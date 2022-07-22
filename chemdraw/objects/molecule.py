@@ -89,6 +89,18 @@ class Molecule:
     def offset(self) -> np.ndarray:
         return self._offset
 
+    @property
+    def atom_highlights(self) -> bool:
+        return any([atom.highlight for atom in self.atoms])
+
+    @property
+    def bond_highlights(self) -> bool:
+        return any([bond.highlight for bond in self.bonds])
+
+    @property
+    def has_highlights(self) -> bool:
+        return any([self.atom_highlights, self.bond_highlights])
+
     def get_top_atom(self):
         top = self.atoms[0]
         for atom in self.atoms:
