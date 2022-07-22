@@ -149,10 +149,26 @@ class Bond:
         elif self.atoms[0].number_of_bonds == 3 and self.atoms[1].number_of_bonds == 4:
             return alignment_decision(self.perpendicular, self.atoms[0].vector)
 
+    def get_bond_number_position(self, alignment: str, offset: float) -> tuple[float, float]:
+        if alignment == "left":
+            return self.center[0] + offset, self.center[1]
+        elif alignment == "right":
+            return self.center[0] - offset, self.center[1]
+        elif alignment == "top":
+            return self.center[0], self.center[1] + offset
+        elif alignment == "bottom":
+            return self.center[0], self.center[1] - offset
 
-def alignment_decision(atom_vector: np.ndarray, bond_perpendicular: np.ndarray) -> BondAlignment:
+        # best
+        if self.alignment == BondAlignment.center or self.alignment == BondAlignment.opposite:
+            return self.center[0] + self.perpendicular[0] * offset, self.center[1] + self.perpendicular[1] * offset
+        else:
+            return self.center[0] - self.perpendicular[0] * offset, self.center[1] - self.perpendicular[1] * offset
+
+
+def alignment_decision(vector: np.ndarray, bond_perpendicular: np.ndarray) -> BondAlignment:
     """ True: same side as perpendicular, False: opposite side of perpendicular """
-    dot = np.dot(atom_vector, bond_perpendicular)
+    dot = np.dot(vector, bond_perpendicular)
     if dot >= 0:
         return BondAlignment.perpendicular
     return BondAlignment.opposite

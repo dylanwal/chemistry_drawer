@@ -12,8 +12,8 @@ class ConfigDrawerAtomNumber:
     font_bold = True
     font_size = 20
     font_color = "black"
-    alignment = "top"  # ["best", "left", "right", "top", "bottom"]
-    offset = 0.5
+    alignment = "best"  # ["best", "left", "right", "top", "bottom"]
+    offset = 0.4
     scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
     def __repr__(self):

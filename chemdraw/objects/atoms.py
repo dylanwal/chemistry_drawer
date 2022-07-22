@@ -31,7 +31,6 @@ class Atom:
 
         self._vector = None
         self._number_of_bonds = None
-        self._atom_number_position = None
 
         self.parent = None
 
@@ -61,10 +60,38 @@ class Atom:
     def vector(self) -> np.ndarray:
         if self._vector is None:
             vector = np.zeros(2, dtype="float64")
-            for bond in self.bonds:
-                vector += bond.center - self.position
+            if len(self.bonds) == 1:
+                self._vector = -1 * vector_math.normalize(self.bonds[0].center - self.position)
+                # TODO: fix and atom 'H'
 
-            self._vector = vector_math.normalize(vector / len(self.bonds))
+            elif len(self.bonds) == 2:
+                for bond in self.bonds:
+                    vector += vector_math.normalize(bond.center - self.position)
+                self._vector = -1 * vector
+            elif len(self.bonds) == 3:
+                for bond in self.bonds:
+                    from chemdraw.objects.bonds import BondType
+                    if bond.type_ == BondType.double:
+                        self._vector = -1 * (bond.center - self.position)
+                        break
+                else:
+                    for bond in self.bonds:
+                        vector += vector_math.normalize(bond.center - self.parent.position)
+                        self._vector = vector_math.normalize(vector)
+
+            else:
+                # dots = {}
+                # for bond in self.bonds:
+                #     for bond_ in self.bonds:
+                #         dots[f"{np.max([bond.id_, bond_.id_])}_{np.min([bond.id_, bond_.id_])}"] = \
+                #         np.dot(bond.center-self.position, bond_.center-self.position)
+                #
+                # keys = []
+                # values = []
+                # for k, v in dots.items():
+                #     keys.append(k)
+                #     values.append(v)
+                self._vector = (0, 0)
 
         return self._vector
 
@@ -84,9 +111,6 @@ class Atom:
         self.number_hydrogens -= bond.type_.value
 
     def get_atom_number_position(self, alignment: str, offset: float) -> tuple[float, float]:
-        if self._atom_number_position is not None:
-            return self._atom_number_position
-
         if alignment == "left":
             return self.position[0] + offset, self.position[1]
         elif alignment == "right":
@@ -97,6 +121,4 @@ class Atom:
             return self.position[0], self.position[1] - offset
 
         # best
-        if self.number_of_bonds == 1:
-            # self.bonds[0].vector
-            return self.position[0] + offset, self.position[1]
+        return self.position[0] + self.vector[0] * offset, self.position[1] + self.vector[1] * offset
