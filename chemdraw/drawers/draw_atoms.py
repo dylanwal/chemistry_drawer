@@ -110,7 +110,7 @@ def _add_hydrogen_text(atom: Atom) -> tuple[str, str]:
     else:
         subscript = "<sub>" + str(atom.number_hydrogens) + "</sub>"
 
-    if atom.vector[0] > 0:
+    if atom.vector[0] < 0:
         # hydrogen on left side of atom
         return "H" + subscript + atom.symbol, "left"
     else:

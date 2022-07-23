@@ -111,14 +111,10 @@ class Drawer:
         return fig
 
     def _draw(self, fig: go.Figure) -> go.Figure:
-        import time
         for key in self.config.draw_order:
-            start = time.time()
             func = self.config.drawers[key]["function"]
             kwargs = self._get_kwargs(key, self.config.drawers[key]["kwargs"])
             fig = func(fig, **kwargs)
-            stop = time.time()
-            print(key, stop-start)
 
         return fig
 

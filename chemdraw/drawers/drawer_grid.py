@@ -1,4 +1,6 @@
+import copy
 import math
+import os
 
 import plotly.graph_objs as go
 import numpy as np
@@ -95,6 +97,8 @@ def html_table_from_figs(figs: list[go.Figure], shape: tuple[int, int] | list[in
 
 def png_table(imgs: list[str], shape: tuple[int, int], file_name: str = "molecule_grid.png", auto_open: bool = True):
     from PIL import Image
+    imgs = copy.copy(imgs)
+
     im = Image.open(imgs[0])
 
     cell_width = im.width
@@ -194,10 +198,16 @@ class GridDrawer:
         html_table_from_figs(figs, self.shape, file_name, auto_open=auto_open, style=self.config.html_table_style,
                              **kwargs)
 
-    def draw_png(self, file_name: str = "molecule_grid.png", folder: str = "imgs", auto_open: bool = False):
+    def draw_png(self, file_name: str = "molecule_grid.png", folder: str = "imgs", auto_open: bool = False,
+                 save_individual_imgs: bool = False):
         make_new_folder(folder)
         imgs = []
         for i, drawer in enumerate(self.drawers):
             imgs.append(drawer.draw_img(file_location=folder + f"\\img{i}.png"))
 
         png_table(imgs, self.shape, file_name, auto_open)
+
+        if not save_individual_imgs:
+            # remove temporary images
+            for img in imgs:
+                os.remove(img)

@@ -6,8 +6,12 @@
 ![downloads](https://static.pepy.tech/badge/chemdraw)
 ![license](https://img.shields.io/github/license/dylanwal/chemdraw)
 
-Use plotly to draw molecules.
-The code is highly configurable to get the exact look you want!
+Draw molecules with [Plotly](https://github.com/plotly/plotly.py).
+
+**Make molecules look the way you want it!**
+
+The package provides global control of aesthetics with `config`, and allows for local control by specifying details 
+for every atom, bond, and ring.
 
 
 (Development still in progress. So there are some bugs. But its working pretty well so far!)
@@ -44,20 +48,24 @@ Pip installable package available.
 ---
 
 # Examples:
+(Image may be distorted from viewer, but real image is not.)
 
+
+## Basic Usage
 ```python
 import chemdraw
 
 mol = "O=C(C)Oc1ccccc1C(=O)O"
-molecule_drawer = chemdraw.Drawer(mol, title=mol)
-fig = molecule_drawer.draw()
+drawer = chemdraw.Drawer(mol, title=mol)
+fig = drawer.draw()
 fig.show()
 ```
-(Image may be distorted from viewer, but real image is not.)
 
-![example 1 image](./examples/imgs/example_1.svg)
+![simple example](./examples/imgs/simple.svg)
 
 ---
+## Grid
+
 
 ```python
 import chemdraw
@@ -78,6 +86,59 @@ molecules = [
 drawer = chemdraw.GridDrawer(molecules)
 drawer.draw_png("example_2")
 ```
-(Image may be distorted from viewer, but real image is not.)
 
-![example 2 image](./examples/imgs/example_2.png)
+![grid example](./examples/imgs/grid.png)
+
+---
+
+## Atom and Bond Numbers
+
+Atom numbers (black text) 
+
+Bond numbers (gray text)
+
+```python
+import chemdraw
+
+mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
+
+config = chemdraw.DrawerConfig()
+config.atom_numbers.show = True
+config.bond_numbers.show = True
+
+drawer = chemdraw.Drawer(mol, title=mol, config=config)
+fig = drawer.draw()
+fig.show()
+
+```
+
+
+![atom bond example](./examples/imgs/atom_bond_numbers.svg)
+
+
+---
+
+## Ring Highlights
+
+```python
+import chemdraw
+
+mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
+
+config = chemdraw.DrawerConfig()
+config.ring_highlights.show = True
+
+molecule = chemdraw.Molecule(mol)
+for ring in molecule.rings:
+    ring.highlight = True  # all rings are highlighted (with default color)
+    if ring.aromatic:  #  highlighted aromatic green
+        ring.color = "rgba(0,255,0,0.5)"
+
+drawer = chemdraw.Drawer(molecule, title=mol, config=config)
+fig = drawer.draw()
+fig.show()
+
+```
+
+![ring highlights](./examples/imgs/ring_highlights.svg)
+

@@ -11,11 +11,7 @@ import chemdraw.utils.vector_math as vector_math
 class ConfigDrawerRingHighlights:
     show = False
     offset = 1
-    color = "rgba(255,0,0,0.5)"
-    bond_color = "rgba(255,0,0,0.5)"
-    atom_width = 30
-    bond_width = 30
-    scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
+    color = "rgba(69, 127, 222, 0.5)"
 
     def __repr__(self):
         return f"show ring highlights: {self.show}"
