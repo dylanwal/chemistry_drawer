@@ -122,11 +122,11 @@ def _add_hydrogen_text(atom: Atom) -> tuple[str, str]:
 
 def _text_alignment(config: ConfigDrawerAtoms, atom: Atom, align: str) -> tuple[float, float]:
     if align == "center":
-        return atom.position[0], atom.position[1]
+        return atom.coordinates[0], atom.coordinates[1]
     elif align == "left":
-        return atom.position[0] - config.align_offset, atom.position[1]
+        return atom.coordinates[0] - config.align_offset, atom.coordinates[1]
     elif align == "right":
-        return atom.position[0] + config.align_offset, atom.position[1]
+        return atom.coordinates[0] + config.align_offset, atom.coordinates[1]
 
 
 def _get_color(config: ConfigDrawerAtoms, atom: Atom) -> str:
@@ -148,7 +148,7 @@ def _add_background_with_markers(fig: go.Figure, config: ConfigDrawerAtoms, atom
         if not config.show_carbons and atom.symbol == "C":
             continue  # skip drawing carbons
 
-        xy[counter] = atom.position
+        xy[counter] = atom.coordinates
         counter += 1
 
     xy = xy[:counter, :]

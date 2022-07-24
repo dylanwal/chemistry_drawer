@@ -3,3 +3,4 @@ plotly==5.9.0
 kaleido==0.1.0post1
 rdkit==2022.3.4
 Pillow==9.2.0
+scikit-learn==1.1.1

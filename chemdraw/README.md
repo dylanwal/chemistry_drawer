@@ -1,9 +1,12 @@
 Improvements to add:
-2) rotate molecule, add molecule vector
-5) gif construct atom
-6) grid- subplots
-7) mutation gif
+2) rescale image
+3) grid single figure
+4) grid handles a list of configs or list of molecules
+6) gif construct atom
+7) grid- subplots
+8) mutation gif
 
 Room for improvement:
 1) highlight atoms and bonds 
    1) smooth out and fix overlaps
+2) draw bonds so atom symbols don't need white background; then allow background to be transparent

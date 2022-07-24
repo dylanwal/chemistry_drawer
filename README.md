@@ -37,12 +37,13 @@ Pip installable package available.
 * [kaleido](https://github.com/plotly/Kaleido)  (0.1.0post1)
   * Converts plotly graphs to images (png, svg, etc.)
   * I am not using the most recent version of kaleido as it does not play nice with my computer. Try the newest 
-	version, but if you are having issues install this specific version. 
+    version, but if you are having issues install this specific version. 
 * [rdkit](https://github.com/rdkit/rdkit) (2022.3.4)
   * Convert SMILES to position coordinates.
 * [Pillow](https://github.com/python-pillow/Pillow) (9.2.0)
   * Used for image manipulation.
-  
+* [scikit-learn](https://github.com/scikit-learn/scikit-learn) (1.1.1)
+  * Used to reorient molecules.
 
 ---
 ---
@@ -77,7 +78,7 @@ molecules = [
     "O1CCCCC1C",
     "C1=CC=CC=C1C",
     "O=C(C)Oc1ccccc1C(=O)O",
-    "CN1CCC23C4C1CC5=C2C(=C(C=C5)O)OC3C(C=C4)O",
+    "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1",
     "CC(C)(C)N(C)C(=O)C14C3C2C1C5C2C3C45C(=O)C69C8C7C6C%10C7C8C9%10",
     "CC3C(C(=O)OCC1=CCN2C1C(CC2)OC(=O)C(CC(=O)O3)(C(C)C)O)(C(C)C)O",
     "CCCC1(CC(O1)C2=CC(=NC2=O)OC)O"
@@ -91,7 +92,7 @@ drawer.draw_png("example_2")
 
 ---
 
-## Atom and Bond Numbers
+## Atom, Bond, and Ring Numbers
 
 Atom Numbers (black text) 
 

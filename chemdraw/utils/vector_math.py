@@ -76,6 +76,16 @@ def offset_point_vector(x0: float, y0: float, vector: tuple[float, float] | list
     return x0 + vector[0], y0 + vector[1]
 
 
+def rotation_matrix(current_vector: np.ndarray, new_vector: np.ndarray) -> np.ndarray:
+    if np.all(current_vector == new_vector):
+        return np.array([[1, 0], [0, 1]], dtype="float64")
+    dot = current_vector[0]*new_vector[0] + current_vector[1]*new_vector[1]     # dot product
+    det = current_vector[0]*new_vector[1] - current_vector[1]*new_vector[0]     # determinant
+    theta = np.arctan2(det, dot)
+    cos_, sin_ = np.cos(theta), np.sin(theta)
+    return np.array(((cos_, sin_), (-sin_, cos_)))
+
+
 def local_run():
     import plotly.graph_objs as go
 

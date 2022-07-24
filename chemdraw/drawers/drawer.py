@@ -1,6 +1,8 @@
+
 import plotly.graph_objs as go
 
 from chemdraw.objects.molecule import Molecule
+import chemdraw.drawers.layout as layout
 import chemdraw.drawers.draw_debug as draw_debug
 import chemdraw.drawers.draw_title as draw_title
 import chemdraw.drawers.draw_atoms as draw_atoms
@@ -28,7 +30,7 @@ class DrawerConfig:
         },
         "debug": {
             "function": draw_debug.draw_debug,
-            "kwargs": ["bonds", "atoms"]  # fig is added by default
+            "kwargs": ["bonds", "atoms", "molecule"]  # fig is added by default
         },
         "atom_numbers": {
             "function": draw_atom_numbers.draw_atom_numbers,
@@ -56,22 +58,8 @@ class DrawerConfig:
         # general options
         self.draw_order = ["ring_highlights", "bonds", "atoms", "atom_numbers", "bond_numbers", "ring_numbers",
                            "debug", "title", "highlights"]
-        self.options_fix_zoom = False
-        self.show_text_output = False
 
-        # layout
-        self.layout_background_color = "white"
-        self.layout_auto_size = False
-        self.layout_margin = dict(l=0, r=0, b=0, t=0, pad=0)
-        self.layout_width = 600  # only used with layout_auto_scale is False
-        self.layout_height = 600  # only used with layout_auto_scale is False
-        self.layout_auto_scale = True  # only used with layout_auto_scale is False
-        self.layout_range_x = [-5, 5]
-        self.layout_range_y = [-5, 5]
-        self.layout_show_axis = False
-        self.layout_dragmode = "pan"
-
-        # drawers
+        self.layout = layout.ConfigLayout()
         self.bonds = draw_bonds.ConfigDrawerBonds()
         self.atoms = draw_atoms.ConfigDrawerAtoms()
         self.atom_numbers = draw_atom_numbers.ConfigDrawerAtomNumber()
@@ -110,7 +98,7 @@ class Drawer:
             fig = go.Figure()
 
         fig = self._draw(fig)
-        fig = self._layout(fig)
+        fig = self.config.layout.apply_layout(fig)
 
         if auto_open:
             fig.show()
@@ -126,8 +114,6 @@ class Drawer:
             fig = func(fig, **kwargs)
             end = time.time()
             print(key, end-start)
-            if self.config.show_text_output:
-                print(f"{key} added to plot")
 
         return fig
 
@@ -145,39 +131,6 @@ class Drawer:
             kwargs_out["rings"] = getattr(self.molecule, "rings")
 
         return kwargs_out
-
-    def _layout(self, fig: go.Figure) -> go.Figure:
-        layout_kwargs = {
-            "showlegend": False,
-            "plot_bgcolor": self.config.layout_background_color,
-            "dragmode": self.config.layout_dragmode,
-            "margin": self.config.layout_margin
-        }
-        if not self.config.layout_auto_size:
-            layout_kwargs["width"] = self.config.layout_width
-            layout_kwargs["height"] = self.config.layout_height
-
-        xaxes_kwargs = {
-            "visible": self.config.layout_show_axis,
-            "range": self.config.layout_range_x,
-            "fixedrange": self.config.options_fix_zoom,
-            "layer": "below traces",
-        }
-
-        yaxes_kwargs = {
-            "visible": self.config.layout_show_axis,
-            "layer": "below traces"
-        }
-        if self.config.layout_auto_size:
-            yaxes_kwargs["scaleanchor"] = "x"
-            yaxes_kwargs["scaleratio"] = 1
-        else:
-            yaxes_kwargs["range"] = self.config.layout_range_y
-
-        fig.update_layout(**layout_kwargs)
-        fig.update_xaxes(**xaxes_kwargs)
-        fig.update_yaxes(**yaxes_kwargs)
-        return fig
 
     def draw_img(self, file_location: str = "molecule.svg") -> str:
         fig = self.draw()

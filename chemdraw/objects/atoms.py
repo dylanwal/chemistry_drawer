@@ -20,10 +20,10 @@ ATOM_VALENCY = {
 
 
 class Atom:
-    def __init__(self, symbol: str, position: np.ndarray, id_: int):
+    def __init__(self, symbol: str, id_: int, parent):
         self.symbol = symbol
-        self._position = position
         self.id_ = id_
+        self.parent = parent
 
         self.number_hydrogens = ATOM_VALENCY[self.symbol]
         self.bonds = []
@@ -31,8 +31,6 @@ class Atom:
 
         self._vector = None
         self._number_of_bonds = None
-
-        self.parent = None
 
         # drawing stuff
         self.font = None  # ConfigDrawerAtoms.method needs to be False
@@ -44,42 +42,37 @@ class Atom:
         self.number = self.id_
 
     def __repr__(self) -> str:
-        return f"{self.symbol} (id: {self.id_}): [{self.position[0]}, {self.position[1]}] with {len(self.bonds)} bonds"
+        return f"{self.symbol} (id: {self.id_}): [{self.coordinates[0]}, {self.coordinates[1]}] with {len(self.bonds)} bonds"
 
     @property
-    def position(self) -> np.ndarray:
-        if self.parent is not None:
-            return self._position + self.parent.offset
+    def coordinates(self) -> np.ndarray:
+        return self.parent.atom_coordinates[self.id_, :]
 
-        return self._position
-
-    @position.setter
-    def position(self, position: np.ndarray):
-        self._position = position - self.parent.offset
-        for bond in self.bonds:
-            bond.update_position()
+    @coordinates.setter
+    def coordinates(self, coordinates: np.ndarray):
+        self.parent.atom_coordinates[self.id_, :] = coordinates
 
     @property
     def vector(self) -> np.ndarray:
         if self._vector is None:
             vector = np.zeros(2, dtype="float64")
             if len(self.bonds) == 1:
-                self._vector = -1 * vector_math.normalize(self.bonds[0].center - self.position)
+                self._vector = -1 * vector_math.normalize(self.bonds[0].center - self.coordinates)
                 # TODO: fix and atom 'H'
 
             elif len(self.bonds) == 2:
                 for bond in self.bonds:
-                    vector += vector_math.normalize(bond.center - self.position)
+                    vector += vector_math.normalize(bond.center - self.coordinates)
                 self._vector = -1 * vector
             elif len(self.bonds) == 3:
                 for bond in self.bonds:
                     from chemdraw.objects.bonds import BondType
                     if bond.type_ == BondType.double:
-                        self._vector = -1 * (bond.center - self.position)
+                        self._vector = -1 * (bond.center - self.coordinates)
                         break
                 else:
                     for bond in self.bonds:
-                        vector += vector_math.normalize(bond.center - self.parent.position)
+                        vector += vector_math.normalize(bond.center - self.parent.coordinates)
                         self._vector = vector_math.normalize(vector)
 
             else:
@@ -115,13 +108,13 @@ class Atom:
 
     def get_atom_number_position(self, alignment: str, offset: float) -> tuple[float, float]:
         if alignment == "left":
-            return self.position[0] + offset, self.position[1]
+            return self.coordinates[0] + offset, self.coordinates[1]
         elif alignment == "right":
-            return self.position[0] - offset, self.position[1]
+            return self.coordinates[0] - offset, self.coordinates[1]
         elif alignment == "top":
-            return self.position[0], self.position[1] + offset
+            return self.coordinates[0], self.coordinates[1] + offset
         elif alignment == "bottom":
-            return self.position[0], self.position[1] - offset
+            return self.coordinates[0], self.coordinates[1] - offset
 
         # best
-        return self.position[0] + self.vector[0] * offset, self.position[1] + self.vector[1] * offset
+        return self.coordinates[0] + self.vector[0] * offset, self.coordinates[1] + self.vector[1] * offset

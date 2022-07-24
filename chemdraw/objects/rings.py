@@ -5,18 +5,17 @@ from chemdraw.objects.bonds import Bond
 
 
 class Ring:
-    def __init__(self, atom_ids: list[int], id_: int, aromatic: bool = None):
+    def __init__(self, atom_ids: list[int], id_: int, parent, aromatic: bool = None):
         self.id_ = id_
         self.atom_ids = atom_ids
         self.aromatic = aromatic
         self.atoms: list[Atom] = []
         self.bonds: list[Bond] = []
-        self.parent = None
+        self.parent = parent
 
         self._center = None
 
         # for drawing
-
         self.number = id_
         self.highlight = False
         self.highlight_color = None
@@ -30,16 +29,13 @@ class Ring:
 
     @property
     def center(self) -> np.ndarray:
-        if self.parent is not None:
-            return self._center + self.parent.offset
-
-        return self._center
+        return np.mean(self.parent.atom_coordinates[self.atom_ids, :], axis=0)
 
     @property
     def coordinates(self) -> np.ndarray:
         coordinates = np.empty((self.ring_size, 2))
         for i, atom in enumerate(self.atoms):
-            coordinates[i] = atom.position
+            coordinates[i] = atom.coordinates
 
         return coordinates
 

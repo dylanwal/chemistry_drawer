@@ -18,10 +18,11 @@ class BondAlignment(enum.Enum):
 
 
 class Bond:
-    def __init__(self, atom_ids: np.ndarray, bond_type: int, id_: int):
+    def __init__(self, atom_ids: np.ndarray, bond_type: int, id_: int, parent):
         self.atom_ids = atom_ids
-        self.id_ = id_
         self.type_ = BondType(bond_type)
+        self.id_ = id_
+        self.parent = parent
 
         self.atoms = []
         self.rings = []
@@ -32,8 +33,6 @@ class Bond:
         self._perpendicular = None
         self._alignment = None
         self._center = None
-
-        self.parent = None
 
         # drawing stuff
         self.color = None
@@ -51,23 +50,23 @@ class Bond:
 
     @property
     def x(self) -> np.ndarray:
-        return self._x + self.parent.offset[0]
+        return np.array([self.atoms[0].coordinates[0], self.atoms[1].coordinates[0]])
 
     @property
     def y(self) -> np.ndarray:
-        return self._y + self.parent.offset[1]
+        return np.array([self.atoms[0].coordinates[1], self.atoms[1].coordinates[1]])
 
     @property
     def vector(self) -> np.ndarray:
-        return self._vector
+        return vector_math.normalize(np.array([self.x[1] - self.x[0], self.y[1] - self.y[0]]))
 
     @property
     def perpendicular(self) -> np.ndarray:
-        return self._perpendicular
+        return np.array([-self.vector[1], self.vector[0]])
 
     @property
     def center(self) -> np.ndarray:
-        return self._center + self.parent.offset
+        return np.array([np.mean(self.x), np.mean(self.y)])
 
     @property
     def alignment(self) -> BondAlignment:
@@ -93,25 +92,6 @@ class Bond:
     @property
     def in_ring(self) -> bool:
         return bool(self.rings)
-
-    def add_atoms(self, atom1, atom2):
-        self.atoms = [atom1, atom2]
-        self._update_position()
-        self._update_vectors()
-
-    def _update_position(self):
-        self._x = np.array([self.atoms[0].position[0], self.atoms[1].position[0]])
-        self._y = np.array([self.atoms[0].position[1], self.atoms[1].position[1]])
-
-    def _update_vectors(self):
-        if self.parent is None:
-            self._vector = vector_math.normalize(np.array([self._x[1] - self._x[0], self._y[1] - self._y[0]]))
-            self._perpendicular = np.array([-self.vector[1], self.vector[0]])
-            self._center = np.array([np.mean(self._x), np.mean(self._y)])
-        else:
-            self._vector = vector_math.normalize(np.array([self.x[1] - self.x[0], self.y[1] - self.y[0]]))
-            self._perpendicular = np.array([-self.vector[1], self.vector[0]])
-            self._center = np.array([np.mean(self.x), np.mean(self.y)])
 
     def _get_alignment(self) -> BondAlignment:
         # only look at double bonds

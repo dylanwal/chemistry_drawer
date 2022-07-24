@@ -1,46 +1,23 @@
-
 import numpy as np
 
 from chemdraw.errors import MoleParsingError
-from chemdraw.objects.atoms import Atom
-from chemdraw.objects.bonds import Bond
 
 
-def parse_mole_file(mole_file: str) -> tuple[list[Atom], list[Bond], str]:
+def parse_mole_file(mole_file: str) -> tuple[list[str], np.ndarray, np.ndarray, str]:
     first_row, atom_block, bond_block = _parse_mole_file_main(mole_file)
-    atoms = _get_atoms(atom_block)
-    bonds = _get_bonds(bond_block)
-    _add_bond_atoms(atoms, bonds)
-    return atoms, bonds, first_row["file_version"]
-
-
-def _get_atoms(atom_block: list[list]) -> list[Atom]:
-    atoms = []
-    for i, row in enumerate(atom_block):
-        atoms.append(
-            Atom(symbol=row[3], position=np.array((row[0], row[1]), dtype="float64"), id_=i)
-        )
-
-    return atoms
-
-
-def _get_bonds(bond_block: list[list]) -> list[Bond]:
+    atom_symbols, atom_coordinates = _get_atoms(atom_block)
     bond_block = np.array(bond_block, dtype="int16")
-    bonds = []
-    for i, row in enumerate(bond_block):
-        bonds.append(Bond(atom_ids=row[:2]-1, bond_type=row[2], id_=i))  # -1 is to start counting at 0 instead of 1
-
-    return bonds
+    return atom_symbols, atom_coordinates, bond_block, first_row["file_version"]
 
 
-def _add_bond_atoms(atoms: list[Atom], bonds: list[Bond]):
-    for bond in bonds:
-        # add atoms to bond
-        bond.add_atoms(atoms[bond.atom_ids[0]], atoms[bond.atom_ids[1]])
+def _get_atoms(atom_block: list[list]) -> tuple[list[str], np.ndarray]:
+    atom_coordinates = np.empty((len(atom_block), 2), dtype="float64")
+    atom_symbols = []
+    for i, row in enumerate(atom_block):
+        atom_coordinates[i] = (row[0], row[1])
+        atom_symbols.append(row[3])
 
-        # add bonds to atoms
-        for atom in bond.atoms:
-            atom.add_bond(bond)
+    return atom_symbols, atom_coordinates
 
 
 def _parse_mole_file_main(file: str) -> tuple[dict, list[list], list[list]]:
@@ -103,7 +80,7 @@ def _parse_first_row(first_row: str) -> dict:
 
 
 def _split_block(block: list[str]) -> list[list[str]]:
-    """[first_atom_index, second_atom_index, bond_type, sterochemistry]"""
+    """[first_atom_index, second_atom_index, bond_type, stereochemistry]"""
     return [row.split() for row in block]
 
 

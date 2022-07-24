@@ -2,14 +2,29 @@ import plotly.graph_objs as go
 from rdkit import Chem
 import numpy as np
 
+import chemdraw
+
+
+class Atom:
+    def __init__(self, x):
+        self.x =x
+
+class Mol:
+    def __init__(self, x):
+        self.x = x
+        self.atom = Atom(x[0, :])
+
+
+    def modify(self):
+        for x in self.x:
+            x[0] = np.sin(x[0])
+            x[1] = 2
+
 
 def main():
-    xy = np.array([[1,1], [2,5], [3,3], [None, None], [3, 3], [6,6]])
+    mol = Mol(x=np.array([[1,2],[3,4],[5,6]], dtype="float64"))
 
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=xy[:, 0], y=xy[:, 1], mode="lines+markers", marker=dict(color="rgba(255,0,0,0.5)", size=40),
-                             line=dict(color="rgba(255,0,0,0.5)", width=30)))
-    fig.show()
+
 
     print("hi")
 

@@ -40,7 +40,7 @@ def _add_highlight_to_atoms(fig: go.Figure, config: ConfigDrawerHighlights, atom
         if atom.highlight or config.highlight_atoms_on_bonds and any([bond.highlight for bond in atom.bonds]):
             color = config.atom_color if atom.highlight_color is None else atom.highlight_color
             size = config.atom_size if atom.highlight_size is None else atom.highlight_size
-            fig.add_trace(go.Scatter(x=[atom.position[0]], y=[atom.position[1]], mode="markers",
+            fig.add_trace(go.Scatter(x=[atom.coordinates[0]], y=[atom.coordinates[1]], mode="markers",
                                      marker=dict(color=color, size=size), **config.scatter_kwargs))
 
     return fig

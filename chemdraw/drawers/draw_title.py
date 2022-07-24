@@ -59,17 +59,17 @@ def _get_position(config: ConfigDrawerTitle, title: str, molecule: Molecule):
 
     # get y
     if config.location == "top":
-        y = molecule.get_top_atom().position[1]
+        y = molecule.get_top_atom().coordinates[1]
         y += config.pad_structure
         y += config.line_height * lines_of_text
     elif config.location == "bottom":
-        y = molecule.get_bottom_atom().position[1]
+        y = molecule.get_bottom_atom().coordinates[1]
         y -= config.pad_structure
         y -= config.line_height * lines_of_text
     else:
         raise KeyError(f"Invalid title location. {config.location}")
 
     # get x
-    x = molecule.position[0]
+    x = molecule.coordinates[0]
 
     return x, y
