@@ -17,6 +17,7 @@ class Ring:
 
         # for drawing
         self.color = None
+        self.number = id_
         self.highlight = False
 
     def __repr__(self) -> str:

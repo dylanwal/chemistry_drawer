@@ -93,9 +93,11 @@ drawer.draw_png("example_2")
 
 ## Atom and Bond Numbers
 
-Atom numbers (black text) 
+Atom Numbers (black text) 
 
-Bond numbers (gray text)
+Bond Numbers (gray text)
+
+Ring Numbers (maroon text)
 
 ```python
 import chemdraw
@@ -141,4 +143,32 @@ fig.show()
 ```
 
 ![ring highlights](./examples/imgs/ring_highlights.svg)
+
+
+---
+## Atom and Bond Highlights
+
+```python
+import chemdraw
+
+mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
+
+config = chemdraw.DrawerConfig()
+config.ring_highlights.show = True
+
+molecule = chemdraw.Molecule(mol)
+bonds = 
+for ring in molecule.rings:
+    ring.highlight = True  # all rings are highlighted (with default color)
+    if ring.aromatic:  #  highlighted aromatic green
+        ring.color = "rgba(0,255,0,0.5)"
+
+drawer = chemdraw.Drawer(molecule, title=mol, config=config)
+fig = drawer.draw()
+fig.show()
+
+```
+
+![ring highlights](./examples/imgs/ring_highlights.svg)
+
 

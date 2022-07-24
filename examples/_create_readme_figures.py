@@ -32,6 +32,7 @@ def atom_bond_numbers():
     config = chemdraw.DrawerConfig()
     config.atom_numbers.show = True
     config.bond_numbers.show = True
+    config.ring_numbers.show = True
 
     drawer = chemdraw.Drawer(mol, title=mol, config=config)
     drawer.draw_img(".\\imgs\\atom_bond_numbers.svg")
@@ -53,8 +54,25 @@ def ring_highlights():
     drawer.draw_img(".\\imgs\\ring_highlights.svg")
 
 
+def atom_bond_highlights():
+    mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
+
+    config = chemdraw.DrawerConfig()
+    config.highlights.show = True
+
+    molecule = chemdraw.Molecule(mol)
+    bonds = [0,2,19,5,6,21,15,14,13,12,11,10,16,17,18]
+    for ring in molecule.rings:
+        ring.highlight = True  # all rings are highlighted (with default color)
+        if ring.aromatic:  # aromatic are green highlighted
+            ring.color = "rgba(0,255,0,0.5)"
+
+    drawer = chemdraw.Drawer(molecule, title=mol, config=config)
+    drawer.draw_img(".\\imgs\\ring_highlights.svg")
+
 if __name__ == "__main__":
     simple()
     grid()
     atom_bond_numbers()
     ring_highlights()
+    atom_bond_highlights()

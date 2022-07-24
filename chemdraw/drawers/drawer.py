@@ -7,6 +7,7 @@ import chemdraw.drawers.draw_atoms as draw_atoms
 import chemdraw.drawers.draw_bonds as draw_bonds
 import chemdraw.drawers.draw_atom_numbers as draw_atom_numbers
 import chemdraw.drawers.draw_bond_numbers as draw_bond_numbers
+import chemdraw.drawers.draw_ring_numbers as draw_ring_numbers
 import chemdraw.drawers.draw_highlights as draw_highlights
 import chemdraw.drawers.draw_ring_highlights as draw_ring_highlights
 
@@ -37,6 +38,10 @@ class DrawerConfig:
             "function": draw_bond_numbers.draw_bond_numbers,
             "kwargs": ["bonds"]  # fig is added by default
         },
+        "ring_numbers": {
+            "function": draw_ring_numbers.draw_ring_numbers,
+            "kwargs": ["rings"]  # fig is added by default
+        },
         "highlights": {
             "function": draw_highlights.draw_highlights,
             "kwargs": ["atoms", "bonds"]  # fig is added by default
@@ -49,9 +54,10 @@ class DrawerConfig:
 
     def __init__(self):
         # general options
-        self.draw_order = ["ring_highlights", "bonds", "atoms", "atom_numbers", "bond_numbers",
+        self.draw_order = ["ring_highlights", "bonds", "atoms", "atom_numbers", "bond_numbers", "ring_numbers",
                            "debug", "title", "highlights"]
         self.options_fix_zoom = False
+        self.show_text_output = False
 
         # layout
         self.layout_background_color = "white"
@@ -70,6 +76,7 @@ class DrawerConfig:
         self.atoms = draw_atoms.ConfigDrawerAtoms()
         self.atom_numbers = draw_atom_numbers.ConfigDrawerAtomNumber()
         self.bond_numbers = draw_bond_numbers.ConfigDrawerBondNumber()
+        self.ring_numbers = draw_ring_numbers.ConfigDrawerRingNumber()
         self.title = draw_title.ConfigDrawerTitle()
         self.debug = draw_debug.ConfigDrawerDebug()
         self.highlights = draw_highlights.ConfigDrawerHighlights()
@@ -111,10 +118,16 @@ class Drawer:
         return fig
 
     def _draw(self, fig: go.Figure) -> go.Figure:
+        import time
         for key in self.config.draw_order:
+            start = time.time()
             func = self.config.drawers[key]["function"]
             kwargs = self._get_kwargs(key, self.config.drawers[key]["kwargs"])
             fig = func(fig, **kwargs)
+            end = time.time()
+            print(key, end-start)
+            if self.config.show_text_output:
+                print(f"{key} added to plot")
 
         return fig
 
