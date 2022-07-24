@@ -13,7 +13,7 @@ def main():
     for ring in molecule_drawer.molecule.rings:
         ring.highlight = True
         if ring.aromatic:
-            ring.color = "rgba(0,255,0,0.5)"
+            ring.highlight_color = "rgba(0,255,0,0.5)"
 
     fig = molecule_drawer.draw()
     fig.write_html("temp.html", auto_open=True)

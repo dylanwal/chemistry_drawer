@@ -35,9 +35,12 @@ class Atom:
         self.parent = None
 
         # drawing stuff
-        self.font = None
-        self.size = None
+        self.font = None  # ConfigDrawerAtoms.method needs to be False
+        self.font_size = None  # ConfigDrawerAtoms.method needs to be False
+        self.font_color = None  # ConfigDrawerAtoms.method needs to be False
         self.highlight = None
+        self.highlight_color = None
+        self.highlight_size = None
         self.number = self.id_
 
     def __repr__(self) -> str:

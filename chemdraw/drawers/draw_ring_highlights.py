@@ -24,7 +24,7 @@ def draw_ring_highlight(fig: go.Figure, config: ConfigDrawerRingHighlights, ring
     for ring in rings:
         if ring.highlight:
             xy = _get_coordinates(config, ring)
-            color = config.color if ring.color is None else ring.color
+            color = config.color if ring.highlight_color is None else ring.highlight_color
 
             fig.add_trace(go.Scatter(x=xy[:, 0], y=xy[:, 1], mode="lines", fill='toself', fillcolor=color,
                                      line=dict(color='rgba(0, 0, 0, 0)')))

@@ -9,12 +9,12 @@ from chemdraw.objects.bonds import Bond
 class ConfigDrawerHighlights:
     show_atoms = True
     show_bonds = True
-    highlight_bonds_between_atoms = True
-    highlight_atoms_on_bonds = True
-    atom_color = "rgba(255,0,0,0.5)"
-    bond_color = "rgba(255,0,0,0.5)"
-    atom_width = 30
-    bond_width = 30
+    highlight_bonds_between_atoms = False
+    highlight_atoms_on_bonds = False
+    atom_color = "rgba(255,0,0,0.2)"
+    bond_color = "rgba(255,0,0,0.2)"
+    atom_size = 40
+    bond_width = 20
     scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
     def __repr__(self):
@@ -26,11 +26,11 @@ def draw_highlights(fig: go.Figure, config: ConfigDrawerHighlights, atoms: list[
     if not atoms[0].parent.has_highlights:
         return fig
 
-    if config.show_atoms:
-        fig = _add_highlight_to_atoms(fig, config, atoms)
-
     if config.show_bonds:
         fig = _add_highlight_to_bonds(fig, config, bonds)
+
+    if config.show_atoms:
+        fig = _add_highlight_to_atoms(fig, config, atoms)
 
     return fig
 
@@ -38,22 +38,20 @@ def draw_highlights(fig: go.Figure, config: ConfigDrawerHighlights, atoms: list[
 def _add_highlight_to_atoms(fig: go.Figure, config: ConfigDrawerHighlights, atoms: list[Atom]) -> go.Figure:
     for atom in atoms:
         if atom.highlight or config.highlight_atoms_on_bonds and any([bond.highlight for bond in atom.bonds]):
-            x, y = _get_atom_line_length(atom)
-
-            fig.add_trace(go.Scatter(x=x, y=y, mode="lines",
-                                     line=dict(color=config.atom_color, width=config.bond_width)))
+            color = config.atom_color if atom.highlight_color is None else atom.highlight_color
+            size = config.atom_size if atom.highlight_size is None else atom.highlight_size
+            fig.add_trace(go.Scatter(x=[atom.position[0]], y=[atom.position[1]], mode="markers",
+                                     marker=dict(color=color, size=size), **config.scatter_kwargs))
 
     return fig
-
-
-def _get_atom_line_length(atom: Atom) -> tuple[np.ndarray, np.ndarray]:
-    return np.array([atom.position[0], atom.position[0]+0.1]), np.array([atom.position[1], atom.position[1]])
 
 
 def _add_highlight_to_bonds(fig: go.Figure, config: ConfigDrawerHighlights, bonds: list[Bond]) -> go.Figure:
     for bond in bonds:
         if bond.highlight or config.highlight_bonds_between_atoms and all([atom.highlight for atom in bond.atoms]):
+            color = config.bond_color if bond.highlight_color is None else bond.highlight_color
+            width = config.bond_width if bond.highlight_width is None else bond.highlight_width
             fig.add_trace(go.Scatter(x=bond.x, y=bond.y, mode="lines",
-                                     line=dict(color=config.atom_color, width=config.bond_width, shape="spline")))
+                                     line=dict(color=color, width=width), **config.scatter_kwargs))
 
     return fig

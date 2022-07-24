@@ -132,9 +132,9 @@ config.ring_highlights.show = True
 
 molecule = chemdraw.Molecule(mol)
 for ring in molecule.rings:
-    ring.highlight = True  # all rings are highlighted (with default color)
-    if ring.aromatic:  #  highlighted aromatic green
-        ring.color = "rgba(0,255,0,0.5)"
+  ring.highlight = True  # all rings are highlighted (with default highlight_color)
+  if ring.aromatic:  # highlighted aromatic green
+    ring.highlight_color = "rgba(0,255,0,0.5)"
 
 drawer = chemdraw.Drawer(molecule, title=mol, config=config)
 fig = drawer.draw()
@@ -154,21 +154,36 @@ import chemdraw
 mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
 config = chemdraw.DrawerConfig()
-config.ring_highlights.show = True
+config.highlights.show = True
 
 molecule = chemdraw.Molecule(mol)
-bonds = 
-for ring in molecule.rings:
-    ring.highlight = True  # all rings are highlighted (with default color)
-    if ring.aromatic:  #  highlighted aromatic green
-        ring.color = "rgba(0,255,0,0.5)"
+
+# highlight outside bonds red
+bond_ids = [0, 1,  2, 19, 5, 6, 21, 15, 14, 13, 12, 11, 10, 16, 17, 18]
+for id_ in bond_ids:
+    molecule.bonds[id_].highlight = True
+
+# highlight all atoms red
+for atom in molecule.atoms:
+    atom.highlight = True
+    
+    
+# highlight all select bonds green
+molecule.bonds[8].highlight = True
+molecule.bonds[8].highlight_color = "rgba(0,255,0,0.2)"
+molecule.bonds[20].highlight = True
+molecule.bonds[20].highlight_color = "rgba(0,255,0,0.2)"
+
+# highlight all select atoms green
+atom_ids = [8, 9, 4]
+for id_ in atom_ids:
+    molecule.atoms[id_].highlight_color = "rgba(0,255,0,0.2)"
 
 drawer = chemdraw.Drawer(molecule, title=mol, config=config)
 fig = drawer.draw()
 fig.show()
-
 ```
 
-![ring highlights](./examples/imgs/ring_highlights.svg)
+![ring highlights](./examples/imgs/highlights.svg)
 
 

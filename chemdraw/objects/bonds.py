@@ -36,8 +36,11 @@ class Bond:
         self.parent = None
 
         # drawing stuff
-        self.line_width = None
+        self.color = None
+        self.width = None
         self.highlight = None
+        self.highlight_color = None
+        self.highlight_width = None
         self.number = id_
 
     def __repr__(self) -> str:

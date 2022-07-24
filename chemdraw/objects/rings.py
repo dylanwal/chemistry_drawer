@@ -16,9 +16,10 @@ class Ring:
         self._center = None
 
         # for drawing
-        self.color = None
+
         self.number = id_
         self.highlight = False
+        self.highlight_color = None
 
     def __repr__(self) -> str:
         return f"Atoms: {self.atom_ids}"

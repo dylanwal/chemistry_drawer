@@ -50,6 +50,8 @@ def _add_atoms_with_annotations(fig: go.Figure, config: ConfigDrawerAtoms, atoms
             continue  # skip drawing carbons
 
         symbol, x, y = _get_symbol(config, atom)
+        font = config.font if atom.font is None else atom.font
+        font_size = config.font_size if atom.font_size is None else atom.font_size
 
         fig.add_annotation(
             x=x,
@@ -57,9 +59,9 @@ def _add_atoms_with_annotations(fig: go.Figure, config: ConfigDrawerAtoms, atoms
             text=symbol,
             showarrow=False,
             font=dict(
-                family=config.font,
-                size=config.font_size,
-                color=_get_color(config, atom.symbol)
+                family=font,
+                size=font_size,
+                color=_get_color(config, atom)
             ),
             bgcolor=config.bgcolor if config.background_shape == "tight" else None,
             # borderwidth=config.borderwidth,
@@ -127,10 +129,13 @@ def _text_alignment(config: ConfigDrawerAtoms, atom: Atom, align: str) -> tuple[
         return atom.position[0] + config.align_offset, atom.position[1]
 
 
-def _get_color(config: ConfigDrawerAtoms, atom: str) -> str:
+def _get_color(config: ConfigDrawerAtoms, atom: Atom) -> str:
+    if atom.font_color is not None:
+        return atom.font_color
+
     if config.colors_add:
-        if atom in config.colors:
-            return config.colors[atom]
+        if atom.symbol in config.colors:
+            return config.colors[atom.symbol]
 
     return config.font_color
 
