@@ -16,9 +16,8 @@ class GridConfig:
         self.drawer_config: DrawerConfig = DrawerConfig()
 
         # grid
-        self.grid_ratio: int = 1  # length/layout_width
-        self.max_width: int | None = 5  # only fill out one [max_width, or max_length]; only used if shape not provided
-        self.max_length: int | None = None  # only fill out one [max_width, or max_length]; only used if shape not provided
+        self.cell_width: int = 600
+        self.cell_length: int = 600
 
         # general options
         self.include_titles: bool = True
@@ -132,64 +131,60 @@ class GridDrawer:
     def __init__(self,
                  molecules: list[str] | list[Molecule],
                  shape: tuple | list = None,  # [columns, rows]
-                 config: GridConfig = None
+                 config: GridConfig = None,
+                 config_drawer: list[DrawerConfig] = None
                  ):
         self.molecules = molecules
         self.config = config if config is not None else GridConfig()
-        self.drawers = [Drawer(molecule, config=self.config.drawer_config) for molecule in self.molecules]
+        self.config_drawer = config_drawer
+        self.drawers = self._get_drawers()
         self.shape = self._get_shape(shape)
-        self.grid = self._get_grid(self.shape)
+        self.grid = self._get_grid()
+
+    def _get_drawers(self) -> list[Drawer]:
+        if self.config_drawer is None:
+            return [Drawer(molecule, config=self.config.drawer_config) for molecule in self.molecules]
+
+        if len(self.molecules) != len(self.config_drawer):
+            raise ValueError("'molecules' list must be the same length as 'config_drawer'")
+
+        return [Drawer(molecule, config=drawer_config) for molecule, drawer_config in zip(self.molecules, self.config_drawer)]
 
     def _get_shape(self, shape: tuple | list | None) -> tuple[int, int]:
-        if shape is not None:
+        if shape is None:
+            max_dim = int(np.ceil(np.sqrt(len(self.molecules))))
+            for i in range(max_dim-1):
+                if (len(self.molecules) % (max_dim + i)) == 0:
+                    max_dim = max_dim + i
+                    break
+
+            min_dim = int(len(self.molecules) / max_dim)
+            shape = np.array((max_dim, min_dim), dtype="int16")
+        else:
             if shape[0] * shape[1] < len(self.drawers):
                 raise ValueError(f"Shape must be a grid larger than need for the # of molecules.\n"
                                  f"Provided: {shape[0]*shape[1]}; needed: {len(self.drawers)}")
-            return shape
 
-        if self.config.max_width is not None:
-            return self.config.max_width, int(math.ceil(len(self.drawers)/self.config.max_width))
-        elif self.config.max_width is not None:
-            return int(math.ceil(len(self.drawers)/self.config.max_length)), self.config.max_length
-        else:
-            raise ValueError("Can't determine grid shape. ")
+        return shape
 
-    def _get_grid(self, shape) -> np.ndarray:
+    def _get_grid(self) -> np.ndarray:
         pass
 
-    # def draw(self):
-    # subplots
-    #     from plotly.subplots import make_subplots
-    #     fig = make_subplots(
-    #         rows=self.shape[1], cols=self.shape[0],
-    #         horizontal_spacing=0.25,
-    #         vertical_spacing=0.1 * 3 / self.shape[1]
-    #     )
+    # def draw(self, auto_open: bool = False) -> go.Figure:
+    #     fig = go.Figure()
     #
-    #     for i, drawer in enumerate(self.drawers):
-    #         # get index for current subplot
-    #         row_index = int(i / self.shape[0]) + 1
-    #         cols_index = i % self.shape[0] + 1
+    #     # set layout for cells
+    #     for drawer in self.drawers:
+    #         drawer.config.layout.width = self.config.cell_width
     #
+    #     for drawer, coordinates in zip(self.drawers, self.grid):
+    #         drawer.molecule.coordinates = coordinates
     #         fig = drawer._draw(fig)
     #
-    #         # # create heatmap
-    #         # df = pd.DataFrame(datum, columns=["x", "y"])
-    #         # canvas = ds.Canvas(plot_width=res, plot_height=res)
-    #         # agg = canvas.points(df, 'x', 'y')
-    #         # fig.add_trace(go.Heatmap(x=x, y=y, z=agg,
-    #         #                          colorbar=dict(len=1 / rows, x=colorbar_pos[i][0], y=colorbar_pos[i][1],
-    #         #                                        title="count")),
-    #         #               row=row_index, col=cols_index)
-    #         #
-    #         # # set axis values
-    #         # fig.update_xaxes(title="<b>x (cm)</b>", row=row_index, col=cols_index)
-    #         # fig.update_yaxes(title="<b>y (cm)</b>", row=row_index, col=cols_index)
-    #         #
-    #         # # final formatting and save
-    #         # fig.update_layout(height=400 * rows, width=600 * cols, title_text=title)
-    #         # if not file_name.endswith(".html"):
-    #         #     file_name += ".html"
+    #     if auto_open:
+    #         fig.show()
+    #
+    #     return fig
 
     def draw_html(self, file_name: str = "molecule_grid.html", auto_open: bool = False, **kwargs):
         figs = []

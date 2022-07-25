@@ -17,9 +17,10 @@ def main():
     ]
 
     config = chemdraw.DrawerConfig()
-    config.atoms.method = True
+    # config.atoms.method = True
 
     drawer = chemdraw.GridDrawer(molecules)
+    # drawer.draw(auto_open=True)
     drawer.draw_html(auto_open=True)
 
 

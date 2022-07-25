@@ -1,4 +1,3 @@
-
 import plotly.graph_objs as go
 
 from chemdraw.objects.molecule import Molecule
@@ -17,27 +16,52 @@ class ConfigDrawerTitle:
         self.auto_wrap = True
         self.auto_wrap_length = 30
         self.pad_structure = 1
-        self.line_height = 0.3
+        self.line_height = 0.5
 
     def __repr__(self):
         return f"show: {self.show}"
+
+    def get_font_size(self) -> float:
+        return self.font_size / self.parent._scaling
+
+    def get_pad_structure(self) -> float:
+        return self.pad_structure / self.parent._scaling
+
+    def get_line_height(self) -> float:
+        return self.line_height / self.parent._scaling
+
+    def get_text(self, text: str) -> str:
+        if "\n" in text:
+            text = text.replace("\n", "<br>")
+        else:
+            if self.auto_wrap:
+                number_of_lines = int(len(text) / self.auto_wrap_length) + 1
+                list_title = [text[i::number_of_lines] for i in range(number_of_lines)]
+                text = "<br>".join(list_title)
+
+        if self.font_bold:
+            text = "<b>" + text + "</b>"
+
+        return text
+
+    def text_box_size(self, title: str):
+        return len(self.get_text(title).split("<br>")) * self.get_line_height()
 
 
 def draw_title(fig: go.Figure, config: ConfigDrawerTitle, title: str, molecule: Molecule) -> go.Figure:
     if not config.show or title is None:
         return fig
 
-    title = _get_text(config, title)
     x, y = _get_position(config, title, molecule)
     fig.add_annotation(
         x=x,
         y=y,
-        text=title,
+        text=config.get_text(title),
         showarrow=False,
         align="center",
         font=dict(
             family=config.font,
-            size=config.font_size,
+            size=config.get_font_size(),
             color=config.font_color
         )
     )
@@ -45,29 +69,17 @@ def draw_title(fig: go.Figure, config: ConfigDrawerTitle, title: str, molecule: 
     return fig
 
 
-def _get_text(config: ConfigDrawerTitle, title: str) -> str:
-    if config.auto_wrap:
-        number_of_lines = int(len(title) / config.auto_wrap_length) + 1
-        list_title = [title[i::number_of_lines] for i in range(number_of_lines)]
-        title = "<br>".join(list_title)
-
-    if config.font_bold:
-        title = "<b>" + title + "</b>"
-
-    return title
-
-
 def _get_position(config: ConfigDrawerTitle, title: str, molecule: Molecule):
-    lines_of_text = title.count("<br>")
+    lines_of_text = len(config.get_text(title).split("<br>"))
 
     # get y
     if config.location == "top":
         y = molecule.get_top_atom().coordinates[1]
-        y += config.pad_structure
+        y += config.get_pad_structure()
         y += config.line_height * lines_of_text
     elif config.location == "bottom":
         y = molecule.get_bottom_atom().coordinates[1]
-        y -= config.pad_structure
+        y -= config.get_pad_structure()
         y -= config.line_height * lines_of_text
     else:
         raise KeyError(f"Invalid title location. {config.location}")

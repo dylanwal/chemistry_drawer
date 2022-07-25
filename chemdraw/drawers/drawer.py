@@ -102,6 +102,7 @@ class Drawer:
             fig = go.Figure()
 
         fig = self._draw(fig)
+        fig = self.config.layout.apply_layout(fig)
 
         if auto_open:
             fig.show()
@@ -109,17 +110,12 @@ class Drawer:
         return fig
 
     def _draw(self, fig: go.Figure) -> go.Figure:
-        self.config.layout.get_scaling(self.molecule)
-        import time
+        self.config.layout.get_scaling(self.molecule, self.title)
+
         for key in self.config.draw_order:
-            start = time.time()
             func = self.config.drawers[key]["function"]
             kwargs = self._get_kwargs(key, self.config.drawers[key]["kwargs"])
             fig = func(fig, **kwargs)
-            end = time.time()
-            print(key, end-start)
-
-        fig = self.config.layout.apply_layout(fig)
 
         return fig
 

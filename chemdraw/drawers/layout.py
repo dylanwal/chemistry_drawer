@@ -33,10 +33,17 @@ class ConfigLayout:
     def range_ratio(self) -> float:
         return self.range_x.ptp() / self.range_y.ptp()
 
-    def get_scaling(self, molecule: Molecule):
+    def get_scaling(self, molecule: Molecule, title: str):
         if self.range_x is None or self.range_y is None:
             min_ = np.min(molecule.atom_coordinates, axis=0)
             max_ = np.max(molecule.atom_coordinates, axis=0)
+
+            if self.parent.title.show and title is not None:
+                title_height = self.parent.title.text_box_size(title)
+                if self.parent.title.location == "top":
+                    max_ += title_height
+                else:
+                    min_ -= title_height
 
             threshold = 5 - self.range_offset
             if self.range_x is None:

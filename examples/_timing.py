@@ -9,6 +9,7 @@ def main():
     config = chemdraw.DrawerConfig()
     config.layout.fixed_domain = True
     config.title.show = True
+    config.layout.show_axis =True
 
     molecule_drawer = chemdraw.Drawer(mol, title=mol, config=config)
     fig = molecule_drawer.draw()
@@ -75,7 +76,7 @@ def main_grid():
 
 
 if __name__ == "__main__":
-    main()
-    # main_time()
+    # main()
+    main_time()
     # main_profile()
     # main_grid()
