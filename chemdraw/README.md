@@ -1,5 +1,4 @@
 Improvements to add:
-2) rescale image
 3) grid single figure
 4) grid handles a list of configs or list of molecules
 6) gif construct atom

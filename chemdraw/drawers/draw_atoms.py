@@ -43,11 +43,11 @@ def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> 
         return fig
 
     if config.method:
-        fig = _add_background_with_markers(fig, config, atoms)
+        # fig = _add_background_with_markers(fig, config, atoms)
         return _add_atoms_with_scatter(fig, config, atoms)
     else:
-        if config.background_shape != "tight":
-            fig = _add_background_with_markers(fig, config, atoms)
+        # if config.background_shape != "tight":
+            # fig = _add_background_with_markers(fig, config, atoms)
         return _add_atoms_with_annotations(fig, config, atoms)
 
 

@@ -15,7 +15,6 @@ class ConfigLayout:
         self.dragmode = "pan"
 
         self.fixed_domain = True  # assumed to be square
-        self.fixed_range = False
         self.width = 600
         self.height = 600
         self.range_offset = 1
@@ -26,6 +25,14 @@ class ConfigLayout:
 
         self.scaling = 1
 
+    @property
+    def domain_ratio(self) -> float:
+        return self.width/self.height
+
+    @property
+    def range_ratio(self) -> float:
+        return self.range_x.ptp() / self.range_y.ptp()
+
     def get_scaling(self, molecule: Molecule):
         if self.range_x is None or self.range_y is None:
             min_ = np.min(molecule.atom_coordinates, axis=0)
@@ -35,15 +42,23 @@ class ConfigLayout:
             if self.range_x is None:
                 self._clear_x_ranges = True
                 if max_[0] > threshold or np.abs(min_[0]) > threshold:
-                    self.range_x = np.array((min_[0] - self.range_offset, max_[0] + self.range_offset))
+                    value = np.max((np.abs(min_[0] - self.range_offset), max_[0] + self.range_offset))
+                    self.range_x = np.array((-value, value))
                 else:
                     self.range_x = np.array([-5, 5], dtype="float64")
             if self.range_y is None:
                 self._clear_y_ranges = True
                 if max_[1] > threshold or np.abs(min_[1]) > threshold:
-                    self.range_y = np.array((min_[1] - self.range_offset, max_[1] + self.range_offset))
+                    value = np.max((np.abs(min_[1] - self.range_offset), max_[1] + self.range_offset))
+                    self.range_y = np.array((-value, value))
                 else:
                     self.range_y = np.array([-5, 5], dtype="float64")
+
+            if self.fixed_domain and self.range_y.ptp() != self.range_x.ptp():
+                if self.range_x.ptp() > self.range_y.ptp():
+                    self.range_y = self.range_x / self.domain_ratio
+                else:
+                    self.range_x = self.range_y / self.domain_ratio
 
             self.scaling = np.max((self.range_x.ptp(), self.range_y.ptp())) / 10
 
@@ -65,12 +80,16 @@ class ConfigLayout:
 
         yaxes_kwargs = {
             "visible": self.show_axis,
+            "fixedrange": self.fix_zoom,
             "layer": "below traces"
         }
 
         # zooming
         kwargs["width"] = self.width
-        kwargs["height"] = self.height
+        if not self.fixed_domain:
+            kwargs["height"] = int(self.width / self.range_ratio)
+        else:
+            kwargs["height"] = self.height
         xaxes_kwargs["range"] = self.range_x
         yaxes_kwargs["range"] = self.range_y
 

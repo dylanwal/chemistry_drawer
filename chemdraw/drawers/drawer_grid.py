@@ -22,6 +22,7 @@ class GridConfig:
 
         # general options
         self.include_titles: bool = True
+        self.scale_same_for_all_molecules: bool = True  # TODO: scale
 
         self.html_table_style: str = "table, th, td { border: 1px solid black; border-collapse: collapse;}"
 

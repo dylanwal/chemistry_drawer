@@ -12,11 +12,12 @@ class ConfigDrawerBonds:
         self.show = True
         self.width = 8
         self.color = "black"
-        self.triple_bond_offset = 0.23
-        self.triple_bond_length = 0.5
+        self.offset = 0.4
         self.double_bond_offset = 0.4
         self.double_bond_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
         self.double_bond_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer
+        self.triple_bond_offset = 0.23
+        self.triple_bond_length = 0.5
         self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
     def __repr__(self):
@@ -33,15 +34,16 @@ def draw_bonds(fig: go.Figure, config: ConfigDrawerBonds, bonds: list[Bond]) -> 
         return fig
 
     for bond in bonds:
+        x, y = bond.get_coordinates(config.parent.atoms.show_carbons, config.offset)
         if bond.type_ == BondType.single:
-            fig = _draw_bond_on_fig(fig, config, bond.x, bond.y, bond)
+            fig = _draw_bond_on_fig(fig, config, x, y, bond)
         elif bond.type_ == BondType.double:
             if bond.alignment == BondAlignment.center:
-                fig = _bond_double_center(fig, config, bond)
+                fig = _bond_double_center(fig, config, x, y, bond)
             else:
-                fig = _double_bond_offset(fig, config, bond)
+                fig = _double_bond_offset(fig, config, x, y, bond)
         else:
-            fig = _bond_triple(fig, config, bond)
+            fig = _bond_triple(fig, config, x, y, bond)
 
     return fig
 
@@ -53,11 +55,11 @@ def _draw_bond_on_fig(fig: go.Figure, config: ConfigDrawerBonds, x, y, bond) -> 
                                     **config.scatter_kwargs))
 
 
-def _bond_double_center(fig: go.Figure, config: ConfigDrawerBonds, bond: Bond) -> go.Figure:
-    x_left = bond.x + bond.perpendicular[0] * config.double_bond_offset / 2
-    x_right = bond.x - bond.perpendicular[0] * config.double_bond_offset / 2
-    y_left = bond.y + bond.perpendicular[1] * config.double_bond_offset / 2
-    y_right = bond.y - bond.perpendicular[1] * config.double_bond_offset / 2
+def _bond_double_center(fig: go.Figure, config: ConfigDrawerBonds, x, y, bond: Bond) -> go.Figure:
+    x_left = x + bond.perpendicular[0] * config.double_bond_offset / 2
+    x_right = x - bond.perpendicular[0] * config.double_bond_offset / 2
+    y_left = y + bond.perpendicular[1] * config.double_bond_offset / 2
+    y_right = y - bond.perpendicular[1] * config.double_bond_offset / 2
     if config.double_bond_center_length != 1:
         x0, x1, y0, y1 = vector_math.shorten_line(x_left[0], x_left[1], y_left[0], y_left[1],
                                                   config.double_bond_center_length)
@@ -76,16 +78,16 @@ def _bond_double_center(fig: go.Figure, config: ConfigDrawerBonds, bond: Bond) -
     return fig
 
 
-def _double_bond_offset(fig: go.Figure, config: ConfigDrawerBonds, bond: Bond) -> go.Figure:
+def _double_bond_offset(fig: go.Figure, config: ConfigDrawerBonds, x, y, bond: Bond) -> go.Figure:
     if bond.alignment == BondAlignment.perpendicular:  # same side as perpendicular
-        x_off = bond.x + bond.perpendicular[0] * config.double_bond_offset
-        y_off = bond.y + bond.perpendicular[1] * config.double_bond_offset
+        x_off = x + bond.perpendicular[0] * config.double_bond_offset
+        y_off = y + bond.perpendicular[1] * config.double_bond_offset
     else:  # opposite side perpendicular
-        x_off = bond.x - bond.perpendicular[0] * config.double_bond_offset
-        y_off = bond.y - bond.perpendicular[1] * config.double_bond_offset
+        x_off = x - bond.perpendicular[0] * config.double_bond_offset
+        y_off = y - bond.perpendicular[1] * config.double_bond_offset
 
     # center
-    fig = _draw_bond_on_fig(fig, config, bond.x, bond.y, bond)
+    fig = _draw_bond_on_fig(fig, config, x, y, bond)
     # right/left
     if config.double_bond_offset_length != 1:
         x0, x1, y0, y1 = vector_math.shorten_line(x_off[0], x_off[1], y_off[0], y_off[1],
@@ -98,18 +100,18 @@ def _double_bond_offset(fig: go.Figure, config: ConfigDrawerBonds, bond: Bond) -
     return fig
 
 
-def _bond_triple(fig: go.Figure, config: ConfigDrawerBonds, bond: Bond) -> go.Figure:
-    x_left = bond.x + bond.perpendicular[0] * config.triple_bond_offset
-    x_right = bond.x - bond.perpendicular[0] * config.triple_bond_offset
-    y_left = bond.y + bond.perpendicular[1] * config.triple_bond_offset
-    y_right = bond.y - bond.perpendicular[1] * config.triple_bond_offset
+def _bond_triple(fig: go.Figure, config: ConfigDrawerBonds, x, y, bond: Bond) -> go.Figure:
+    x_left = x + bond.perpendicular[0] * config.triple_bond_offset
+    x_right = x - bond.perpendicular[0] * config.triple_bond_offset
+    y_left = y + bond.perpendicular[1] * config.triple_bond_offset
+    y_right = y - bond.perpendicular[1] * config.triple_bond_offset
 
     if config.triple_bond_length != 1:
         x_left, y_left = _shorten_bond_triple(config, bond, x_left, y_left)
         x_right, y_right = _shorten_bond_triple(config, bond, x_right, y_right)
 
     # center
-    fig = _draw_bond_on_fig(fig, config, bond.x, bond.y, bond)
+    fig = _draw_bond_on_fig(fig, config, x, y, bond)
     # left
     fig = _draw_bond_on_fig(fig, config, x_left, y_left, bond)
     # right

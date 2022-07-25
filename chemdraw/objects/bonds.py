@@ -93,6 +93,32 @@ class Bond:
     def in_ring(self) -> bool:
         return bool(self.rings)
 
+    def get_coordinates(self, show_carbons: bool, offset: float) -> tuple[np.ndarray, np.ndarray]:
+        x = np.empty(2, dtype="float64")
+        y = np.empty(2, dtype="float64")
+        # point 1
+        if self.atoms[0].symbol == "C" and not show_carbons:
+            x[0] = self.x[0]
+            y[0] = self.y[0]
+        else:
+            if len(self.atoms[0].symbol) > 1:
+                offset_ = offset + (len(self.atoms[0].symbol)-1) * 0.5 * offset
+            else:
+                offset_ = offset
+            x[0] = self.x[0] + self.vector[0] * offset_
+            y[0] = self.y[0] + self.vector[1] * offset_
+        # point 2
+        if self.atoms[1].symbol == "C" and not show_carbons:
+            x[1] = self.x[1]
+            y[1] = self.y[1]
+        else:
+            if len(self.atoms[1].symbol) > 1:
+                offset = offset + (len(self.atoms[1].symbol)-1) * 0.5 * offset
+            x[1] = self.x[1] - self.vector[0] * offset
+            y[1] = self.y[1] - self.vector[1] * offset
+
+        return x, y
+
     def _get_alignment(self) -> BondAlignment:
         # only look at double bonds
         if self.type_ != BondType.double:

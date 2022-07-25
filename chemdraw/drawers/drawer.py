@@ -138,7 +138,10 @@ class Drawer:
 
         return kwargs_out
 
-    def draw_img(self, file_location: str = "molecule.svg") -> str:
+    def draw_img(self, file_location: str = "molecule.svg", transparent_background: bool = True) -> str:
+        if transparent_background:
+            self.config.layout.background_color = "rgba(0,0,0,0)"
+
         fig = self.draw()
         fig.write_image(file_location)
         return file_location

@@ -7,7 +7,7 @@ def main():
     #
 
     config = chemdraw.DrawerConfig()
-    config.layout.show_axis = True
+    config.layout.fixed_domain = False
     config.title.show = False
     # config.auto_scale_figure = True
 
@@ -15,7 +15,7 @@ def main():
     fig = molecule_drawer.draw()
     fig.show()
 
-    mol = "C1=CC=CC=C1C"
+    mol = "CCCC1(CC(O1)C2=CC(=NC2=O)OC)O"
     molecule_drawer = chemdraw.Drawer(mol, title=mol, config=config)
     fig = molecule_drawer.draw()
     fig.show()
