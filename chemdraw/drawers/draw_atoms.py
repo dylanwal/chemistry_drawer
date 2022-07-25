@@ -5,30 +5,37 @@ from chemdraw.objects.atoms import Atom
 
 
 class ConfigDrawerAtoms:
-    show = True
-    method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
-    font = "Arial"
-    font_bold = True
-    font_size = 50
-    colors_add = False  # set 'method' to False
-    font_color = "black"
-    colors = {
-        "C": "black",
-        "O": "red",
-        "N": "green",
-        "S": "yellow"
-    }
-    show_carbons = False
-    background_shape = "octagon"  # tight (set 'method' to False), circle, square, hexagon, octagon, diamond
-    marker_size = 50  # used when background_shape != tight
-    bgcolor = "white"  # set to None to remove bgcolor
-    borderpad = 0  # used when background_shape != tight
-    align_offset = 0.3
-    scatter_kwargs = dict(hoverinfo="skip")
-    text_y_offset = 0.07
+    def __init__(self, parent):
+        self.parent = parent
+
+        self.show = True
+        self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
+        self.font = "Arial"
+        self.font_bold = True
+        self.font_size = 50
+        self.colors_add = False  # set 'method' to False
+        self.font_color = "black"
+        self.colors = {
+            "C": "black",
+            "O": "red",
+            "N": "green",
+            "S": "yellow"
+        }
+        self.show_carbons = False
+        self.background_shape = "octagon"  # tight (set 'method' to False), circle, square, hexagon, octagon, diamond
+        self.marker_size = 50  # used when background_shape != tight
+        self.bgcolor = "white"  # set to None to remove bgcolor
+        self.borderpad = 0  # used when background_shape != tight
+        self.align_offset = 0.3
+        self.scatter_kwargs = dict(hoverinfo="skip")
+        self.text_y_offset = 0.07
 
     def __repr__(self):
         return f"show: {self.show}"
+
+    def get_font_size(self) -> float:
+        font_size = self.font_size / self.parent._scaling
+        return font_size
 
 
 def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
@@ -85,7 +92,7 @@ def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: li
         counter += 1
 
     fig.add_trace(go.Scatter(x=xy[:counter, 0], y=xy[:counter, 1] - config.text_y_offset, mode="text", text=symbols,
-                             textfont=dict(family=config.font, color=config.font_color, size=config.font_size),
+                             textfont=dict(family=config.font, color=config.font_color, size=config.get_font_size()),
                              **config.scatter_kwargs))
 
     return fig

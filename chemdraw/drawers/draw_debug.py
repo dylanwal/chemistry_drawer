@@ -7,12 +7,15 @@ from chemdraw.objects.molecule import Molecule
 
 
 class ConfigDrawerDebug:
-    _debug = False
-    show_center_point = False
-    show_molecule_vector = False
-    show_bond_vector = False
-    show_bond_perpendicular = False
-    show_atom_vector = False
+    def __init__(self, parent):
+        self.parent = parent
+
+        self._debug = False
+        self.show_center_point = False
+        self.show_molecule_vector = False
+        self.show_bond_vector = False
+        self.show_bond_perpendicular = False
+        self.show_atom_vector = False
 
     def __repr__(self):
         return f"show: {self.debug}"

@@ -6,15 +6,16 @@ from chemdraw.objects.rings import Ring
 
 
 class ConfigDrawerRingNumber:
-    show = False
-    method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
-    font = "Arial"
-    font_bold = True
-    font_size = 20
-    font_color = "maroon"
-    alignment = "best"  # ["best", "left", "right", "top", "bottom"]
-    offset = 0.3
-    scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
+    def __init__(self, parent):
+        self.parent = parent
+
+        self.show = False
+        self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
+        self.font = "Arial"
+        self.font_bold = True
+        self.font_size = 20
+        self.font_color = "maroon"
+        self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
     def __repr__(self):
         return f"show: {self.show}"

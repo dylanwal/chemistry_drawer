@@ -5,16 +5,19 @@ from chemdraw.objects.molecule import Molecule
 
 
 class ConfigDrawerTitle:
-    show = True
-    location = "bottom"  # options = ["top", "bottom"]
-    font = "Arial"
-    font_color = "black"
-    font_size = 32
-    font_bold = True
-    auto_wrap = True
-    auto_wrap_length = 30
-    pad_structure = 1
-    line_height = 0.3
+    def __init__(self, parent):
+        self.parent = parent
+
+        self.show = True
+        self.location = "bottom"  # options = ["top", "bottom"]
+        self.font = "Arial"
+        self.font_color = "black"
+        self.font_size = 32
+        self.font_bold = True
+        self.auto_wrap = True
+        self.auto_wrap_length = 30
+        self.pad_structure = 1
+        self.line_height = 0.3
 
     def __repr__(self):
         return f"show: {self.show}"

@@ -6,18 +6,26 @@ import chemdraw.utils.vector_math as vector_math
 
 
 class ConfigDrawerBonds:
-    show = True
-    width = 8
-    color = "black"
-    triple_bond_offset = 0.23
-    triple_bond_length = 0.5
-    double_bond_offset = 0.4
-    double_bond_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
-    double_bond_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer
-    scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
+    def __init__(self, parent):
+        self.parent = parent
+
+        self.show = True
+        self.width = 8
+        self.color = "black"
+        self.triple_bond_offset = 0.23
+        self.triple_bond_length = 0.5
+        self.double_bond_offset = 0.4
+        self.double_bond_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
+        self.double_bond_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer
+        self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
     def __repr__(self):
         return f"show: {self.show}"
+
+    def get_width(self, bond: Bond) -> float:
+        width = self.width if bond.width is None else bond.width
+        width = width / self.parent._scaling
+        return width
 
 
 def draw_bonds(fig: go.Figure, config: ConfigDrawerBonds, bonds: list[Bond]) -> go.Figure:
@@ -40,9 +48,8 @@ def draw_bonds(fig: go.Figure, config: ConfigDrawerBonds, bonds: list[Bond]) -> 
 
 def _draw_bond_on_fig(fig: go.Figure, config: ConfigDrawerBonds, x, y, bond) -> go.Figure:
     color = config.color if bond.color is None else bond.color
-    width = config.width if bond.width is None else bond.width
 
-    return fig.add_trace(go.Scatter(x=x, y=y, mode="lines", line=dict(color=color, width=width),
+    return fig.add_trace(go.Scatter(x=x, y=y, mode="lines", line=dict(color=color, width=config.get_width(bond)),
                                     **config.scatter_kwargs))
 
 

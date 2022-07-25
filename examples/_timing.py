@@ -7,6 +7,7 @@ def main():
     #
 
     config = chemdraw.DrawerConfig()
+    config.layout.show_axis = True
     config.title.show = False
     # config.auto_scale_figure = True
 
@@ -14,10 +15,10 @@ def main():
     fig = molecule_drawer.draw()
     fig.show()
 
-    # mol = "C1=CC=CC=C1C"
-    # molecule_drawer = chemdraw.Drawer(mol, title=mol, config=config)
-    # fig = molecule_drawer.draw()
-    # fig.show()
+    mol = "C1=CC=CC=C1C"
+    molecule_drawer = chemdraw.Drawer(mol, title=mol, config=config)
+    fig = molecule_drawer.draw()
+    fig.show()
 
     # fig.write_html("temp.html", auto_open=True)
 
@@ -75,7 +76,7 @@ def main_grid():
 
 
 if __name__ == "__main__":
-    # main()
-    main_time()
+    main()
+    # main_time()
     # main_profile()
     # main_grid()

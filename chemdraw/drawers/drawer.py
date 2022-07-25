@@ -59,20 +59,24 @@ class DrawerConfig:
         self.draw_order = ["ring_highlights", "bonds", "atoms", "atom_numbers", "bond_numbers", "ring_numbers",
                            "debug", "title", "highlights"]
 
-        self.layout = layout.ConfigLayout()
-        self.bonds = draw_bonds.ConfigDrawerBonds()
-        self.atoms = draw_atoms.ConfigDrawerAtoms()
-        self.atom_numbers = draw_atom_numbers.ConfigDrawerAtomNumber()
-        self.bond_numbers = draw_bond_numbers.ConfigDrawerBondNumber()
-        self.ring_numbers = draw_ring_numbers.ConfigDrawerRingNumber()
-        self.title = draw_title.ConfigDrawerTitle()
-        self.debug = draw_debug.ConfigDrawerDebug()
-        self.highlights = draw_highlights.ConfigDrawerHighlights()
-        self.ring_highlights = draw_ring_highlights.ConfigDrawerRingHighlights()
+        self.layout = layout.ConfigLayout(self)
+        self.bonds = draw_bonds.ConfigDrawerBonds(self)
+        self.atoms = draw_atoms.ConfigDrawerAtoms(self)
+        self.atom_numbers = draw_atom_numbers.ConfigDrawerAtomNumber(self)
+        self.bond_numbers = draw_bond_numbers.ConfigDrawerBondNumber(self)
+        self.ring_numbers = draw_ring_numbers.ConfigDrawerRingNumber(self)
+        self.title = draw_title.ConfigDrawerTitle(self)
+        self.debug = draw_debug.ConfigDrawerDebug(self)
+        self.highlights = draw_highlights.ConfigDrawerHighlights(self)
+        self.ring_highlights = draw_ring_highlights.ConfigDrawerRingHighlights(self)
 
     def __repr__(self) -> str:
         return f"bonds: {self.bonds.show}, atoms: {self.atoms.show}, atom_numbers: {self.atom_numbers.show}, " \
                f"title: {self.title.show}, debug: {self.debug.debug}"
+
+    @property
+    def _scaling(self) -> float:
+        return self.layout.scaling
 
 
 class Drawer:
@@ -98,7 +102,6 @@ class Drawer:
             fig = go.Figure()
 
         fig = self._draw(fig)
-        fig = self.config.layout.apply_layout(fig)
 
         if auto_open:
             fig.show()
@@ -106,6 +109,7 @@ class Drawer:
         return fig
 
     def _draw(self, fig: go.Figure) -> go.Figure:
+        self.config.layout.get_scaling(self.molecule)
         import time
         for key in self.config.draw_order:
             start = time.time()
@@ -114,6 +118,8 @@ class Drawer:
             fig = func(fig, **kwargs)
             end = time.time()
             print(key, end-start)
+
+        fig = self.config.layout.apply_layout(fig)
 
         return fig
 

@@ -7,15 +7,18 @@ from chemdraw.objects.bonds import Bond
 
 
 class ConfigDrawerHighlights:
-    show_atoms = True
-    show_bonds = True
-    highlight_bonds_between_atoms = False
-    highlight_atoms_on_bonds = False
-    atom_color = "rgba(255,0,0,0.2)"
-    bond_color = "rgba(255,0,0,0.2)"
-    atom_size = 40
-    bond_width = 20
-    scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
+    def __init__(self, parent):
+        self.parent = parent
+
+        self.show_atoms = True
+        self.show_bonds = True
+        self.highlight_bonds_between_atoms = False
+        self.highlight_atoms_on_bonds = False
+        self.atom_color = "rgba(255,0,0,0.2)"
+        self.bond_color = "rgba(255,0,0,0.2)"
+        self.atom_size = 40
+        self.bond_width = 20
+        self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
     def __repr__(self):
         return f"show atoms: {self.show_atoms}, show bonds: {self.show_bonds}"

@@ -9,9 +9,11 @@ import chemdraw.utils.vector_math as vector_math
 
 
 class ConfigDrawerRingHighlights:
-    show = False
-    offset = 1
-    color = "rgba(69, 127, 222, 0.5)"
+    def __init__(self, parent):
+        self.parent = parent
+        self.show = False
+        self.offset = 1
+        self.color = "rgba(69, 127, 222, 0.5)"
 
     def __repr__(self):
         return f"show ring highlights: {self.show}"
