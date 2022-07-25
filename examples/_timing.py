@@ -7,9 +7,8 @@ def main():
     #
 
     config = chemdraw.DrawerConfig()
-    config.layout.fixed_domain = False
-    config.title.show = False
-    # config.auto_scale_figure = True
+    config.layout.fixed_domain = True
+    config.title.show = True
 
     molecule_drawer = chemdraw.Drawer(mol, title=mol, config=config)
     fig = molecule_drawer.draw()

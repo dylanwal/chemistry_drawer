@@ -204,7 +204,7 @@ class GridDrawer:
         make_new_folder(folder)
         imgs = []
         for i, drawer in enumerate(self.drawers):
-            imgs.append(drawer.draw_img(file_location=folder + f"\\img{i}.png"))
+            imgs.append(drawer.draw_img(file_location=folder + f"\\img{i}.png", transparent_background=False))
 
         png_table(imgs, self.shape, file_name, auto_open)
 

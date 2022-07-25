@@ -22,10 +22,6 @@ class ConfigDrawerAtoms:
             "S": "yellow"
         }
         self.show_carbons = False
-        self.background_shape = "octagon"  # tight (set 'method' to False), circle, square, hexagon, octagon, diamond
-        self.marker_size = 50  # used when background_shape != tight
-        self.bgcolor = "white"  # set to None to remove bgcolor
-        self.borderpad = 0  # used when background_shape != tight
         self.align_offset = 0.3
         self.scatter_kwargs = dict(hoverinfo="skip")
         self.text_y_offset = 0.07
@@ -43,11 +39,8 @@ def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> 
         return fig
 
     if config.method:
-        # fig = _add_background_with_markers(fig, config, atoms)
         return _add_atoms_with_scatter(fig, config, atoms)
     else:
-        # if config.background_shape != "tight":
-            # fig = _add_background_with_markers(fig, config, atoms)
         return _add_atoms_with_annotations(fig, config, atoms)
 
 
@@ -70,10 +63,6 @@ def _add_atoms_with_annotations(fig: go.Figure, config: ConfigDrawerAtoms, atoms
                 size=font_size,
                 color=_get_color(config, atom)
             ),
-            bgcolor=config.bgcolor if config.background_shape == "tight" else None,
-            # borderwidth=config.borderwidth,
-            borderpad=config.borderpad,
-            # opacity=0.8
         )
 
     return fig
@@ -123,7 +112,7 @@ def _add_hydrogen_text(atom: Atom) -> tuple[str, str]:
         # hydrogen on left side of atom
         return "H" + subscript + atom.symbol, "left"
     else:
-        # hydrogens on right side of atom
+        # hydrogen on right side of atom
         return atom.symbol + "H" + subscript, "right"
 
 
@@ -145,25 +134,3 @@ def _get_color(config: ConfigDrawerAtoms, atom: Atom) -> str:
             return config.colors[atom.symbol]
 
     return config.font_color
-
-
-def _add_background_with_markers(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
-    xy = np.empty((len(atoms), 2), dtype="float64")
-
-    counter = 0
-    for atom in atoms:
-        if not config.show_carbons and atom.symbol == "C":
-            continue  # skip drawing carbons
-
-        xy[counter] = atom.coordinates
-        counter += 1
-
-    xy = xy[:counter, :]
-
-    fig.add_trace(
-        go.Scatter(x=xy[:, 0], y=xy[:, 1], mode="markers",
-                   marker=dict(color=config.bgcolor, size=config.marker_size, symbol=config.background_shape)
-                   )
-    )
-
-    return fig
