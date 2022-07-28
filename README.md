@@ -159,26 +159,22 @@ config.highlights.show = True
 
 molecule = chemdraw.Molecule(mol)
 
-# highlight outside bonds red
+# highlight outer ring bonds and atoms
 bond_ids = [0, 1,  2, 19, 5, 6, 21, 15, 14, 13, 12, 11, 10, 16, 17, 18]
 for id_ in bond_ids:
     molecule.bonds[id_].highlight = True
-
-# highlight all atoms red
 for atom in molecule.atoms:
     atom.highlight = True
-    
-    
-# highlight all select bonds green
-molecule.bonds[8].highlight = True
-molecule.bonds[8].highlight_color = "rgba(0,255,0,0.2)"
-molecule.bonds[20].highlight = True
-molecule.bonds[20].highlight_color = "rgba(0,255,0,0.2)"
 
-# highlight all select atoms green
-atom_ids = [8, 9, 4]
-for id_ in atom_ids:
-    molecule.atoms[id_].highlight_color = "rgba(0,255,0,0.2)"
+# highlight inner bonds and atoms
+accent_color = "rgb(252,186,63)"
+molecule.bonds[8].highlight = True
+molecule.bonds[8].highlight_color = accent_color
+molecule.bonds[20].highlight = True
+molecule.bonds[20].highlight_color = accent_color
+atoms_ids = [4, 8, 9]
+for id_ in atoms_ids:
+    molecule.atoms[id_].highlight_color = accent_color
 
 drawer = chemdraw.Drawer(molecule, title=mol, config=config)
 fig = drawer.draw()

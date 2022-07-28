@@ -56,8 +56,8 @@ class DrawerConfig:
 
     def __init__(self):
         # general options
-        self.draw_order = ["ring_highlights", "bonds", "atoms", "atom_numbers", "bond_numbers", "ring_numbers",
-                           "debug", "title", "highlights"]
+        self.draw_order = ["ring_highlights", "highlights", "bonds", "atoms", "atom_numbers", "bond_numbers", "ring_numbers",
+                           "debug", "title"]
 
         self.layout = layout.ConfigLayout(self)
         self.bonds = draw_bonds.ConfigDrawerBonds(self)

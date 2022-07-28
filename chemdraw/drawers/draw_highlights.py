@@ -14,8 +14,8 @@ class ConfigDrawerHighlights:
         self.show_bonds = True
         self.highlight_bonds_between_atoms = False
         self.highlight_atoms_on_bonds = False
-        self.atom_color = "rgba(255,0,0,0.2)"
-        self.bond_color = "rgba(255,0,0,0.2)"
+        self.atom_color = "rgb(127,177,235)"
+        self.bond_color = "rgb(127,177,235)"
         self.atom_size = 40
         self.bond_width = 20
         self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
