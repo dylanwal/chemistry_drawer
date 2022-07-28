@@ -108,6 +108,7 @@ mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 config = chemdraw.DrawerConfig()
 config.atom_numbers.show = True
 config.bond_numbers.show = True
+config.ring_numbers.show = True
 
 drawer = chemdraw.Drawer(mol, title=mol, config=config)
 fig = drawer.draw()
