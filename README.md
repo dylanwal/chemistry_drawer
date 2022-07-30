@@ -24,6 +24,7 @@ Pip installable package available.
 
 `pip install chemdraw`
 
+[pypi: chemdraw](https://pypi.org/project/chemdraw/)
 
 ---
 ---
