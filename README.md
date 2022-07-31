@@ -86,7 +86,7 @@ molecules = [
 ]
 
 drawer = chemdraw.GridDrawer(molecules)
-drawer.draw_png("example_2")
+drawer.draw_png("example_2.png")
 ```
 
 ![grid example](./examples/imgs/grid.png)
