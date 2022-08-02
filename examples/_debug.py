@@ -6,7 +6,7 @@ def main():
     # mol = "CN1CCC23C4C1CC5=C2C(=C(C=C5)O)OC3C(C=C4)O"
     mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-    config = chemdraw.DrawerConfig()
+    config = chemdraw.ConfigDrawer()
     config.debug.debug = True
     config.atom_numbers.show = True
     config.bond_numbers.show = True

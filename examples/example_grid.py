@@ -16,7 +16,7 @@ def main():
         "N#CCC1(CC(O1)C2=CC(=NC2=O)OC)O"
     ]
 
-    config = chemdraw.DrawerConfig()
+    config = chemdraw.ConfigDrawer()
     # config.atoms.method = True
 
     drawer = chemdraw.GridDrawer(molecules)

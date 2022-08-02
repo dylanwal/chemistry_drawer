@@ -36,7 +36,7 @@ class ConfigDrawerTitle:
         else:
             if self.auto_wrap:
                 number_of_lines = int(len(text) / self.auto_wrap_length) + 1
-                list_title = [text[i::number_of_lines] for i in range(number_of_lines)]
+                list_title = [text[i*self.auto_wrap_length:(i+1)*self.auto_wrap_length] for i in range(number_of_lines)]
                 text = "<br>".join(list_title)
 
         if self.font_bold:

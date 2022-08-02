@@ -17,11 +17,22 @@ class BondAlignment(enum.Enum):
     opposite = 2
 
 
+class BondStereoChem(enum.Enum):
+    default = 0
+    up = 1
+    down = 6
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.default
+
+
 class Bond:
-    def __init__(self, atom_ids: np.ndarray, bond_type: int, id_: int, parent):
+    def __init__(self, atom_ids: np.ndarray, bond_type: int, id_: int, stereo_chem: int, parent):
         self.atom_ids = atom_ids
         self.type_ = BondType(bond_type)
         self.id_ = id_
+        self.stereo_chem = BondStereoChem(stereo_chem)
         self.parent = parent
 
         self.atoms = []
@@ -46,6 +57,8 @@ class Bond:
         text = f"{self.atoms[0].symbol} ({self.atoms[0].id_}) -> {self.atoms[1].symbol} ({self.atoms[1].id_})"
         if self.type_ != BondType.single:
             text += f" || {self.type_.name}"
+        if self.stereo_chem is not BondStereoChem.default:
+            text += f" || {self.stereo_chem.name}"
         return text
 
     @property

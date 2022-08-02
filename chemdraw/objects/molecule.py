@@ -167,7 +167,7 @@ class Molecule:
         bonds = []
         for i, row in enumerate(bond_block):
             # -1 is to start counting at 0 instead of 1
-            bonds.append(Bond(atom_ids=row[:2]-1, bond_type=row[2], id_=i, parent=self))
+            bonds.append(Bond(atom_ids=row[:2]-1, bond_type=row[2], id_=i, stereo_chem=row[3], parent=self))
 
         return bonds
 

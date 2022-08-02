@@ -6,7 +6,7 @@ def main():
     # mol = "C(C(C#N)NC)C2=CC=C1OCOC1=C2"
     #
 
-    config = chemdraw.DrawerConfig()
+    config = chemdraw.ConfigDrawer()
     config.layout.fixed_domain = True
     config.title.show = True
     config.layout.show_axis =True

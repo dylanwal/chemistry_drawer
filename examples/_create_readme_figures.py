@@ -13,8 +13,8 @@ def grid():
         "CCCCCCCCCC",
         "CC(CC(CCC)C)CC",
         "CCC1CC1",
-        "O1CCCCC1C",
         "C1=CC=CC=C1C",
+        "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O)O)O)O)O",
         "O=C(C)Oc1ccccc1C(=O)O",
         "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1",
         "CC(C)(C)N(C)C(=O)C14C3C2C1C5C2C3C45C(=O)C69C8C7C6C%10C7C8C9%10",
@@ -29,7 +29,7 @@ def grid():
 def atom_bond_numbers():
     mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-    config = chemdraw.DrawerConfig()
+    config = chemdraw.ConfigDrawer()
     config.atom_numbers.show = True
     config.bond_numbers.show = True
     config.ring_numbers.show = True
@@ -41,7 +41,7 @@ def atom_bond_numbers():
 def ring_highlights():
     mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-    config = chemdraw.DrawerConfig()
+    config = chemdraw.ConfigDrawer()
     config.ring_highlights.show = True
 
     molecule = chemdraw.Molecule(mol)
@@ -57,7 +57,7 @@ def ring_highlights():
 def atom_bond_highlights():
     mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-    config = chemdraw.DrawerConfig()
+    config = chemdraw.ConfigDrawer()
     config.highlights.show = True
 
     molecule = chemdraw.Molecule(mol)

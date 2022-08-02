@@ -14,7 +14,7 @@ import chemdraw.drawers.draw_highlights as draw_highlights
 import chemdraw.drawers.draw_ring_highlights as draw_ring_highlights
 
 
-class DrawerConfig:
+class ConfigDrawer:
     drawers = {
         "bonds": {
             "function": draw_bonds.draw_bonds,
@@ -80,13 +80,13 @@ class DrawerConfig:
 
 
 class Drawer:
-    def __init__(self, molecule: str | Molecule, title: str = None, config: DrawerConfig = None):
+    def __init__(self, molecule: str | Molecule, title: str = None, config: ConfigDrawer = None):
         if isinstance(molecule, str):
             molecule = Molecule(molecule, name=molecule)
         self.molecule = molecule
 
         self.title = title
-        self.config = config if config is not None else DrawerConfig()
+        self.config = config if config is not None else ConfigDrawer()
 
     def __repr__(self) -> str:
         text = "Drawer for: "
