@@ -1,9 +1,12 @@
+import os
 from typing import Any
 
 import numpy as np
 from sklearn.decomposition import PCA
 from rdkit import Chem
 
+from chemdraw.data_types import PointType
+from chemdraw.errors import RDKitError
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond
 from chemdraw.objects.rings import Ring
@@ -77,18 +80,55 @@ def _add_bond_atoms(atoms: list[Atom], bonds: list[Bond]):
             atom.add_bond(bond)
 
 
-class Molecule:
+def _process_molecule_inputs(smiles: str | None, mole_file: str | None):
+    if smiles is not None:  # get mole file from SMILES
+        try:
+            mole_file, _rdkit_molecule = get_mole_file(smiles)
+        except Exception as e:
+            raise RDKitError("RDKit could not parse your SMILES string.")
 
-    def __init__(self, smiles: str, name: str = None, coordinates: np.ndarray = np.array([0, 0])):
+    elif mole_file is not None:  # get SMILES from mole file
+        if os.path.isfile(mole_file):
+            with open(mole_file, 'r') as file:
+                mole_file = file.read()
+        try:
+            _rdkit_molecule = Chem.MolFromMolBlock(mole_file)
+        except Exception as e:
+            raise RDKitError("RDKit could not parse your mole file.")
+        smiles = Chem.MolToSmiles(_rdkit_molecule)
+    else:
+        raise ValueError("Please provide a 'smiles' or 'mole_file'.")
+
+    return smiles, mole_file, _rdkit_molecule
+
+
+class Molecule:
+    def __init__(self,
+                 smiles: str = None,
+                 mole_file: str = None,
+                 name: str = None,
+                 coordinates: PointType = (0, 0)
+                 ):
+        """
+        Parameters
+        ----------
+        smiles: str
+            SMILES string
+        mole_file: str
+            file path to mole file or mole file as string
+        name: str
+            name of molecule
+        coordinates: np.ndarray
+
+        """
+        smiles, mole_file, _rdkit_molecule = _process_molecule_inputs(smiles, mole_file)
         self.name = name
         self.smiles = smiles
-
-        # get mole file and molecule
-        mole_file, _rdkit_molecule = get_mole_file(smiles)
         self._rdkit_molecule = _rdkit_molecule
 
         # parse mole file
         atom_symbols, atom_coordinates, bond_block, file_version = parse_mole_file(mole_file)
+
         # move center to zero
         atom_coordinates = atom_coordinates - np.mean(atom_coordinates, axis=0)
         self._vector = np.array([1, 0], dtype="float64")
