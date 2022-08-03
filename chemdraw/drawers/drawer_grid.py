@@ -5,7 +5,7 @@ import os
 import plotly.graph_objs as go
 import numpy as np
 
-from chemdraw.drawers.drawer import Drawer, ConfigDrawer
+from chemdraw.drawers.drawer import Drawer, Config
 from chemdraw.objects.molecule import Molecule
 
 
@@ -13,7 +13,7 @@ class GridConfig:
 
     def __init__(self):
         # config
-        self.drawer_config: ConfigDrawer = ConfigDrawer()
+        self.drawer_config: Config = Config()
 
         # grid
         self.cell_width: int = 600
@@ -132,7 +132,7 @@ class GridDrawer:
                  molecules: list[str] | list[Molecule],
                  shape: tuple | list = None,  # [columns, rows]
                  config: GridConfig = None,
-                 config_drawer: list[ConfigDrawer] = None
+                 config_drawer: list[Config] = None
                  ):
         self.molecules = molecules
         self.config = config if config is not None else GridConfig()

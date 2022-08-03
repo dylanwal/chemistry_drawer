@@ -12,7 +12,7 @@ class ConfigDrawerAtoms:
         self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
         self.font = "Arial"
         self.font_bold = True
-        self.font_size = 50
+        self.font_size = 40
         self.colors_add = False  # set 'method' to False
         self.font_color = "black"
         self.colors = {

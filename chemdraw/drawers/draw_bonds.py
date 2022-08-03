@@ -11,9 +11,9 @@ class ConfigDrawerBonds:
         self.parent = parent
 
         self.show = True
-        self.width = 8
+        self.width = 6
         self.color = "black"
-        self.offset = 0.4
+        self.offset = 0.25
         self.double_bond_offset = 0.4
         self.double_bond_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
         self.double_bond_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer

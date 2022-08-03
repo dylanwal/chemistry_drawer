@@ -69,9 +69,9 @@ class ConfigLayout:
 
             self.scaling = np.max((self.range_x.ptp(), self.range_y.ptp())) / 10
 
-    def apply_layout(self, fig: go.Figure) -> go.Figure:
+    def apply_layout(self, fig: go.Figure, legend: bool = False) -> go.Figure:
         kwargs = {
-            "showlegend": False,
+            "showlegend": legend,
             "hovermode": False,
             "plot_bgcolor": self.background_color,
             "paper_bgcolor": self.background_color,

@@ -29,7 +29,7 @@ def grid():
 def atom_bond_numbers():
     mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-    config = chemdraw.ConfigDrawer()
+    config = chemdraw.Config()
     config.atom_numbers.show = True
     config.bond_numbers.show = True
     config.ring_numbers.show = True
@@ -41,7 +41,7 @@ def atom_bond_numbers():
 def ring_highlights():
     mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-    config = chemdraw.ConfigDrawer()
+    config = chemdraw.Config()
     config.ring_highlights.show = True
 
     molecule = chemdraw.Molecule(mol)
@@ -57,7 +57,7 @@ def ring_highlights():
 def atom_bond_highlights():
     mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-    config = chemdraw.ConfigDrawer()
+    config = chemdraw.Config()
     config.highlights.show = True
 
     molecule = chemdraw.Molecule(mol)
@@ -81,9 +81,18 @@ def atom_bond_highlights():
     drawer.draw_img(".\\imgs\\highlights.svg")
 
 
+def polymer():
+    mole_file_name = "ketcher_mol_file.txt"
+    mol = chemdraw.Molecule(mole_file=mole_file_name)
+
+    drawer = chemdraw.Drawer(mol)
+    drawer.draw_img(".\\imgs\\polymer.svg")
+
+
 if __name__ == "__main__":
     simple()
     grid()
     atom_bond_numbers()
     ring_highlights()
     atom_bond_highlights()
+    polymer()

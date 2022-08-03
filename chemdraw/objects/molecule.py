@@ -7,10 +7,11 @@ from rdkit import Chem
 
 from chemdraw.data_types import PointType
 from chemdraw.errors import RDKitError
+from chemdraw.utils.mole_file_parser import parse_mole_file, Sgroup
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond
 from chemdraw.objects.rings import Ring
-from chemdraw.utils.mole_file_parser import parse_mole_file
+from chemdraw.parenthesis import Parenthesis
 import chemdraw.utils.vector_math as vector_math
 
 
@@ -127,13 +128,7 @@ class Molecule:
         self._rdkit_molecule = _rdkit_molecule
 
         # parse mole file
-        atom_symbols, atom_coordinates, bond_block, file_version = parse_mole_file(mole_file)
-
-        # move center to zero
-        atom_coordinates = atom_coordinates - np.mean(atom_coordinates, axis=0)
-        self._vector = np.array([1, 0], dtype="float64")
-        atom_coordinates = _rotate_molecule(atom_coordinates, self._vector)
-
+        atom_symbols, atom_coordinates, bond_block, file_version, s_block = parse_mole_file(mole_file)
         self._atom_coordinates = np.copy(atom_coordinates)
         self.atom_coordinates = atom_coordinates  # atoms coordinates are linked to this array
         self.atoms: list[Atom] = self._add_atoms(atom_symbols)
@@ -143,17 +138,35 @@ class Molecule:
 
         # position
         self._coordinates = None
+        self.parenthesis_coordinates = None
         self.coordinates = coordinates
 
         # get rings
         self.rings = self._add_rings()
         add_atoms_bonds_to_rings(self.rings, self.bonds)
 
+        # get sblock
+        self.parenthesis = self._add_parenthesis(s_block)
+
+        # move center to zero
+        shift_amount = np.mean(atom_coordinates, axis=0)
+        self.atom_coordinates -= shift_amount
+        if self.parenthesis_coordinates is not None:
+            self.parenthesis_coordinates -= shift_amount
+            self._vector = self.parenthesis[0].vector
+        else:
+            # rotate if no parenthesis
+            self._vector = np.array([1, 0], dtype="float64")
+            self.atom_coordinates = _rotate_molecule(atom_coordinates, self._vector)
+
     def __repr__(self) -> str:
         text = ""
         if self.name is not None:
             text += self.name + " || "
-        return text + f"# atoms: {self.number_atoms}, # bonds: {self.number_bonds}"
+        text += f"# atoms: {self.number_atoms}, # bonds: {self.number_bonds}"
+        if self.parenthesis is not None:
+            text += f", # parenthesis: {len(self.parenthesis)}"
+        return text
 
     @property
     def number_atoms(self) -> int:
@@ -171,6 +184,8 @@ class Molecule:
     def coordinates(self, coordinates: np.ndarray):
         self._coordinates = coordinates
         self.atom_coordinates += coordinates
+        if self.parenthesis_coordinates is not None:
+            self.parenthesis_coordinates += coordinates
 
     @property
     def vector(self) -> np.ndarray:
@@ -181,6 +196,9 @@ class Molecule:
         vector = vector_math.normalize(vector)
         rot_matrix = vector_math.rotation_matrix(self.vector, vector)
         self.atom_coordinates = np.dot(self.atom_coordinates, rot_matrix)
+        if self.parenthesis is not None:
+            for parenthesis_ in self.parenthesis:
+                parenthesis_.vector = np.dot(parenthesis_.vector, rot_matrix)
         self._vector = vector
 
     @property
@@ -215,6 +233,40 @@ class Molecule:
         ring_list = [[i for i in list(ring)] for ring in Chem.GetSymmSSSR(self._rdkit_molecule)]
         aromatic = [self._rdkit_molecule.GetAtomWithIdx(ring[0]).GetIsAromatic() for ring in ring_list]
         return [Ring(ring_list[i], i, self, aromatic[i]) for i in range(len(ring_list))]
+
+    def _add_parenthesis(self, s_block: dict) -> list[Parenthesis]:
+        counter = 0
+        parenthesis_list = []
+        for k, v in s_block.items():
+            if v["type_"] == Sgroup.SRU or v["type_"] == Sgroup.GEN:
+                kwargs = dict(
+                    atoms=[self.atoms[i] for i in v['atoms']],
+                    contained_bonds=[self.atoms[i] for i in v['bonds']],
+                    parent=self
+                )
+                pos = np.array(v["position"])
+                coordinate1 = np.array([np.mean([pos[0], pos[2]]), np.mean([pos[1], pos[3]])])
+                coordinate2 = np.array([np.mean([pos[4], pos[6]]), np.mean([pos[5], pos[7]])])
+                self._add_parenthesis_coordinates([coordinate1, coordinate2])
+                vector = vector_math.normalize(np.array(coordinate1-coordinate2))
+
+                par1 = Parenthesis(**kwargs, id_=counter, vector=-vector)
+                counter += 1
+                par2 = Parenthesis(**kwargs, id_=counter, vector=vector,
+                                   sub_script=v["label"], super_script=v["connectivity"].name)
+                counter += 1
+                par1.parenthesis_partner = par2
+                par2.parenthesis_partner = par1
+                parenthesis_list += [par1, par2]
+
+        return parenthesis_list
+
+    def _add_parenthesis_coordinates(self, points: list[np.ndarray]):
+        for point in points:
+            if self.parenthesis_coordinates is None:
+                self.parenthesis_coordinates = point.reshape((1, 2))
+            else:
+                self.parenthesis_coordinates = np.vstack((self.parenthesis_coordinates, point))
 
     def get_top_atom(self):
         top = self.atoms[0]

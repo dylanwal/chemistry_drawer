@@ -5,7 +5,7 @@ def main():
     # mol = "C(C(C#N)NC)C2=CC=C1OCOC1=C2"
     mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-    config = chemdraw.ConfigDrawer()
+    config = chemdraw.Config()
     config.highlights.show = True
 
     molecule = chemdraw.Molecule(mol)
