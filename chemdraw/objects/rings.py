@@ -1,5 +1,6 @@
 import numpy as np
 
+from chemdraw.drawers.general_classes import Highlight
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond
 
@@ -16,9 +17,8 @@ class Ring:
         self._center = None
 
         # for drawing
+        self.highlight = Highlight()
         self.number = id_
-        self.highlight = False
-        self.highlight_color = None
 
     def __repr__(self) -> str:
         return f"Atoms: {self.atom_ids}"

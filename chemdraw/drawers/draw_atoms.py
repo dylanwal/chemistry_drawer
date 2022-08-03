@@ -1,6 +1,7 @@
 import numpy as np
 import plotly.graph_objs as go
 
+from chemdraw.drawers.general_classes import Font
 from chemdraw.objects.atoms import Atom
 
 
@@ -10,9 +11,7 @@ class ConfigDrawerAtoms:
 
         self.show = True
         self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
-        self.font = "Arial"
-        self.font_bold = True
-        self.font_size = 40
+        self.font = Font(family="Arial", size=40, bold=True, color="black", offset=0.3)
         self.colors_add = False  # set 'method' to False
         self.font_color = "black"
         self.colors = {
@@ -29,9 +28,8 @@ class ConfigDrawerAtoms:
     def __repr__(self):
         return f"show: {self.show}"
 
-    def get_font_size(self) -> float:
-        font_size = self.font_size / self.parent._scaling
-        return font_size
+    def get_font_size(self, font_size: int) -> float:
+        return font_size / self.parent._scaling
 
 
 def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
@@ -50,8 +48,8 @@ def _add_atoms_with_annotations(fig: go.Figure, config: ConfigDrawerAtoms, atoms
             continue  # skip drawing carbons
 
         symbol, x, y = _get_symbol(config, atom)
-        font = config.font if atom.font is None else atom.font
-        font_size = config.font_size if atom.font_size is None else atom.font_size
+        font = config.font.get_attr("family", atom.font)
+        font_size = config.font.get_attr("size", config.font.get_attr("size", atom.font))
 
         fig.add_annotation(
             x=x,
@@ -80,9 +78,18 @@ def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: li
         xy[counter, :] = [x, y]
         counter += 1
 
-    fig.add_trace(go.Scatter(x=xy[:counter, 0], y=xy[:counter, 1] - config.text_y_offset, mode="text", text=symbols,
-                             textfont=dict(family=config.font, color=config.font_color, size=config.get_font_size()),
-                             **config.scatter_kwargs))
+    fig.add_trace(
+        go.Scatter(
+            x=xy[:counter, 0], y=xy[:counter, 1] - config.text_y_offset,
+            mode="text",
+            text=symbols,
+            textfont=dict(
+                family=config.font.family,
+                color=config.font.color,
+                size=config.get_font_size(config.font.size)
+            ),
+            **config.scatter_kwargs
+        ))
 
     return fig
 
@@ -91,7 +98,7 @@ def _get_symbol(config: ConfigDrawerAtoms, atom: Atom) -> tuple[str, float, floa
     # add hydrogen
     symbol, align = _add_hydrogen_text(atom)
 
-    if config.font_bold:
+    if config.font.get_attr("bold", atom.font):
         symbol = "<b>" + symbol + "</b>"
 
     x, y = _text_alignment(config, atom, align)
@@ -117,20 +124,18 @@ def _add_hydrogen_text(atom: Atom) -> tuple[str, str]:
 
 
 def _text_alignment(config: ConfigDrawerAtoms, atom: Atom, align: str) -> tuple[float, float]:
+    offset = config.font.get_attr("offset", atom.font)
     if align == "center":
         return atom.coordinates[0], atom.coordinates[1]
     elif align == "left":
-        return atom.coordinates[0] - config.align_offset, atom.coordinates[1]
+        return atom.coordinates[0] - offset, atom.coordinates[1]
     elif align == "right":
-        return atom.coordinates[0] + config.align_offset, atom.coordinates[1]
+        return atom.coordinates[0] + offset, atom.coordinates[1]
 
 
 def _get_color(config: ConfigDrawerAtoms, atom: Atom) -> str:
-    if atom.font_color is not None:
-        return atom.font_color
-
     if config.colors_add:
         if atom.symbol in config.colors:
             return config.colors[atom.symbol]
 
-    return config.font_color
+    return config.font.get_attr("color", atom.font)

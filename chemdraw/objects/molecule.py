@@ -203,11 +203,15 @@ class Molecule:
 
     @property
     def atom_highlights(self) -> bool:
-        return any([atom.highlight for atom in self.atoms])
+        return any([atom.highlight.show for atom in self.atoms])
 
     @property
     def bond_highlights(self) -> bool:
-        return any([bond.highlight for bond in self.bonds])
+        return any([bond.highlight.show for bond in self.bonds])
+
+    @property
+    def ring_highlights(self) -> bool:
+        return any([ring.highlight.show for ring in self.rings])
 
     @property
     def has_highlights(self) -> bool:

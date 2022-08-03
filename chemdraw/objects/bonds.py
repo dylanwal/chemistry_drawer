@@ -3,6 +3,7 @@ import enum
 import numpy as np
 
 import chemdraw.utils.vector_math as vector_math
+from chemdraw.drawers.general_classes import Line, Highlight
 
 
 class BondType(enum.Enum):
@@ -46,11 +47,9 @@ class Bond:
         self._center = None
 
         # drawing stuff
-        self.color = None
-        self.width = None
-        self.highlight = None
-        self.highlight_color = None
-        self.highlight_width = None
+        self._show = None
+        self.line_format = Line()
+        self.highlight = Highlight()
         self.number = id_
 
     def __repr__(self) -> str:
@@ -60,6 +59,15 @@ class Bond:
         if self.stereo_chem is not BondStereoChem.default:
             text += f" || {self.stereo_chem.name}"
         return text
+
+    @property
+    def show(self):
+        return self._show
+
+    @show.setter
+    def show(self, show: bool):
+        self._show = show
+        self.line_format.show = show
 
     @property
     def x(self) -> np.ndarray:

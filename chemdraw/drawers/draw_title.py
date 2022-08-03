@@ -1,5 +1,6 @@
 import plotly.graph_objs as go
 
+from chemdraw.drawers.general_classes import Font
 from chemdraw.objects.molecule import Molecule
 
 
@@ -9,10 +10,7 @@ class ConfigDrawerTitle:
 
         self.show = True
         self.location = "bottom"  # options = ["top", "bottom"]
-        self.font = "Arial"
-        self.font_color = "black"
-        self.font_size = 32
-        self.font_bold = True
+        self.font = Font(family="Arial", size=32, bold=True, color="black")
         self.auto_wrap = True
         self.auto_wrap_length = 30
         self.pad_structure = 1
@@ -22,7 +20,7 @@ class ConfigDrawerTitle:
         return f"show: {self.show}"
 
     def get_font_size(self) -> float:
-        return self.font_size / self.parent._scaling
+        return self.font.size / self.parent._scaling
 
     def get_pad_structure(self) -> float:
         return self.pad_structure / self.parent._scaling
@@ -39,7 +37,7 @@ class ConfigDrawerTitle:
                 list_title = [text[i*self.auto_wrap_length:(i+1)*self.auto_wrap_length] for i in range(number_of_lines)]
                 text = "<br>".join(list_title)
 
-        if self.font_bold:
+        if self.font.bold:
             text = "<b>" + text + "</b>"
 
         return text
@@ -60,9 +58,9 @@ def draw_title(fig: go.Figure, config: ConfigDrawerTitle, title: str, molecule: 
         showarrow=False,
         align="center",
         font=dict(
-            family=config.font,
+            family=config.font.family,
             size=config.get_font_size(),
-            color=config.font_color
+            color=config.font.color
         )
     )
 

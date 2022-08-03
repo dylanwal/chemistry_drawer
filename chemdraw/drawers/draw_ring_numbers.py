@@ -2,6 +2,7 @@
 import numpy as np
 import plotly.graph_objs as go
 
+from chemdraw.drawers.general_classes import Font
 from chemdraw.objects.rings import Ring
 
 
@@ -11,10 +12,7 @@ class ConfigDrawerRingNumber:
 
         self.show = False
         self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
-        self.font = "Arial"
-        self.font_bold = True
-        self.font_size = 20
-        self.font_color = "maroon"
+        self.font = Font(family="Arial", size=20, bold=True, color="maroon")
         self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
     def __repr__(self):
@@ -41,9 +39,9 @@ def _add_ring_numbers_with_annotation(fig: go.Figure, config: ConfigDrawerRingNu
             text=_get_ring_number_text(config, ring),
             showarrow=False,
             font=dict(
-                family=config.font,
-                size=config.font_size,
-                color=config.font_color
+                family=config.font.family,
+                size=config.font.size,
+                color=config.font.color
             ),
             # bgcolor=self.config.ring_bgcolor if self.config.ring_background_shape == "tight" else None,
             # borderwidth=self.config.ring_borderwidth,
@@ -59,7 +57,7 @@ def _add_ring_numbers_with_scatter(fig: go.Figure, config: ConfigDrawerRingNumbe
     xy = np.array([ring.center for ring in rings])
 
     fig.add_trace(go.Scatter(x=xy[:, 0], y=xy[:, 1], mode="text", text=symbols,
-                             textfont=dict(family=config.font, color=config.font_color, size=config.font_size),
+                             textfont=dict(family=config.font.family, color=config.font.color, size=config.font.size),
                              **config.scatter_kwargs))
 
     return fig
@@ -68,7 +66,7 @@ def _add_ring_numbers_with_scatter(fig: go.Figure, config: ConfigDrawerRingNumbe
 def _get_ring_number_text(config: ConfigDrawerRingNumber, ring: Ring) -> str:
     symbol = str(ring.number)
 
-    if config.font_bold:
+    if config.font.bold:
         symbol = "<b>" + symbol + "</b>"
 
     return symbol

@@ -1,6 +1,7 @@
 import numpy as np
 import plotly.graph_objs as go
 
+from chemdraw.drawers.general_classes import Line
 from chemdraw.objects.bonds import Bond, BondType, BondAlignment, BondStereoChem
 import chemdraw.utils.vector_math as vector_math
 import chemdraw.utils.general_math as general_math
@@ -11,13 +12,12 @@ class ConfigDrawerBonds:
         self.parent = parent
 
         self.show = True
-        self.width = 6
-        self.color = "black"
-        self.offset = 0.25
-        self.double_bond_offset = 0.4
+        self.line_format = Line(width=6, color="black")
+        self.offset = 0.37
+        self.double_bond_offset = 0.35  # width
         self.double_bond_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
         self.double_bond_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer
-        self.triple_bond_offset = 0.23
+        self.triple_bond_offset = 0.23   # width
         self.triple_bond_length = 0.5
         self.stereo_offset = 0.23  # how wide is the triangle
         self.stereo_wedge_number_lines = 6
@@ -26,11 +26,6 @@ class ConfigDrawerBonds:
 
     def __repr__(self):
         return f"show: {self.show}"
-
-    def get_width(self, bond: Bond) -> float:
-        width = self.width if bond.width is None else bond.width
-        width = width / self.parent._scaling
-        return width
 
 
 def draw_bonds(fig: go.Figure, config: ConfigDrawerBonds, bonds: list[Bond]) -> go.Figure:
@@ -56,10 +51,16 @@ def draw_bonds(fig: go.Figure, config: ConfigDrawerBonds, bonds: list[Bond]) -> 
 
 
 def _draw_bond_on_fig(fig: go.Figure, config: ConfigDrawerBonds, x, y, bond) -> go.Figure:
-    color = config.color if bond.color is None else bond.color
-
-    return fig.add_trace(go.Scatter(x=x, y=y, mode="lines", line=dict(color=color, width=config.get_width(bond)),
-                                    **config.scatter_kwargs))
+    return fig.add_trace(
+        go.Scatter(
+            x=x, y=y,
+            mode="lines",
+            line=dict(
+                color=config.line_format.get_attr("color", bond.line_format),
+                width=config.line_format.get_attr("width", bond.line_format),
+            ),
+            **config.scatter_kwargs
+        ))
 
 
 def _bond_double_center(fig: go.Figure, config: ConfigDrawerBonds, x, y, bond: Bond) -> go.Figure:
@@ -160,6 +161,8 @@ def _shorten_bond_triple(config: ConfigDrawerBonds, bond: Bond, x: np.ndarray, y
 
 
 def _draw_stereo_bond(fig: go.Figure, config: ConfigDrawerBonds, x: np.ndarray, y: np.ndarray, bond: Bond) -> go.Figure:
+    color = config.line_format.get_attr("color", bond.line_format)
+
     if bond.stereo_chem == BondStereoChem.up:
         x_left = x[1] + bond.perpendicular[0] * config.stereo_offset
         x_right = x[1] - bond.perpendicular[0] * config.stereo_offset
@@ -169,8 +172,8 @@ def _draw_stereo_bond(fig: go.Figure, config: ConfigDrawerBonds, x: np.ndarray, 
         y_plot = np.array([y[0], y_left, y_right, y[0]])
 
         fig.add_trace(
-            go.Scatter(x=x_plot, y=y_plot, mode="lines", fill="toself", fillcolor=config.color,
-                       line=dict(color=config.color))
+            go.Scatter(x=x_plot, y=y_plot, mode="lines", fill="toself", fillcolor=color,
+                       line=dict(color=color))
         )
 
         return fig
@@ -182,16 +185,16 @@ def _draw_stereo_bond(fig: go.Figure, config: ConfigDrawerBonds, x: np.ndarray, 
     # remove the ends
     xy = xy[1:-1, :]
 
-    points = np.empty((3*num_lines, 2), dtype="float64")
-    offset = np.linspace(1/num_lines, 1, num_lines) * config.stereo_offset
+    points = np.empty((3 * num_lines, 2), dtype="float64")
+    offset = np.linspace(1 / num_lines, 1, num_lines) * config.stereo_offset
     for i in range(num_lines):
         i_ = i * 3
-        points[i_:i_+2, :] = general_math.get_offset_points(xy[i, :], bond.perpendicular, offset[i])
-        points[i_+2, :] = [None, None]
+        points[i_:i_ + 2, :] = general_math.get_offset_points(xy[i, :], bond.perpendicular, offset[i])
+        points[i_ + 2, :] = [None, None]
 
     fig.add_trace(
         go.Scatter(x=points[:, 0], y=points[:, 1], mode="lines",
-                   line=dict(color=config.color, width=config.stereo_wedge_line_width))
+                   line=dict(color=color, width=config.stereo_wedge_line_width))
     )
 
     return fig

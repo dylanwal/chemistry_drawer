@@ -130,14 +130,11 @@ import chemdraw
 
 mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-config = chemdraw.Config()
-config.ring_highlights.show = True
-
 molecule = chemdraw.Molecule(mol)
 for ring in molecule.rings:
-  ring.highlight = True  # all rings are highlighted (with default highlight_color)
+  ring.highlight.show = True  # all rings are highlighted (with default highlight_color)
   if ring.aromatic:  # highlighted aromatic green
-    ring.highlight_color = "rgba(0,255,0,0.5)"
+    ring.highlight.color = "rgba(0,255,0,0.5)"
 
 drawer = chemdraw.Drawer(molecule, title=mol, config=config)
 fig = drawer.draw()
@@ -156,27 +153,24 @@ import chemdraw
 
 mol = "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1"
 
-config = chemdraw.Config()
-config.highlights.show = True
-
 molecule = chemdraw.Molecule(mol)
 
 # highlight outer ring bonds and atoms
 bond_ids = [0, 1, 2, 19, 5, 6, 21, 15, 14, 13, 12, 11, 10, 16, 17, 18]
 for id_ in bond_ids:
-  molecule.bonds[id_].highlight = True
+  molecule.bonds[id_].highlight.show = True
 for atom in molecule.atoms:
-  atom.highlight = True
+  atom.highlight.show = True
 
 # highlight inner bonds and atoms
 accent_color = "rgb(252,186,63)"
-molecule.bonds[8].highlight = True
-molecule.bonds[8].highlight_color = accent_color
-molecule.bonds[20].highlight = True
-molecule.bonds[20].highlight_color = accent_color
+molecule.bonds[8].highlight.show = True
+molecule.bonds[8].highlight.color = accent_color
+molecule.bonds[20].highlight.show = True
+molecule.bonds[20].highlight.color = accent_color
 atoms_ids = [4, 8, 9]
 for id_ in atoms_ids:
-  molecule.atoms[id_].highlight_color = accent_color
+  molecule.atoms[id_].highlight.color = accent_color
 
 drawer = chemdraw.Drawer(molecule, title=mol, config=config)
 fig = drawer.draw()
@@ -186,7 +180,7 @@ fig.show()
 ![ring highlights](./examples/imgs/highlights.svg)
 
 ---
-## polymers
+## Polymers
 
 From mole file
 ```python
@@ -210,7 +204,7 @@ Add it to bonds
 
 # Mole Files
 
-You can also directly load up mole files. 
+You can also pass a file path to mole files into 'Molecule'. 
 Support for V2000 only.
 
 ```python

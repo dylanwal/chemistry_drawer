@@ -2,6 +2,7 @@
 import numpy as np
 
 import chemdraw.utils.vector_math as vector_math
+from chemdraw.drawers.general_classes import Font, Highlight
 
 ATOM_VALENCY = {
     "H": 1,
@@ -33,16 +34,22 @@ class Atom:
         self._number_of_bonds = None
 
         # drawing stuff
-        self.font = None  # ConfigDrawerAtoms.method needs to be False
-        self.font_size = None  # ConfigDrawerAtoms.method needs to be False
-        self.font_color = None  # ConfigDrawerAtoms.method needs to be False
-        self.highlight = None
-        self.highlight_color = None
-        self.highlight_size = None
+        self._show = None
+        self.font = Font()
+        self.highlight = Highlight()
         self.number = self.id_
 
     def __repr__(self) -> str:
         return f"{self.symbol} (id: {self.id_}): [{self.coordinates[0]}, {self.coordinates[1]}] with {len(self.bonds)} bonds"
+
+    @property
+    def show(self):
+        return self._show
+
+    @show.setter
+    def show(self, show: bool):
+        self._show = show
+        self.font.show = show
 
     @property
     def coordinates(self) -> np.ndarray:
