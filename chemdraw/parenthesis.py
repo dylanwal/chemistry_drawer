@@ -30,7 +30,7 @@ class Parenthesis:
         self.parenthesis_partner = None
         self.atoms = atoms if atoms is not None else []
         self.contained_bonds = contained_bonds if contained_bonds is not None else []
-        self.cross_bond = self._get_cross_bond()
+        self.cross_bond = self._get_cross_bond() if self.contained_bonds is not [] else []
 
         # drawing stuff
         self._show = None
@@ -39,6 +39,8 @@ class Parenthesis:
         self.line_format = Line()
         self.bond_position = False
         self.number = id_
+
+        self.__post_init__()
 
     def __repr__(self) -> str:
         text = f"id: {self.id_}"
@@ -51,6 +53,19 @@ class Parenthesis:
             text = text[:-2]
             text += "]"
         return text
+
+    def __post_init__(self):
+        if self.contained_bonds == [] and self.atoms:
+            # find bonds if none provided but atoms were
+            bonds = []
+            for atom in self.atoms:
+                for bond in atom.bonds:
+                    if bond not in bonds:
+                        bonds.append(bond)
+                    else:
+                        self.contained_bonds.append(bond)
+                        bonds.remove(bond)
+            self.cross_bond = self._find_cross_bond(bonds)
 
     @property
     def show(self):
@@ -83,6 +98,9 @@ class Parenthesis:
                 if bond not in edge_bonds:
                     edge_bonds.append(bond)
 
+        return self._find_cross_bond(edge_bonds)
+
+    def _find_cross_bond(self, edge_bonds: list[Bond]) -> Bond:
         # select bond with closes coordinates
         closest_bond = None
         smallest_distance = 10000000

@@ -76,7 +76,7 @@ def atom_bond_highlights():
 
 
 def polymer():
-    mole_file_name = "ketcher_mol_file.txt"
+    mole_file_name = "mol_files/poly_diblock.txt"
     mol = chemdraw.Molecule(mole_file=mole_file_name)
 
     drawer = chemdraw.Drawer(mol)

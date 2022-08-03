@@ -210,7 +210,7 @@ Support for V2000 only.
 ```python
 import chemdraw
 
-mole_file_name = "examples\\ketcher_mol_file.txt"
+mole_file_name = "examples/mol_files/poly_diblock.txt"
 mol = chemdraw.Molecule(mole_file=mole_file_name)
 
 molecule_drawer = chemdraw.Drawer(mol)

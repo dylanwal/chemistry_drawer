@@ -7,8 +7,8 @@ def main():
 
     config = chemdraw.Config()
     config.atom_numbers.show = True
-    molecule_drawer = chemdraw.Drawer(mol, title=mol, config=config)
-    fig = molecule_drawer.draw()
+    drawer = chemdraw.Drawer(mol, title=mol, config=config)
+    fig = drawer.draw()
     fig.write_html("temp.html", auto_open=True)
 
 

@@ -244,8 +244,8 @@ class Molecule:
         for k, v in s_block.items():
             if v["type_"] == Sgroup.SRU or v["type_"] == Sgroup.GEN:
                 kwargs = dict(
-                    atoms=[self.atoms[i] for i in v['atoms']],
-                    contained_bonds=[self.atoms[i] for i in v['bonds']],
+                    atoms=[self.atoms[i] for i in v['atoms']] if 'atoms' in v else None,
+                    contained_bonds=[self.atoms[i] for i in v['bonds']] if 'bonds' in v else None,
                     parent=self
                 )
                 pos = np.array(v["position"])
@@ -256,8 +256,12 @@ class Molecule:
 
                 par1 = Parenthesis(**kwargs, id_=counter, vector=-vector)
                 counter += 1
-                par2 = Parenthesis(**kwargs, id_=counter, vector=vector,
-                                   sub_script=v["label"], super_script=v["connectivity"].name)
+                par2 = Parenthesis(**kwargs,
+                                   id_=counter,
+                                   vector=vector,
+                                   sub_script=v["label"] if 'label' in v else None,
+                                   super_script=v["connectivity"].name if 'connectivity' in v else None
+                                   )
                 counter += 1
                 par1.parenthesis_partner = par2
                 par2.parenthesis_partner = par1
