@@ -254,17 +254,22 @@ class Molecule:
                 self._add_parenthesis_coordinates([coordinate1, coordinate2])
                 vector = vector_math.normalize(np.array(coordinate1-coordinate2))
 
-                par1 = Parenthesis(**kwargs, id_=counter, vector=-vector)
+                par1 = Parenthesis(**kwargs,
+                                   id_=counter,
+                                   vector=-vector,
+                                   size=vector_math.pythagoras_theorem(pos[:2], pos[2:4])/2
+                                   )
                 counter += 1
                 par2 = Parenthesis(**kwargs,
                                    id_=counter,
                                    vector=vector,
                                    sub_script=v["label"] if 'label' in v else None,
-                                   super_script=v["connectivity"].name if 'connectivity' in v else None
+                                   super_script=v["connectivity"].name if 'connectivity' in v else None,
+                                   size=vector_math.pythagoras_theorem(pos[4:6], pos[6:])/2
                                    )
                 counter += 1
-                par1.parenthesis_partner = par2
-                par2.parenthesis_partner = par1
+                par1.partner = par2
+                par2.partner = par1
                 parenthesis_list += [par1, par2]
 
         return parenthesis_list
@@ -291,3 +296,28 @@ class Molecule:
                 bottom = atom
 
         return bottom
+
+    def add_parenthesis(self, bond_ids: list[int], sub_script: str = None, super_script: str = None):
+        bonds = [self.bonds[id_] for id_ in bond_ids]
+        if self.parenthesis_coordinates is None:
+            self.parenthesis_coordinates = bonds[0].center.reshape((1, 2))
+        else:
+            self.parenthesis_coordinates = np.vstack((self.parenthesis_coordinates, bonds[0].center))
+        self.parenthesis_coordinates = np.vstack((self.parenthesis_coordinates, bonds[1].center))
+
+        vector = self.parenthesis_coordinates[-1] - self.parenthesis_coordinates[-2]
+
+        self.parenthesis.append(
+            Parenthesis(self,
+                        id_=len(self.parenthesis_coordinates)-2,
+                        vector=vector
+                        )
+        )
+        self.parenthesis.append(
+            Parenthesis(self,
+                        id_=len(self.parenthesis_coordinates)-1,
+                        vector=-vector,
+                        sub_script=sub_script,
+                        super_script=super_script
+                        )
+        )

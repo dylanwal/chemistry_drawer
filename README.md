@@ -76,7 +76,6 @@ molecules = [
     "CCCCCCCCCC",
     "CC(CC(CCC)C)CC",
     "CCC1CC1",
-    "C1=CC=CC=C1C",
     "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O)O)O)O)O",
     "O=C(C)Oc1ccccc1C(=O)O",
     "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1",
@@ -190,14 +189,27 @@ mole_file_name = "ketcher_mol_file.txt"
 mol = chemdraw.Molecule(mole_file=mole_file_name)
 
 drawer = chemdraw.Drawer(mol)
-drawer.draw_img(".\\imgs\\polymer.svg")
-
+fig = drawer.draw()
+fig.show()
 ```
 
 ![polymer](./examples/imgs/polymer.svg)
 
 
-Add it to bonds
+Add parenthesis to a SMILES
+
+```python
+import chemdraw
+
+mol = chemdraw.Molecule("OC(=O)CCCCC(=O)NCCCCCCN")
+mol.add_parenthesis([0, 15], sub_script="n")
+
+drawer = chemdraw.Drawer(mol)
+fig = drawer.draw()
+fig.show()
+```
+
+![polymer2](./examples/imgs/polymer2.svg)
 
 ---
 ---
@@ -217,3 +229,9 @@ molecule_drawer = chemdraw.Drawer(mol)
 fig = molecule_drawer.draw()
 fig.show()
 ```
+
+
+# More Info
+
+For more information on how the code works see: 
+[chemdraw.README.md](https://github.com/dylanwal/chemdraw/tree/master/chemdraw) 

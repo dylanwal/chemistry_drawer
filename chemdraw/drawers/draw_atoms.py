@@ -29,7 +29,7 @@ class ConfigDrawerAtoms:
         return f"show: {self.show}"
 
     def get_text_y_offset(self):
-        return self.text_y_offset / self.parent._scaling
+        return self.text_y_offset
 
 
 def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:

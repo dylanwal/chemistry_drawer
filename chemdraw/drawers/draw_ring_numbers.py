@@ -12,7 +12,7 @@ class ConfigDrawerRingNumber:
 
         self.show = False
         self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
-        self.font = Font(parent, family="Arial", size=20, bold=True, color="maroon")
+        self.font = Font(parent, family="Arial", size=15, bold=True, color="maroon")
         self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
     def __repr__(self):

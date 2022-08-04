@@ -22,7 +22,7 @@ class Base(abc.ABC):
 
 
 class Font(Base):
-    scale = ["size", "offset", "top_offset"]
+    scale = ["size"]
 
     def __init__(self,
                  parent=None,

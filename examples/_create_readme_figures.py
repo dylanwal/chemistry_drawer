@@ -82,6 +82,14 @@ def polymer():
     drawer.draw_img(".\\imgs\\polymer.svg")
 
 
+def polymer2():
+    mol = chemdraw.Molecule("OC(=O)CCCCC(=O)NCCCCCCN")
+    mol.add_parenthesis([0, 15], sub_script="n")
+
+    drawer = chemdraw.Drawer(mol)
+    drawer.draw_img(".\\imgs\\polymer2.svg")
+
+
 if __name__ == "__main__":
     simple()
     grid()
@@ -89,3 +97,4 @@ if __name__ == "__main__":
     ring_highlights()
     atom_bond_highlights()
     polymer()
+    polymer2()

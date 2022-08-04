@@ -16,11 +16,11 @@ class ConfigDrawerParenthesis:
 
         self.func = parabola
         self.points = 10
-        self.size = 0.8  # distance from to bottom of parenthesis
+        self.size = 1  # distance from to bottom of parenthesis
         self.offset = 0.04
         self.line_format = Line(parent, width=6, color="black")
-        self.sub_script_font = Font(parent, family="Arial", size=28, bold=True, color="black", offset=0)
-        self.super_script_font = Font(parent, family="Arial", size=15, bold=True, color="black", offset=0)
+        self.sub_script_font = Font(parent, family="Arial", size=28, bold=True, color="black", offset=0.1)
+        self.super_script_font = Font(parent, family="Arial", size=15, bold=True, color="black", offset=0.1)
         self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
         self._show = None
@@ -45,7 +45,7 @@ class ConfigDrawerParenthesis:
         return self.size / self.parent._scaling
 
     def get_offset(self):
-        return self.offset / self.parent._scaling
+        return self.offset
 
 
 def draw_parenthesis(fig: go.Figure, config: ConfigDrawerParenthesis, parenthesis: list[Parenthesis]) -> go.Figure:
