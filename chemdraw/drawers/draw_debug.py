@@ -4,6 +4,7 @@ import plotly.graph_objs as go
 from chemdraw.objects.bonds import Bond
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.molecule import Molecule
+from chemdraw.objects.parenthesis import Parenthesis
 
 
 class ConfigDrawerDebug:
@@ -16,6 +17,7 @@ class ConfigDrawerDebug:
         self.show_bond_vector = False
         self.show_bond_perpendicular = False
         self.show_atom_vector = False
+        self.show_parenthesis = False
 
     def __repr__(self):
         return f"show: {self.debug}"
@@ -33,9 +35,19 @@ class ConfigDrawerDebug:
         self.show_bond_vector = option
         self.show_bond_perpendicular = option
         self.show_atom_vector = option
+        self.show_parenthesis = option
+
+    @property
+    def debug_on(self) -> bool:
+        return any([i for i in self._show_attr])
+
+    @property
+    def _show_attr(self) -> dict:
+        return {k: v for k, v in self.__dict__.items() if "show" in k}
 
 
-def draw_debug(fig: go.Figure, config: ConfigDrawerDebug, molecule: Molecule, atoms: list[Atom], bonds: list[Bond]) \
+def draw_debug(fig: go.Figure, config: ConfigDrawerDebug,
+               molecule: Molecule, atoms: list[Atom], bonds: list[Bond], parenthesis: list[Parenthesis]) \
         -> go.Figure:
     if config.show_center_point:
         fig.add_trace(go.Scatter(x=[molecule.coordinates[0]], y=[molecule.coordinates[1]],
@@ -63,6 +75,8 @@ def draw_debug(fig: go.Figure, config: ConfigDrawerDebug, molecule: Molecule, at
         fig = _add_bond_perpendicular(fig, bonds)
     if config.show_atom_vector:
         fig = _add_atom_vector(fig, atoms)
+    if config.show_parenthesis:
+        fig = _add_parenthesis(fig, parenthesis)
 
     return fig
 
@@ -125,6 +139,27 @@ def _add_atom_vector(fig: go.Figure, atoms: list[Atom]) -> go.Figure:
             arrowsize=1,
             arrowwidth=1,
             arrowcolor="red"
+        )
+
+    return fig
+
+
+def _add_parenthesis(fig: go.Figure, parenthesis: list[Parenthesis]) -> go.Figure:
+    for parenthesis in parenthesis:
+        fig.add_annotation(
+            x=parenthesis.coordinates[0] + parenthesis.vector[0]*.3,
+            y=parenthesis.coordinates[1] + parenthesis.vector[1]*.3,
+            ax=parenthesis.coordinates[0],
+            ay=parenthesis.coordinates[1],
+            xref='x',
+            yref='y',
+            axref='x',
+            ayref='y',
+            showarrow=True,
+            arrowhead=3,
+            arrowsize=1,
+            arrowwidth=1,
+            arrowcolor="cyan"
         )
 
     return fig

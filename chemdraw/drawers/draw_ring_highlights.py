@@ -2,31 +2,27 @@
 import numpy as np
 import plotly.graph_objs as go
 
-from chemdraw.objects.atoms import Atom
-from chemdraw.objects.bonds import Bond
+from chemdraw.drawers.general_classes import Highlight
 from chemdraw.objects.rings import Ring
-import chemdraw.utils.vector_math as vector_math
 
 
 class ConfigDrawerRingHighlights:
     def __init__(self, parent):
         self.parent = parent
-        self.show = False
-        self.offset = 1
-        self.color = "rgba(69, 127, 222, 0.5)"
+        self.ring = Highlight(parent, show=True, color="rgba(69, 127, 222, 0.5)", offset=1)
 
     def __repr__(self):
-        return f"show ring highlights: {self.show}"
+        return f"show ring highlights: {self.ring.show}"
 
 
 def draw_ring_highlight(fig: go.Figure, config: ConfigDrawerRingHighlights, rings: list[Ring]) -> go.Figure:
-    if not config.show:
+    if not config.ring.show or not rings or not rings[0].parent.ring_highlights:
         return fig
 
     for ring in rings:
-        if ring.highlight:
+        if ring.highlight.show:
             xy = _get_coordinates(config, ring)
-            color = config.color if ring.highlight_color is None else ring.highlight_color
+            color = config.ring.get_attr("color", ring.highlight)
 
             fig.add_trace(go.Scatter(x=xy[:, 0], y=xy[:, 1], mode="lines", fill='toself', fillcolor=color,
                                      line=dict(color='rgba(0, 0, 0, 0)')))
@@ -37,12 +33,13 @@ def draw_ring_highlight(fig: go.Figure, config: ConfigDrawerRingHighlights, ring
 def _get_coordinates(config: ConfigDrawerRingHighlights, ring: Ring) -> np.ndarray:
     xy = ring.coordinates
     xy = sort_circle_points(xy)
-    if config.offset == 1:
+    offset = config.ring.get_attr("offset", ring.highlight)
+    if offset == 1:
         return xy
 
     for i, point in enumerate(xy):
         vector = point - ring.center
-        vector = config.offset * vector
+        vector = offset * vector
         xy[i] = ring.center + vector
 
     return xy

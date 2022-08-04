@@ -2,6 +2,7 @@
 import numpy as np
 
 import chemdraw.utils.vector_math as vector_math
+from chemdraw.drawers.general_classes import Font, Highlight
 
 ATOM_VALENCY = {
     "H": 1,
@@ -16,6 +17,7 @@ ATOM_VALENCY = {
     "Cl": 1,
     "Br": 1,
     "I": 1,
+    "*": 0
 }
 
 
@@ -33,16 +35,22 @@ class Atom:
         self._number_of_bonds = None
 
         # drawing stuff
-        self.font = None  # ConfigDrawerAtoms.method needs to be False
-        self.font_size = None  # ConfigDrawerAtoms.method needs to be False
-        self.font_color = None  # ConfigDrawerAtoms.method needs to be False
-        self.highlight = None
-        self.highlight_color = None
-        self.highlight_size = None
+        self._show = None
+        self.font = Font()
+        self.highlight = Highlight()
         self.number = self.id_
 
     def __repr__(self) -> str:
         return f"{self.symbol} (id: {self.id_}): [{self.coordinates[0]}, {self.coordinates[1]}] with {len(self.bonds)} bonds"
+
+    @property
+    def show(self):
+        return self._show
+
+    @show.setter
+    def show(self, show: bool):
+        self._show = show
+        self.font.show = show
 
     @property
     def coordinates(self) -> np.ndarray:
@@ -58,12 +66,12 @@ class Atom:
             vector = np.zeros(2, dtype="float64")
             if len(self.bonds) == 1:
                 self._vector = -1 * vector_math.normalize(self.bonds[0].center - self.coordinates)
-                # TODO: fix and atom 'H'
 
             elif len(self.bonds) == 2:
                 for bond in self.bonds:
                     vector += vector_math.normalize(bond.center - self.coordinates)
                 self._vector = -1 * vector
+
             elif len(self.bonds) == 3:
                 for bond in self.bonds:
                     from chemdraw.objects.bonds import BondType
@@ -87,7 +95,7 @@ class Atom:
                 # for k, v in dots.items():
                 #     keys.append(k)
                 #     values.append(v)
-                self._vector = (0, 0)
+                self._vector = (1, 0)
 
         return self._vector
 

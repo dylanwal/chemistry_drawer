@@ -11,3 +11,11 @@ class MoleParsingError(Exception):
 
     def __str__(self):
         return self.text
+
+
+class RDKitError(Exception):
+    def __init__(self, error):
+        self.text = error
+
+    def __str__(self):
+        return self.text

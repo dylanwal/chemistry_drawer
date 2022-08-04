@@ -2,6 +2,8 @@ import math
 
 import numpy as np
 
+from chemdraw.data_types import PointType
+
 
 def normalize(vector: np.ndarray) -> np.ndarray:
     """
@@ -13,6 +15,14 @@ def normalize(vector: np.ndarray) -> np.ndarray:
         return vector / n
     else:
         return vector
+
+
+def pythagoras_theorem(point1: PointType, point2: PointType) -> float:
+    return ((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2) ** (1 / 2)
+
+
+def perpendicular(vector: PointType) -> PointType:
+    return np.array([-vector[1], vector[0]])
 
 
 def shorten_line(x0: float, x1: float, y0: float, y1: float, short_percent: float) -> (float, float, float, float):
@@ -34,7 +44,7 @@ def shorten_line(x0: float, x1: float, y0: float, y1: float, short_percent: floa
     # line with slope
     slope = (y1 - y0) / (x1 - x0)
     intercept = y0 - slope * x0
-    length = ((x1 - x0) ** 2 + (y1 - y0) ** 2) ** (1 / 2)
+    length = pythagoras_theorem([x0, y0], [x1, y1])
     cut_distance = (1 - short_percent) / 2 * length
 
     # quadratic formula

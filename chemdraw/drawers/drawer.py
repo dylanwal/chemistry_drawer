@@ -10,11 +10,12 @@ import chemdraw.drawers.draw_bonds as draw_bonds
 import chemdraw.drawers.draw_atom_numbers as draw_atom_numbers
 import chemdraw.drawers.draw_bond_numbers as draw_bond_numbers
 import chemdraw.drawers.draw_ring_numbers as draw_ring_numbers
+import chemdraw.drawers.draw_parenthesis as draw_parenthesis
 import chemdraw.drawers.draw_highlights as draw_highlights
 import chemdraw.drawers.draw_ring_highlights as draw_ring_highlights
 
 
-class ConfigDrawer:
+class Config:
     drawers = {
         "bonds": {
             "function": draw_bonds.draw_bonds,
@@ -30,7 +31,7 @@ class ConfigDrawer:
         },
         "debug": {
             "function": draw_debug.draw_debug,
-            "kwargs": ["bonds", "atoms", "molecule"]  # fig is added by default
+            "kwargs": ["bonds", "atoms", "molecule", "parenthesis"]  # fig is added by default
         },
         "atom_numbers": {
             "function": draw_atom_numbers.draw_atom_numbers,
@@ -51,17 +52,23 @@ class ConfigDrawer:
         "ring_highlights": {
             "function": draw_ring_highlights.draw_ring_highlight,
             "kwargs": ["rings"]  # fig is added by default
-        }
+        },
+        "parenthesis":  {
+            "function": draw_parenthesis.draw_parenthesis,
+            "kwargs": ["parenthesis"]  # fig is added by default
+        },
     }
 
     def __init__(self):
         # general options
-        self.draw_order = ["ring_highlights", "highlights", "bonds", "atoms", "atom_numbers", "bond_numbers", "ring_numbers",
+        self.draw_order = ["ring_highlights", "highlights", "bonds", "atoms", "parenthesis",
+                           "atom_numbers", "bond_numbers", "ring_numbers",
                            "debug", "title"]
 
         self.layout = layout.ConfigLayout(self)
         self.bonds = draw_bonds.ConfigDrawerBonds(self)
         self.atoms = draw_atoms.ConfigDrawerAtoms(self)
+        self.parenthesis = draw_parenthesis.ConfigDrawerParenthesis(self)
         self.atom_numbers = draw_atom_numbers.ConfigDrawerAtomNumber(self)
         self.bond_numbers = draw_bond_numbers.ConfigDrawerBondNumber(self)
         self.ring_numbers = draw_ring_numbers.ConfigDrawerRingNumber(self)
@@ -80,13 +87,14 @@ class ConfigDrawer:
 
 
 class Drawer:
-    def __init__(self, molecule: str | Molecule, title: str = None, config: ConfigDrawer = None):
+
+    def __init__(self, molecule: str | Molecule, title: str = None, config: Config = None):
         if isinstance(molecule, str):
             molecule = Molecule(molecule, name=molecule)
         self.molecule = molecule
 
         self.title = title
-        self.config = config if config is not None else ConfigDrawer()
+        self.config = config if config is not None else Config()
 
     def __repr__(self) -> str:
         text = "Drawer for: "
@@ -131,6 +139,8 @@ class Drawer:
             kwargs_out["atoms"] = getattr(self.molecule, "atoms")
         if "rings" in kwargs:
             kwargs_out["rings"] = getattr(self.molecule, "rings")
+        if "parenthesis" in kwargs:
+            kwargs_out["parenthesis"] = getattr(self.molecule, "parenthesis")
 
         return kwargs_out
 
