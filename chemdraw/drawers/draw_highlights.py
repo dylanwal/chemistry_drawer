@@ -11,8 +11,8 @@ class ConfigDrawerHighlights:
     def __init__(self, parent):
         self.parent = parent
 
-        self.atoms = Highlight(show=True, color="rgb(127,177,235)", size=40)
-        self.bonds = Highlight(show=True, color="rgb(127,177,235)", size=20)
+        self.atoms = Highlight(parent, show=True, color="rgb(127,177,235)", size=40)
+        self.bonds = Highlight(parent, show=True, color="rgb(127,177,235)", size=20)
         self.highlight_bonds_between_atoms = False
         self.highlight_atoms_on_bonds = False
         self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)

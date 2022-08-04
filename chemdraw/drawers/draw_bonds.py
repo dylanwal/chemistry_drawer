@@ -12,7 +12,7 @@ class ConfigDrawerBonds:
         self.parent = parent
 
         self.show = True
-        self.line_format = Line(width=6, color="black")
+        self.line_format = Line(parent, width=6, color="black")
         self.offset = 0.37
         self.double_bond_offset = 0.35  # width
         self.double_bond_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter

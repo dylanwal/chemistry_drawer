@@ -153,13 +153,7 @@ class GridDrawer:
     def _get_shape(self, shape: tuple | list | None) -> tuple[int, int]:
         if shape is None:
             max_dim = int(np.ceil(np.sqrt(len(self.molecules))))
-            for i in range(max_dim-1):
-                if (len(self.molecules) % (max_dim + i)) == 0:
-                    max_dim = max_dim + i
-                    break
-
-            min_dim = int(len(self.molecules) / max_dim)
-            shape = np.array((max_dim, min_dim), dtype="int16")
+            shape = np.array((max_dim, max_dim), dtype="int16")
         else:
             if shape[0] * shape[1] < len(self.drawers):
                 raise ValueError(f"Shape must be a grid larger than need for the # of molecules.\n"

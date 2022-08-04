@@ -2,7 +2,7 @@ import numpy as np
 import plotly.graph_objs as go
 
 from chemdraw.drawers.general_classes import Font, Line
-from chemdraw.parenthesis import Parenthesis
+from chemdraw.objects.parenthesis import Parenthesis
 from chemdraw.utils import vector_math
 
 
@@ -18,9 +18,9 @@ class ConfigDrawerParenthesis:
         self.points = 10
         self.size = 0.8  # distance from to bottom of parenthesis
         self.offset = 0.04
-        self.line_format = Line(width=6, color="black")
-        self.sub_script_font = Font(family="Arial", size=28, bold=True, color="black", offset=0)
-        self.super_script_font = Font(family="Arial", size=15, bold=True, color="black", offset=0)
+        self.line_format = Line(parent, width=6, color="black")
+        self.sub_script_font = Font(parent, family="Arial", size=28, bold=True, color="black", offset=0)
+        self.super_script_font = Font(parent, family="Arial", size=15, bold=True, color="black", offset=0)
         self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
 
         self._show = None
@@ -40,6 +40,12 @@ class ConfigDrawerParenthesis:
         self.sub_script_font.show = show
         self.super_script_font.show = show
         self.line_format.show = show
+
+    def get_size(self):
+        return self.size / self.parent._scaling
+
+    def get_offset(self):
+        return self.offset / self.parent._scaling
 
 
 def draw_parenthesis(fig: go.Figure, config: ConfigDrawerParenthesis, parenthesis: list[Parenthesis]) -> go.Figure:
@@ -104,7 +110,7 @@ def draw_parenthesis(fig: go.Figure, config: ConfigDrawerParenthesis, parenthesi
 def _get_parenthesis_points(config: ConfigDrawerParenthesis, parenthesis: Parenthesis) -> np.ndarray:
     # create parenthesis points
     if parenthesis.size is None:
-        size = config.size
+        size = config.get_size()
     else:
         size = parenthesis.size
 
@@ -116,7 +122,7 @@ def _get_parenthesis_points(config: ConfigDrawerParenthesis, parenthesis: Parent
     rot_matrix = vector_math.rotation_matrix(np.array([0, 1]), parenthesis.vector)
     xy = np.dot(xy, rot_matrix)
     xy += parenthesis.coordinates
-    xy += config.offset * parenthesis.vector
+    xy += config.get_offset() * parenthesis.vector
 
     return xy
 
@@ -124,7 +130,7 @@ def _get_parenthesis_points(config: ConfigDrawerParenthesis, parenthesis: Parent
 def _get_sub_script_coordinates(config: ConfigDrawerParenthesis, parenthesis: Parenthesis) -> np.ndarray:
     # create parenthesis points
     if parenthesis.size is None:
-        size = config.size
+        size = config.get_size()
     else:
         size = parenthesis.size
 
@@ -138,7 +144,7 @@ def _get_sub_script_coordinates(config: ConfigDrawerParenthesis, parenthesis: Pa
 def _get_super_script_coordinates(config: ConfigDrawerParenthesis, parenthesis: Parenthesis) -> np.ndarray:
     # create parenthesis points
     if parenthesis.size is None:
-        size = config.size
+        size = config.get_size()
     else:
         size = parenthesis.size
 

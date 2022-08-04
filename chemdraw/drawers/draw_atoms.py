@@ -11,7 +11,7 @@ class ConfigDrawerAtoms:
 
         self.show = True
         self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
-        self.font = Font(family="Arial", size=40, bold=True, color="black", offset=0.3)
+        self.font = Font(parent, family="Arial", size=40, bold=True, color="black", offset=0.3, top_offset=0.6)
         self.colors_add = False  # set 'method' to False
         self.font_color = "black"
         self.colors = {
@@ -21,15 +21,15 @@ class ConfigDrawerAtoms:
             "S": "yellow"
         }
         self.show_carbons = False
-        self.align_offset = 0.3
+        # self.align_offset = 0.3
         self.scatter_kwargs = dict(hoverinfo="skip")
         self.text_y_offset = 0.07
 
     def __repr__(self):
         return f"show: {self.show}"
 
-    def get_font_size(self, font_size: int) -> float:
-        return font_size / self.parent._scaling
+    def get_text_y_offset(self):
+        return self.text_y_offset / self.parent._scaling
 
 
 def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
@@ -67,26 +67,39 @@ def _add_atoms_with_annotations(fig: go.Figure, config: ConfigDrawerAtoms, atoms
 
 
 def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
-    xy = np.empty((len(atoms), 2), dtype="float64")
+    xy = np.empty((int(len(atoms) * 1.5), 2), dtype="float64")
     counter = 0
     symbols = []
     for atom in atoms:
         if not config.show_carbons and atom.symbol == "C":
             continue  # skip drawing carbons
-        symbol, x, y = _get_symbol(config, atom)
+        symbol, x, y, direction = _get_symbol(config, atom)
         symbols.append(symbol)
-        xy[counter, :] = [x, y]
+        xy[counter, :] = [x, y - config.get_text_y_offset()]
         counter += 1
+
+        # add hydrogens that are above or below atom
+        if direction is not None:
+            hydrogen_symbol = _get_hydrogen_symbol(atom)
+            if config.font.get_attr("bold", atom.font):
+                hydrogen_symbol = "<b>" + hydrogen_symbol + "</b>"
+            symbols.append(hydrogen_symbol)
+            top_offset = config.font.get_attr("top_offset", atom.font)
+            if direction == "up":
+                xy[counter, :] = [atom.coordinates[0], atom.coordinates[1] + top_offset - config.get_text_y_offset()]
+            else:
+                xy[counter, :] = [atom.coordinates[0], atom.coordinates[1] - top_offset - config.get_text_y_offset()]
+            counter += 1
 
     fig.add_trace(
         go.Scatter(
-            x=xy[:counter, 0], y=xy[:counter, 1] - config.text_y_offset,
+            x=xy[:counter, 0], y=xy[:counter, 1],
             mode="text",
             text=symbols,
             textfont=dict(
                 family=config.font.family,
                 color=config.font.color,
-                size=config.get_font_size(config.font.size)
+                size=max([int(config.font.get_attr("size", atoms[0].font)), 1])
             ),
             **config.scatter_kwargs
         ))
@@ -94,33 +107,48 @@ def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: li
     return fig
 
 
-def _get_symbol(config: ConfigDrawerAtoms, atom: Atom) -> tuple[str, float, float]:
+def _get_symbol(config: ConfigDrawerAtoms, atom: Atom) -> tuple[str, float, float, str | None]:
     # add hydrogen
-    symbol, align = _add_hydrogen_text(atom)
+    symbol, align, direction = _add_hydrogen_text(atom)
 
     if config.font.get_attr("bold", atom.font):
         symbol = "<b>" + symbol + "</b>"
 
     x, y = _text_alignment(config, atom, align)
-    return symbol, x, y
+    return symbol, x, y, direction
 
 
-def _add_hydrogen_text(atom: Atom) -> tuple[str, str]:
+def _add_hydrogen_text(atom: Atom) -> tuple[str, str, str | None]:
     """ add hydrogen and subscript to atoms"""
     if atom.number_hydrogens < 1:
-        return atom.symbol, "center"
+        return atom.symbol, "center", None
+
+    if abs(atom.vector[0]) > abs(atom.vector[1]) or len(atom.bonds) != 2:
+        if atom.vector[0] < 0:
+            # hydrogen on left side of atom
+            return _get_hydrogen_symbol(atom) + atom.symbol, "left", None
+        else:
+            # hydrogen on right side of atom
+            return atom.symbol + _get_hydrogen_symbol(atom), "right", None
+    else:
+        if atom.vector[1] > 0:
+            # hydrogen on top side of atom
+            return atom.symbol, "center", "up"
+        else:
+            # hydrogen on right side of atom
+            return atom.symbol, "center", "down"
+
+
+def _get_hydrogen_symbol(atom: Atom) -> str:
+    if atom.number_hydrogens < 1:
+        return ""
 
     if atom.number_hydrogens == 1:
         subscript = ""
     else:
         subscript = "<sub>" + str(atom.number_hydrogens) + "</sub>"
 
-    if atom.vector[0] < 0:
-        # hydrogen on left side of atom
-        return "H" + subscript + atom.symbol, "left"
-    else:
-        # hydrogen on right side of atom
-        return atom.symbol + "H" + subscript, "right"
+    return "H" + subscript
 
 
 def _text_alignment(config: ConfigDrawerAtoms, atom: Atom, align: str) -> tuple[float, float]:
@@ -131,6 +159,8 @@ def _text_alignment(config: ConfigDrawerAtoms, atom: Atom, align: str) -> tuple[
         return atom.coordinates[0] - offset, atom.coordinates[1]
     elif align == "right":
         return atom.coordinates[0] + offset, atom.coordinates[1]
+
+    raise ValueError("Coding error")
 
 
 def _get_color(config: ConfigDrawerAtoms, atom: Atom) -> str:

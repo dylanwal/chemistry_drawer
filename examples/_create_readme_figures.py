@@ -13,7 +13,6 @@ def grid():
         "CCCCCCCCCC",
         "CC(CC(CCC)C)CC",
         "CCC1CC1",
-        "C1=CC=CC=C1C",
         "C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O)O)O)O)O",
         "O=C(C)Oc1ccccc1C(=O)O",
         "C1(CCC2)=C3C2=CC4=C5C3=C(CCC5CCC4)C=C1",

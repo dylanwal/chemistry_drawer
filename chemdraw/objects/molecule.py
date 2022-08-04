@@ -11,7 +11,7 @@ from chemdraw.utils.mole_file_parser import parse_mole_file, Sgroup
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond
 from chemdraw.objects.rings import Ring
-from chemdraw.parenthesis import Parenthesis
+from chemdraw.objects.parenthesis import Parenthesis
 import chemdraw.utils.vector_math as vector_math
 
 

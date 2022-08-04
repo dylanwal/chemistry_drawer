@@ -17,6 +17,7 @@ ATOM_VALENCY = {
     "Cl": 1,
     "Br": 1,
     "I": 1,
+    "*": 0
 }
 
 
@@ -65,12 +66,12 @@ class Atom:
             vector = np.zeros(2, dtype="float64")
             if len(self.bonds) == 1:
                 self._vector = -1 * vector_math.normalize(self.bonds[0].center - self.coordinates)
-                # TODO: fix and atom 'H'
 
             elif len(self.bonds) == 2:
                 for bond in self.bonds:
                     vector += vector_math.normalize(bond.center - self.coordinates)
                 self._vector = -1 * vector
+
             elif len(self.bonds) == 3:
                 for bond in self.bonds:
                     from chemdraw.objects.bonds import BondType
@@ -94,7 +95,7 @@ class Atom:
                 # for k, v in dots.items():
                 #     keys.append(k)
                 #     values.append(v)
-                self._vector = (0, 0)
+                self._vector = (1, 0)
 
         return self._vector
 

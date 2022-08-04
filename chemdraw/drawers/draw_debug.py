@@ -4,7 +4,7 @@ import plotly.graph_objs as go
 from chemdraw.objects.bonds import Bond
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.molecule import Molecule
-from chemdraw.parenthesis import Parenthesis
+from chemdraw.objects.parenthesis import Parenthesis
 
 
 class ConfigDrawerDebug:

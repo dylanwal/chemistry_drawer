@@ -9,7 +9,7 @@ from chemdraw.objects.rings import Ring
 class ConfigDrawerRingHighlights:
     def __init__(self, parent):
         self.parent = parent
-        self.ring = Highlight(show=True, color="rgba(69, 127, 222, 0.5)", offset=1)
+        self.ring = Highlight(parent, show=True, color="rgba(69, 127, 222, 0.5)", offset=1)
 
     def __repr__(self):
         return f"show ring highlights: {self.ring.show}"

@@ -10,7 +10,7 @@ class ConfigDrawerTitle:
 
         self.show = True
         self.location = "bottom"  # options = ["top", "bottom"]
-        self.font = Font(family="Arial", size=32, bold=True, color="black")
+        self.font = Font(parent, family="Arial", size=32, bold=True, color="black")
         self.auto_wrap = True
         self.auto_wrap_length = 30
         self.pad_structure = 1
