@@ -135,7 +135,7 @@ for ring in molecule.rings:
   if ring.aromatic:  # highlighted aromatic green
     ring.highlight.color = "rgba(0,255,0,0.5)"
 
-drawer = chemdraw.Drawer(molecule, title=mol, config=config)
+drawer = chemdraw.Drawer(molecule, title=mol)
 fig = drawer.draw()
 fig.show()
 
@@ -171,7 +171,7 @@ atoms_ids = [4, 8, 9]
 for id_ in atoms_ids:
   molecule.atoms[id_].highlight.color = accent_color
 
-drawer = chemdraw.Drawer(molecule, title=mol, config=config)
+drawer = chemdraw.Drawer(molecule, title=mol)
 fig = drawer.draw()
 fig.show()
 ```
