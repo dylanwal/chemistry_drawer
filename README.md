@@ -1,4 +1,4 @@
-# ChemDraw
+# Chemistry Drawer
 
 ---
 
