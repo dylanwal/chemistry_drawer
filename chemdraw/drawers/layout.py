@@ -61,13 +61,23 @@ class ConfigLayout:
                 else:
                     self.range_y = np.array([-5, 5], dtype="float64")
 
-            if self.fixed_domain and self.range_y.ptp() != self.range_x.ptp():
-                if self.range_x.ptp() > self.range_y.ptp():
-                    self.range_y = self.range_x / self.domain_ratio
-                else:
-                    self.range_x = self.range_y / self.domain_ratio
+            if np.__version__[0] < '2':
+                if self.fixed_domain and self.range_y.ptp() != self.range_x.ptp():
+                    if self.range_x.ptp() > self.range_y.ptp():
+                        self.range_y = self.range_x / self.domain_ratio
+                    else:
+                        self.range_x = self.range_y / self.domain_ratio
 
-            self.scaling = np.max((self.range_x.ptp(), self.range_y.ptp())) / 10
+                self.scaling = np.max((self.range_x.ptp(), self.range_y.ptp())) / 10
+            else:
+                # update to numpy 2 syntax
+                if self.fixed_domain and np.ptp(self.range_y) != np.ptp(self.range_x):
+                    if np.ptp(self.range_x) > np.ptp(self.range_y):
+                        self.range_y = self.range_x / self.domain_ratio
+                    else:
+                        self.range_x = self.range_y / self.domain_ratio
+
+                self.scaling = np.max((np.ptp(self.range_x), np.ptp(self.range_y))) / 10
 
     def apply_layout(self, fig: go.Figure, legend: bool = False) -> go.Figure:
         kwargs = {
