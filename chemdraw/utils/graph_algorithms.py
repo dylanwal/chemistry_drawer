@@ -117,5 +117,5 @@ def main():
         print(s)
 
 
-if __name__ in "__main__":
+if __label__ in "__main__":
     main()

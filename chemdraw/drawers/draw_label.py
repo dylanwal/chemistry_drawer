@@ -4,11 +4,11 @@ from chemdraw.drawers.general_classes import Font
 from chemdraw.objects.molecule import Molecule
 
 
-class ConfigDrawerTitle:
+class ConfigDrawerlabel:
     def __init__(self, parent):
         self.parent = parent
 
-        self.show = True
+        self.show = False
         self.location = "bottom"  # options = ["top", "bottom"]
         self.font = Font(parent, family="Arial", size=32, bold=True, color="black")
         self.auto_wrap = True
@@ -46,15 +46,16 @@ class ConfigDrawerTitle:
         return len(self.get_text(title).split("<br>")) * self.get_line_height()
 
 
-def draw_title(fig: go.Figure, config: ConfigDrawerTitle, title: str, molecule: Molecule) -> go.Figure:
-    if not config.show or title is None:
+def draw_label(fig: go.Figure, config: ConfigDrawerlabel, molecule: Molecule) -> go.Figure:
+    label = molecule.label
+    if not config.show or label is None:
         return fig
 
-    x, y = _get_position(config, title, molecule)
+    x, y = _get_position(config, label, molecule)
     fig.add_annotation(
         x=x,
         y=y,
-        text=config.get_text(title),
+        text=config.get_text(label),
         showarrow=False,
         align="center",
         font=dict(
@@ -67,8 +68,8 @@ def draw_title(fig: go.Figure, config: ConfigDrawerTitle, title: str, molecule: 
     return fig
 
 
-def _get_position(config: ConfigDrawerTitle, title: str, molecule: Molecule):
-    lines_of_text = len(config.get_text(title).split("<br>"))
+def _get_position(config: ConfigDrawerlabel, label: str, molecule: Molecule):
+    lines_of_text = len(config.get_text(label).split("<br>"))
 
     # get y
     if config.location == "top":

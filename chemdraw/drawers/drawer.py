@@ -4,7 +4,7 @@ import plotly.graph_objs as go
 from chemdraw.objects.molecule import Molecule
 import chemdraw.drawers.layout as layout
 import chemdraw.drawers.draw_debug as draw_debug
-import chemdraw.drawers.draw_title as draw_title
+import chemdraw.drawers.draw_label as draw_label
 import chemdraw.drawers.draw_atoms as draw_atoms
 import chemdraw.drawers.draw_bonds as draw_bonds
 import chemdraw.drawers.draw_atom_numbers as draw_atom_numbers
@@ -25,9 +25,9 @@ class Config:
             "function": draw_atoms.draw_atoms,
             "kwargs": ["atoms"]  # fig is added by default
         },
-        "title": {
-            "function": draw_title.draw_title,
-            "kwargs": ["title", "molecule"]  # fig is added by default
+        "label": {
+            "function": draw_label.draw_label,
+            "kwargs": ["molecule"]  # fig is added by default
         },
         "debug": {
             "function": draw_debug.draw_debug,
@@ -63,7 +63,7 @@ class Config:
         # general options
         self.draw_order = ["ring_highlights", "highlights", "bonds", "atoms", "parenthesis",
                            "atom_numbers", "bond_numbers", "ring_numbers",
-                           "debug", "title"]
+                           "debug", "label"]
 
         self.layout = layout.ConfigLayout(self)
         self.bonds = draw_bonds.ConfigDrawerBonds(self)
@@ -72,14 +72,14 @@ class Config:
         self.atom_numbers = draw_atom_numbers.ConfigDrawerAtomNumber(self)
         self.bond_numbers = draw_bond_numbers.ConfigDrawerBondNumber(self)
         self.ring_numbers = draw_ring_numbers.ConfigDrawerRingNumber(self)
-        self.title = draw_title.ConfigDrawerTitle(self)
+        self.label = draw_label.ConfigDrawerlabel(self)
         self.debug = draw_debug.ConfigDrawerDebug(self)
         self.highlights = draw_highlights.ConfigDrawerHighlights(self)
         self.ring_highlights = draw_ring_highlights.ConfigDrawerRingHighlights(self)
 
     def __repr__(self) -> str:
         return f"bonds: {self.bonds.show}, atoms: {self.atoms.show}, atom_numbers: {self.atom_numbers.show}, " \
-               f"title: {self.title.show}, debug: {self.debug.debug}"
+               f"title: {self.label.show}, debug: {self.debug.debug}"
 
     @property
     def _scaling(self) -> float:
@@ -88,18 +88,17 @@ class Config:
 
 class Drawer:
 
-    def __init__(self, molecule: str | Molecule, title: str = None, config: Config = None):
+    def __init__(self, molecule: str | Molecule, config: Config = None):
         if isinstance(molecule, str):
-            molecule = Molecule(molecule, name=molecule)
+            molecule = Molecule(molecule, label=molecule)
         self.molecule = molecule
 
-        self.title = title
         self.config = config if config is not None else Config()
 
     def __repr__(self) -> str:
         text = "Drawer for: "
-        if self.title:
-            text += str(self.title)
+        if self.molecule.label:
+            text += str(self.molecule.label)
         else:
             text += str(self.molecule)
 
@@ -118,7 +117,7 @@ class Drawer:
         return fig
 
     def _draw(self, fig: go.Figure) -> go.Figure:
-        self.config.layout.get_scaling(self.molecule, self.title)
+        self.config.layout.get_scaling(self.molecule, self.molecule.label)
 
         for key in self.config.draw_order:
             func = self.config.drawers[key]["function"]
@@ -129,8 +128,8 @@ class Drawer:
 
     def _get_kwargs(self, key: str, kwargs: list[str]) -> dict:
         kwargs_out = {"config": getattr(self.config, key)}
-        if "title" in kwargs:
-            kwargs_out["title"] = getattr(self, "title")
+        if "label" in kwargs:
+            kwargs_out["label"] = getattr(self, "label")
         if "molecule" in kwargs:
             kwargs_out["molecule"] = getattr(self, "molecule")
         if "bonds" in kwargs:

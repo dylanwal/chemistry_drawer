@@ -10,7 +10,7 @@ def freeze_class(cls):
     def frozensetattr(self, key, value):
         if self.__frozen and not hasattr(self, key):
             raise self._error("Class '{}' is frozen. Cannot set '{} = {}'"
-                  .format(cls.__name__, key, value))
+                  .format(cls.__label__, key, value))
         else:
             object.__setattr__(self, key, value)
 

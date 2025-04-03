@@ -13,7 +13,7 @@ class GridConfig:
 
     def __init__(self):
         # config
-        self.drawer_config: Config = Config()
+        # self.drawer_config: Config = Config()
 
         # grid
         self.cell_width: int = 600
@@ -32,7 +32,7 @@ def make_new_folder(folder: str):
         os.makedirs(folder)
 
 
-def html_table_from_figs(figs: list[go.Figure], shape: tuple[int, int] | list[int, int], filename: str = "grid.html",
+def html_table_from_figs(figs: list[go.Figure], shape: tuple[int, int] | list[int, int], filelabel: str = "grid.html",
                          auto_open: bool = False, include_plotlyjs: bool = False, style: str = None):
     """
     Generates a grid of htmls
@@ -43,8 +43,8 @@ def html_table_from_figs(figs: list[go.Figure], shape: tuple[int, int] | list[in
         list of figures to append together
     shape: tuple[int, int] | list[int, int]
         shape of grid
-    filename:str
-        file name
+    filelabel:str
+        file label
     auto_open: bool
         open html in browser after creating
     include_plotlyjs: bool
@@ -53,8 +53,8 @@ def html_table_from_figs(figs: list[go.Figure], shape: tuple[int, int] | list[in
         style the table
 
     """
-    if filename[-5:] != ".html":
-        filename += ".html"
+    if filelabel[-5:] != ".html":
+        filelabel += ".html"
 
     # get htmls
     if include_plotlyjs:
@@ -66,7 +66,7 @@ def html_table_from_figs(figs: list[go.Figure], shape: tuple[int, int] | list[in
         fig_htmls.append(fig.to_html(**kwargs).split('<body>')[1].split('</body>')[0])
 
     # generate html
-    with open(filename, 'w') as file:
+    with open(filelabel, 'w') as file:
         file.write(f'<html>\n<head><meta charset="utf-8" /></head><body>')
         if style is not None:
             file.write("<style>" + style + "</style>")
@@ -92,10 +92,10 @@ def html_table_from_figs(figs: list[go.Figure], shape: tuple[int, int] | list[in
 
     if auto_open:
         import os
-        os.system(fr"start {filename}")
+        os.system(fr"start {filelabel}")
 
 
-def png_table(imgs: list[str], shape: tuple[int, int], file_name: str = "molecule_grid.png", auto_open: bool = True):
+def png_table(imgs: list[str], shape: tuple[int, int], file_label: str = "molecule_grid.png", auto_open: bool = True):
     from PIL import Image
     imgs = copy.copy(imgs)
 
@@ -120,7 +120,7 @@ def png_table(imgs: list[str], shape: tuple[int, int], file_name: str = "molecul
         if not FLAG:
             break
 
-    new_im.save(file_name)
+    new_im.save(file_label)
 
     if auto_open:
         new_im.show()
@@ -131,24 +131,27 @@ class GridDrawer:
     def __init__(self,
                  molecules: list[str] | list[Molecule],
                  shape: tuple | list = None,  # [columns, rows]
-                 config: GridConfig = None,
-                 config_drawer: list[Config] = None
+                 config: Config | list[Config] = None,
+                 config_grid: GridConfig = None,
                  ):
         self.molecules = molecules
-        self.config = config if config is not None else GridConfig()
-        self.config_drawer = config_drawer
+        self.config = config
+        self.config_grid = config_grid if config_grid is not None else GridConfig()
         self.drawers = self._get_drawers()
         self.shape = self._get_shape(shape)
         self.grid = self._get_grid()
 
     def _get_drawers(self) -> list[Drawer]:
-        if self.config_drawer is None:
-            return [Drawer(molecule, config=self.config.drawer_config) for molecule in self.molecules]
+        if self.config is None or isinstance(self.config, Drawer):
+            return [Drawer(molecule) for molecule in self.molecules]
+        if isinstance(self.config, Config):
+            return [Drawer(molecule, config=self.config) for molecule in self.molecules]
+        if isinstance(self.config, list):
+            if len(self.molecules) != len(self.config):
+                raise ValueError("'molecules' list must be the same length as 'config_drawer'")
+            return [Drawer(molecule, config=drawer_config) for molecule, drawer_config in zip(self.molecules, self.config)]
 
-        if len(self.molecules) != len(self.config_drawer):
-            raise ValueError("'molecules' list must be the same length as 'config_drawer'")
-
-        return [Drawer(molecule, config=drawer_config) for molecule, drawer_config in zip(self.molecules, self.config_drawer)]
+        raise ValueError("'config' must be a list of Drawer instances or a Drawer instance")
 
     def _get_shape(self, shape: tuple | list | None) -> tuple[int, int]:
         if shape is None:
@@ -180,22 +183,22 @@ class GridDrawer:
     #
     #     return fig
 
-    def draw_html(self, file_name: str = "molecule_grid.html", auto_open: bool = False, **kwargs):
+    def draw_html(self, file_label: str = "molecule_grid.html", auto_open: bool = False, **kwargs):
         figs = []
         for drawer in self.drawers:
             figs.append(drawer.draw())
 
-        html_table_from_figs(figs, self.shape, file_name, auto_open=auto_open, style=self.config.html_table_style,
+        html_table_from_figs(figs, self.shape, file_label, auto_open=auto_open, style=self.config_grid.html_table_style,
                              **kwargs)
 
-    def draw_png(self, file_name: str = "molecule_grid.png", folder: str = "imgs", auto_open: bool = False,
+    def draw_png(self, file_label: str = "molecule_grid.png", folder: str = "imgs", auto_open: bool = False,
                  save_individual_imgs: bool = False):
         make_new_folder(folder)
         imgs = []
         for i, drawer in enumerate(self.drawers):
             imgs.append(drawer.draw_img(file_location=folder + f"\\img{i}.png", transparent_background=False))
 
-        png_table(imgs, self.shape, file_name, auto_open)
+        png_table(imgs, self.shape, file_label, auto_open)
 
         if not save_individual_imgs:
             # remove temporary images

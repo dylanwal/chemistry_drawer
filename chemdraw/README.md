@@ -23,7 +23,7 @@ classDiagram
     Molecule *-- Parenthesis
     
     class Molecule{
-        str name
+        str label
         str smiles
         list[Atom] atoms
         list[Bond] bonds

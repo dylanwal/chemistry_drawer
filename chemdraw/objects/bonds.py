@@ -55,9 +55,9 @@ class Bond:
     def __repr__(self) -> str:
         text = f"{self.atoms[0].symbol} ({self.atoms[0].id_}) -> {self.atoms[1].symbol} ({self.atoms[1].id_})"
         if self.type_ != BondType.single:
-            text += f" || {self.type_.name}"
+            text += f" || {self.type_.label}"
         if self.stereo_chem is not BondStereoChem.default:
-            text += f" || {self.stereo_chem.name}"
+            text += f" || {self.stereo_chem.label}"
         return text
 
     @property
@@ -103,7 +103,7 @@ class Bond:
             self._alignment = BondAlignment(value)
             return
         else:
-            values = set(item.name for item in BondAlignment)
+            values = set(item.label for item in BondAlignment)
             if value in values:
                 self._alignment = BondAlignment[value]
                 return

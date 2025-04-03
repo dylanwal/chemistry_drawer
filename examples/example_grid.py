@@ -16,8 +16,9 @@ def main():
         "N#CCC1(CC(O1)C2=CC(=NC2=O)OC)O"
     ]
 
-    drawer = chemdraw.GridDrawer(molecules)
-    # drawer.draw(auto_open=True)
+    config = chemdraw.Config()
+    config.label.show = True
+    drawer = chemdraw.GridDrawer(molecules, config=config)
     drawer.draw_html(auto_open=True)
 
 

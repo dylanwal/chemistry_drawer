@@ -107,7 +107,7 @@ class Molecule:
     def __init__(self,
                  smiles: str = None,
                  mole_file: str = None,
-                 name: str = None,
+                 label: str = None,
                  coordinates: PointType = (0, 0)
                  ):
         """
@@ -117,13 +117,13 @@ class Molecule:
             SMILES string
         mole_file: str
             file path to mole file or mole file as string
-        name: str
-            name of molecule
+        label: str
+            label of molecule
         coordinates: np.ndarray
 
         """
         smiles, mole_file, _rdkit_molecule = _process_molecule_inputs(smiles, mole_file)
-        self.name = name
+        self.label = label if label is not None else smiles
         self.smiles = smiles
         self._rdkit_molecule = _rdkit_molecule
 
@@ -161,8 +161,8 @@ class Molecule:
 
     def __repr__(self) -> str:
         text = ""
-        if self.name is not None:
-            text += self.name + " || "
+        if self.label is not None:
+            text += self.label + " || "
         text += f"# atoms: {self.number_atoms}, # bonds: {self.number_bonds}"
         if self.parenthesis is not None:
             text += f", # parenthesis: {len(self.parenthesis)}"
@@ -264,7 +264,7 @@ class Molecule:
                                    id_=counter,
                                    vector=vector,
                                    sub_script=v["label"] if 'label' in v else None,
-                                   super_script=v["connectivity"].name if 'connectivity' in v else None,
+                                   super_script=v["connectivity"].label if 'connectivity' in v else None,
                                    size=vector_math.pythagoras_theorem(pos[4:6], pos[6:])/2
                                    )
                 counter += 1
