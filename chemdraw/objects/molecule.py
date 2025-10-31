@@ -1,171 +1,108 @@
-import os
-from typing import Any
+import pathlib
 
 import numpy as np
-from sklearn.decomposition import PCA
 from rdkit import Chem
 
-from chemdraw.data_types import PointType
-from chemdraw.errors import RDKitError
+from chemdraw.config.style_template import style_template
 from chemdraw.utils.mole_file_parser import parse_mole_file, Sgroup
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond
 from chemdraw.objects.rings import Ring
-from chemdraw.objects.parenthesis import Parenthesis
-import chemdraw.utils.vector_math as vector_math
+from chemdraw.utils.math_points import set_largest_axis
+
+def count_digits_in_string(str_: str) -> int:
+    digit_count = 0
+    for char in str_:
+        if char.isdigit():
+            digit_count += 1
+    return digit_count
 
 
-def get_mole_file(smiles: str) -> tuple[str, Any]:
-    """
-    Use RDkit to get Mole File.
+def _process_molecule_inputs(input_: str | None):
+    if isinstance(input_, Chem.Mol):
+        smiles = Chem.MolToSmiles(input_)
+        mole_file = Chem.MolToMolBlock(input_)
+        return smiles, mole_file, input_
 
-    Parameters
-    ----------
-    smiles:
-        smiles string (simplified molecular-input line-entry system)
+    if isinstance(input_, str):
+        if input_.endswith(".mol"):
+            input_ = pathlib.Path(input_)
+        elif count_digits_in_string(input_) > 10 and input_.count(" ") > 10: # alot of numbers indicative of mole file
+            try:
+                _rdkit_molecule = Chem.MolFromMolBlock(input_)
+                smiles = Chem.MolToSmiles(_rdkit_molecule)
+                return smiles, input_, _rdkit_molecule
+            except Exception as e:
+                pass
 
-    Returns
-    -------
-    mole_file: str
-        mole file
+        else:
+            try:
+                mol = Chem.MolFromSmiles(input_)
+                mole_file = Chem.MolToMolBlock(mol)
+                return input_, mole_file, mol
+            except Exception as e:
+                pass
 
-    """
-    mol = Chem.MolFromSmiles(smiles)
-    return Chem.MolToMolBlock(mol), mol
+    if isinstance(input_, pathlib.Path):
+        input_ = input_.resolve()
+        if not input_.exists():
+            raise ValueError(f"Invalid file path. {input_}")
 
+        with open(input_, "r") as f:
+            mole_file = f.read()
 
-def add_atoms_bonds_to_rings(rings: list[Ring], bonds: list[Bond]):
-    bond_set = [set(bond.atom_ids) for bond in bonds]
-    for ring in rings:
-        ring_atom_ids = set(ring.atom_ids)
-        for i, bond in enumerate(bond_set):
-            if bond.issubset(ring_atom_ids):
-                ring.bonds.append(bonds[i])
-                bonds[i].rings.append(ring)
-                ring.add_atoms(bonds[i].atoms)
-                bonds[i].atoms[0].rings.append(ring)
-                bonds[i].atoms[1].rings.append(ring)
-
-        ring._center = get_center(ring.atoms)
-
-
-def get_center(atoms: list[Atom]) -> np.ndarray:
-    center = np.zeros(2, dtype="float64")
-
-    for atom in atoms:
-        center += atom.coordinates
-
-    center /= len(atoms)
-    return center
-
-
-def get_largest_principle_component(coordinates: np.ndarray) -> np.ndarray:
-    pca = PCA(n_components=2)
-    pca.fit(coordinates)
-    return vector_math.normalize(pca.components_[0])
-
-
-def _rotate_molecule(coordinates: np.ndarray, new_vector: np.ndarray = np.array([1, 0], dtype="float64")) -> np.ndarray:
-    vector = get_largest_principle_component(coordinates)
-    rot_matrix = vector_math.rotation_matrix(vector, new_vector)
-    return np.dot(coordinates, rot_matrix)
-
-
-def _add_bond_atoms(atoms: list[Atom], bonds: list[Bond]):
-    for bond in bonds:
-        # add atoms to bond
-        bond.atoms = (atoms[bond.atom_ids[0]], atoms[bond.atom_ids[1]])
-
-        # add bonds to atoms
-        for atom in bond.atoms:
-            atom.add_bond(bond)
-
-
-def _process_molecule_inputs(smiles: str | None, mole_file: str | None):
-    if smiles is not None:  # get mole file from SMILES
-        try:
-            mole_file, _rdkit_molecule = get_mole_file(smiles)
-        except Exception as e:
-            raise RDKitError("RDKit could not parse your SMILES string.")
-
-    elif mole_file is not None:  # get SMILES from mole file
-        if os.path.isfile(mole_file):
-            with open(mole_file, 'r') as file:
-                mole_file = file.read()
-        try:
-            _rdkit_molecule = Chem.MolFromMolBlock(mole_file)
-        except Exception as e:
-            raise RDKitError("RDKit could not parse your mole file.")
+        _rdkit_molecule = Chem.MolFromMolBlock(mole_file)
+        mole_file = Chem.MolToMolBlock(_rdkit_molecule)
         smiles = Chem.MolToSmiles(_rdkit_molecule)
-    else:
-        raise ValueError("Please provide a 'smiles' or 'mole_file'.")
+        return smiles, mole_file, _rdkit_molecule
 
-    return smiles, mole_file, _rdkit_molecule
+    raise ValueError("'input_' not recognized type. Please provide a 'smiles' or 'mole_file'.")
 
 
 class Molecule:
+
     def __init__(self,
-                 smiles: str = None,
-                 mole_file: str = None,
+                 input_: str | pathlib.Path | Chem.Mol,
                  label: str = None,
-                 coordinates: PointType = (0, 0)
                  ):
         """
         Parameters
         ----------
-        smiles: str
+        input_: str
+            There are multiple accepted inputs:
             SMILES string
-        mole_file: str
-            file path to mole file or mole file as string
+            mole_file: file path to mole file or mole file as string
+            rdkit molecule
         label: str
             label of molecule
-        coordinates: np.ndarray
-
         """
-        smiles, mole_file, _rdkit_molecule = _process_molecule_inputs(smiles, mole_file)
+        smiles, mole_file, _rdkit_molecule = _process_molecule_inputs(input_)
         self.label = label if label is not None else smiles
         self.smiles = smiles
         self._rdkit_molecule = _rdkit_molecule
 
         # parse mole file
         atom_symbols, atom_coordinates, bond_block, file_version, s_block = parse_mole_file(mole_file)
-        self._atom_coordinates = np.copy(atom_coordinates)
-        self.atom_coordinates = atom_coordinates  # atoms coordinates are linked to this array
+        self.coordinates = atom_coordinates   # [2,N] or [3, N] atoms coordinates are linked to this array (updates in ATOM class effect this)
         self.atoms: list[Atom] = self._add_atoms(atom_symbols)
         self.bonds: list[Bond] = self._add_bonds(bond_block)
-        _add_bond_atoms(self.atoms, self.bonds)
         self.file_version: str = file_version
-
-        # position
-        self._coordinates = None
-        self.parenthesis_coordinates = None
-        self.coordinates = coordinates
 
         # get rings
         self.rings = self._add_rings()
-        add_atoms_bonds_to_rings(self.rings, self.bonds)
 
+        self.objects = []  # parenthesis
         # get sblock
-        self.parenthesis = self._add_parenthesis(s_block)
-
-        # move center to zero
-        shift_amount = np.mean(atom_coordinates, axis=0)
-        self.atom_coordinates -= shift_amount
-        if self.parenthesis_coordinates is not None:
-            self.parenthesis_coordinates -= shift_amount
-            self._vector = self.parenthesis[0].vector
-        else:
-            # rotate if no parenthesis
-            self._vector = np.array([1, 0], dtype="float64")
-            self.atom_coordinates = _rotate_molecule(atom_coordinates, self._vector)
+        # if  self._add_parenthesis(s_block)
+        #     pass
+        if style_template.auto_rotate:
+            self.coordinates = set_largest_axis(self.coordinates)
 
     def __repr__(self) -> str:
         text = ""
         if self.label is not None:
             text += self.label + " || "
         text += f"# atoms: {self.number_atoms}, # bonds: {self.number_bonds}"
-        if self.parenthesis is not None:
-            text += f", # parenthesis: {len(self.parenthesis)}"
         return text
 
     @property
@@ -177,29 +114,8 @@ class Molecule:
         return len(self.bonds)
 
     @property
-    def coordinates(self) -> np.ndarray:
-        return self._coordinates
-
-    @coordinates.setter
-    def coordinates(self, coordinates: np.ndarray):
-        self._coordinates = coordinates
-        self.atom_coordinates += coordinates
-        if self.parenthesis_coordinates is not None:
-            self.parenthesis_coordinates += coordinates
-
-    @property
-    def vector(self) -> np.ndarray:
-        return self._vector
-
-    @vector.setter
-    def vector(self, vector: np.ndarray):
-        vector = vector_math.normalize(vector)
-        rot_matrix = vector_math.rotation_matrix(self.vector, vector)
-        self.atom_coordinates = np.dot(self.atom_coordinates, rot_matrix)
-        if self.parenthesis is not None:
-            for parenthesis_ in self.parenthesis:
-                parenthesis_.vector = np.dot(parenthesis_.vector, rot_matrix)
-        self._vector = vector
+    def is_3D(self) -> bool:
+        return self.coordinates.shape[0] == 3
 
     @property
     def atom_highlights(self) -> bool:
@@ -221,15 +137,23 @@ class Molecule:
         atoms = []
         for i, symbol in enumerate(atom_symbols):
             atoms.append(
-                Atom(symbol=symbol, id_=i, parent=self)
+                Atom(symbol=symbol, _id=i, parent=self)
             )
         return atoms
 
     def _add_bonds(self, bond_block: np.ndarray) -> list[Bond]:
         bonds = []
         for i, row in enumerate(bond_block):
-            # -1 is to start counting at 0 instead of 1
-            bonds.append(Bond(atom_ids=row[:2]-1, bond_type=row[2], id_=i, stereo_chem=row[3], parent=self))
+            bonds.append(
+                Bond(
+                    atom1_id=row[0]-1, # -1 is to start counting at 0 instead of 1
+                    atom2_id=row[1]-1, # -1 is to start counting at 0 instead of 1
+                    bond_type=row[2],
+                    _id=i,
+                    stereo_chem=row[3],
+                    parent=self
+                )
+            )
 
         return bonds
 
@@ -237,87 +161,3 @@ class Molecule:
         ring_list = [[i for i in list(ring)] for ring in Chem.GetSymmSSSR(self._rdkit_molecule)]
         aromatic = [self._rdkit_molecule.GetAtomWithIdx(ring[0]).GetIsAromatic() for ring in ring_list]
         return [Ring(ring_list[i], i, self, aromatic[i]) for i in range(len(ring_list))]
-
-    def _add_parenthesis(self, s_block: dict) -> list[Parenthesis]:
-        counter = 0
-        parenthesis_list = []
-        for k, v in s_block.items():
-            if v["type_"] == Sgroup.SRU or v["type_"] == Sgroup.GEN:
-                kwargs = dict(
-                    atoms=[self.atoms[i] for i in v['atoms']] if 'atoms' in v else None,
-                    contained_bonds=[self.atoms[i] for i in v['bonds']] if 'bonds' in v else None,
-                    parent=self
-                )
-                pos = np.array(v["position"])
-                coordinate1 = np.array([np.mean([pos[0], pos[2]]), np.mean([pos[1], pos[3]])])
-                coordinate2 = np.array([np.mean([pos[4], pos[6]]), np.mean([pos[5], pos[7]])])
-                self._add_parenthesis_coordinates([coordinate1, coordinate2])
-                vector = vector_math.normalize(np.array(coordinate1-coordinate2))
-
-                par1 = Parenthesis(**kwargs,
-                                   id_=counter,
-                                   vector=-vector,
-                                   size=vector_math.pythagoras_theorem(pos[:2], pos[2:4])/2
-                                   )
-                counter += 1
-                par2 = Parenthesis(**kwargs,
-                                   id_=counter,
-                                   vector=vector,
-                                   sub_script=v["label"] if 'label' in v else None,
-                                   super_script=v["connectivity"].label if 'connectivity' in v else None,
-                                   size=vector_math.pythagoras_theorem(pos[4:6], pos[6:])/2
-                                   )
-                counter += 1
-                par1.partner = par2
-                par2.partner = par1
-                parenthesis_list += [par1, par2]
-
-        return parenthesis_list
-
-    def _add_parenthesis_coordinates(self, points: list[np.ndarray]):
-        for point in points:
-            if self.parenthesis_coordinates is None:
-                self.parenthesis_coordinates = point.reshape((1, 2))
-            else:
-                self.parenthesis_coordinates = np.vstack((self.parenthesis_coordinates, point))
-
-    def get_top_atom(self):
-        top = self.atoms[0]
-        for atom in self.atoms:
-            if atom.coordinates[1] > top.coordinates[1]:
-                top = atom
-
-        return top
-
-    def get_bottom_atom(self):
-        bottom = self.atoms[0]
-        for atom in self.atoms:
-            if atom.coordinates[1] < bottom.coordinates[1]:
-                bottom = atom
-
-        return bottom
-
-    def add_parenthesis(self, bond_ids: list[int], sub_script: str = None, super_script: str = None):
-        bonds = [self.bonds[id_] for id_ in bond_ids]
-        if self.parenthesis_coordinates is None:
-            self.parenthesis_coordinates = bonds[0].center.reshape((1, 2))
-        else:
-            self.parenthesis_coordinates = np.vstack((self.parenthesis_coordinates, bonds[0].center))
-        self.parenthesis_coordinates = np.vstack((self.parenthesis_coordinates, bonds[1].center))
-
-        vector = self.parenthesis_coordinates[-1] - self.parenthesis_coordinates[-2]
-
-        self.parenthesis.append(
-            Parenthesis(self,
-                        id_=len(self.parenthesis_coordinates)-2,
-                        vector=vector
-                        )
-        )
-        self.parenthesis.append(
-            Parenthesis(self,
-                        id_=len(self.parenthesis_coordinates)-1,
-                        vector=-vector,
-                        sub_script=sub_script,
-                        super_script=super_script
-                        )
-        )

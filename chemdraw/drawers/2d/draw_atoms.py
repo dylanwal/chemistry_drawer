@@ -35,35 +35,9 @@ class ConfigDrawerAtoms:
 def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
     if not config.show:
         return fig
-
-    if config.method:
-        return _add_atoms_with_scatter(fig, config, atoms)
-    else:
-        return _add_atoms_with_annotations(fig, config, atoms)
+    return _add_atoms_with_scatter(fig, config, atoms)
 
 
-def _add_atoms_with_annotations(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
-    for atom in atoms:
-        if not config.show_carbons and atom.symbol == "C":
-            continue  # skip drawing carbons
-
-        symbol, x, y = _get_symbol(config, atom)
-        font = config.font.get_attr("family", atom.font)
-        font_size = config.font.get_attr("size", config.font.get_attr("size", atom.font))
-
-        fig.add_annotation(
-            x=x,
-            y=y,
-            text=symbol,
-            showarrow=False,
-            font=dict(
-                family=font,
-                size=font_size,
-                color=_get_color(config, atom)
-            ),
-        )
-
-    return fig
 
 
 def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:

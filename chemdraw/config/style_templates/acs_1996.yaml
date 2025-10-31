@@ -1,0 +1,6 @@
+font = Arial
+font_size = 10
+atom_color = black  # black or multi
+bond_length = 1
+bond_color = black
+bond_width = 1

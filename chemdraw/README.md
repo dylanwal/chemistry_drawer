@@ -13,6 +13,7 @@ Local formatting is done through the chemistry objects.
 
 ## Chemistry Objects
 
+For performance improvements, all xy coordinates are stored in a numpy array 
 
 "+" is for drawing only
 ```mermaid

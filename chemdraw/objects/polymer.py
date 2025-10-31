@@ -1,4 +1,0 @@
-
-
-class Polymer:
-    pass

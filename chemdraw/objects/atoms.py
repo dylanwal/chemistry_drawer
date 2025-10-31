@@ -1,7 +1,5 @@
-
 import numpy as np
 
-import chemdraw.utils.vector_math as vector_math
 from chemdraw.drawers.general_classes import Font, Highlight
 
 ATOM_VALENCY = {
@@ -22,26 +20,21 @@ ATOM_VALENCY = {
 
 
 class Atom:
-    def __init__(self, symbol: str, id_: int, parent):
+    # __slots__ = ("symbol", "_id", "parent", "_show", "font", "highlight", "number", "_atom_number_position")
+    def __init__(self, symbol: str, _id: int, parent):
         self.symbol = symbol
-        self.id_ = id_
+        self._id = _id
         self.parent = parent
-
-        self.number_hydrogens = ATOM_VALENCY[self.symbol]
-        self.bonds = []
-        self.rings = []
-
-        self._vector = None
-        self._number_of_bonds = None
 
         # drawing stuff
         self._show = None
         self.font = Font()
         self.highlight = Highlight()
-        self.number = self.id_
+        self.number = self._id
+        self._atom_number_position = None
 
     def __repr__(self) -> str:
-        return f"{self.symbol} (id: {self.id_}): [{self.coordinates[0]}, {self.coordinates[1]}] with {len(self.bonds)} bonds"
+        return f"{self.symbol} (id: {self._id}): [{','.join(self.coordinates)}]"
 
     @property
     def show(self):
@@ -54,75 +47,26 @@ class Atom:
 
     @property
     def coordinates(self) -> np.ndarray:
-        return self.parent.atom_coordinates[self.id_, :]
+        return self.parent.coordinates[:, self._id]
 
     @coordinates.setter
     def coordinates(self, coordinates: np.ndarray):
-        self.parent.atom_coordinates[self.id_, :] = coordinates
+        """set coordinates of atom"""
+        if coordinates.ndim != 1:
+            if len(coordinates) != self.parent.coordinates.shape[0]:
+                raise ValueError(
+                    f"Wrong dimension of coordinates. "
+                    f"\n\tGiven: {len(coordinates)}"
+                    f"\n\tExpected: {self.parent.coordinates.shape[0]}"
+                )
+            coordinates = coordinates.reshape((1, self.parent.coordinates.shape[0]))
 
-    @property
-    def vector(self) -> np.ndarray:
-        if self._vector is None:
-            vector = np.zeros(2, dtype="float64")
-            if len(self.bonds) == 1:
-                self._vector = -1 * vector_math.normalize(self.bonds[0].center - self.coordinates)
+        else:
+            if coordinates.shape[0] != self.parent.coordinates.shape[0]:
+                raise ValueError(
+                    f"Wrong dimension of coordinates. "
+                    f"\n\tGiven: {coordinates.shape[0]}"
+                    f"\n\tExpected: {self.parent.coordinates.shape[0]}"
+                )
 
-            elif len(self.bonds) == 2:
-                for bond in self.bonds:
-                    vector += vector_math.normalize(bond.center - self.coordinates)
-                self._vector = -1 * vector
-
-            elif len(self.bonds) == 3:
-                for bond in self.bonds:
-                    from chemdraw.objects.bonds import BondType
-                    if bond.type_ == BondType.double:
-                        self._vector = -1 * (bond.center - self.coordinates)
-                        break
-                else:
-                    for bond in self.bonds:
-                        vector += vector_math.normalize(bond.center - self.parent.coordinates)
-                        self._vector = vector_math.normalize(vector)
-
-            else:
-                # dots = {}
-                # for bond in self.bonds:
-                #     for bond_ in self.bonds:
-                #         dots[f"{np.max([bond.id_, bond_.id_])}_{np.min([bond.id_, bond_.id_])}"] = \
-                #         np.dot(bond.center-self.position, bond_.center-self.position)
-                #
-                # keys = []
-                # values = []
-                # for k, v in dots.items():
-                #     keys.append(k)
-                #     values.append(v)
-                self._vector = (1, 0)
-
-        return self._vector
-
-    @property
-    def number_of_bonds(self) -> int:
-        if self._number_of_bonds is None:
-            self._number_of_bonds = np.sum([bond.type_.value for bond in self.bonds])
-
-        return self._number_of_bonds
-
-    @property
-    def in_ring(self) -> bool:
-        return bool(self.rings)
-
-    def add_bond(self, bond):
-        self.bonds.append(bond)
-        self.number_hydrogens -= bond.type_.value
-
-    def get_atom_number_position(self, alignment: str, offset: float) -> tuple[float, float]:
-        if alignment == "left":
-            return self.coordinates[0] + offset, self.coordinates[1]
-        elif alignment == "right":
-            return self.coordinates[0] - offset, self.coordinates[1]
-        elif alignment == "top":
-            return self.coordinates[0], self.coordinates[1] + offset
-        elif alignment == "bottom":
-            return self.coordinates[0], self.coordinates[1] - offset
-
-        # best
-        return self.coordinates[0] + self.vector[0] * offset, self.coordinates[1] + self.vector[1] * offset
+        self.parent.coordinates[self._id, :] = coordinates

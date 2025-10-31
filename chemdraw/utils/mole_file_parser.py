@@ -25,26 +25,13 @@ def _get_atoms(atom_block: list[list]) -> tuple[list[str], np.ndarray]:
 
 
 def _parse_mole_file_main(file: str) -> tuple[dict, list[list], list[list], list[str]]:
-    """
-    Parse mole file.py
-    Currently only supports v2000.
-
-    Parameters
-    ----------
-    file: str
-        mole file
-
-    Returns
-    -------
-    tuple:
-        first row: dict
-
-        atom_block: list[list]
-
-        bond_block: list[list]
-
-    """
-    # separate and clean
+    """  
+    Parse mole file.py    Currently only supports v2000.  
+    Parameters    ----------    file: str        mole file  
+    Returns    -------    tuple:        first row: dict  
+        atom_block: list[list]  
+        bond_block: list[list]  
+    """    # separate and clean
     file_list = file.split("\n")
     file_list = _clean_file_list(file_list)
 
@@ -52,23 +39,21 @@ def _parse_mole_file_main(file: str) -> tuple[dict, list[list], list[list], list
     first_row = _parse_first_row(file_list.pop(0))
 
     # atom block
-    atom_block_last_index = _get_block_last_index(file_list)
-    atom_block = _split_block(file_list[:atom_block_last_index + 1])
+    atom_block = _split_atom_block(file_list[:first_row["number_atoms"]])
 
     # bond block
-    bond_block_last_index = _get_block_last_index(file_list[atom_block_last_index + 1:])
-    bond_block = _split_block(file_list[atom_block_last_index + 1:atom_block_last_index + 2 + bond_block_last_index])
+    bond_block = _split_bond_block(file_list[first_row["number_atoms"]:first_row["number_atoms"] + first_row["number_bonds"]])
 
     # double checks for parse
     if first_row["number_atoms"] != len(atom_block):
-        raise MoleParsingError(f"Number of atoms parsed does not match first row atom count. "
+        raise MoleParsingError(f"Number of atoms parsed does not match first row atom count. "  
                                f"(first row: {first_row['ring_size']}, parsed: {len(atom_block)})")
     if first_row["number_bonds"] != len(bond_block):
-        raise MoleParsingError("Number of bonds parsed does not match first row bond count. "
+        raise MoleParsingError("Number of bonds parsed does not match first row bond count. "  
                                f"(first row: {first_row['number_bonds']}, parsed: {len(bond_block)})")
 
     # s group
-    s_group = file_list[atom_block_last_index + 2 + bond_block_last_index:]
+    s_group = file_list[first_row["number_atoms"] + first_row["number_bonds"]:]
 
     return first_row, atom_block, bond_block, s_group
 
@@ -85,9 +70,13 @@ def _parse_first_row(first_row: str) -> dict:
     }
 
 
-def _split_block(block: list[str]) -> list[list[str]]:
+def _split_atom_block(block: list[str]) -> list[list[str]]:
+    return [[row[0:10].strip(), row[10:20].strip(), row[20:30].strip(), row[30:33].strip(), row[33:36].strip(), row[36:39].strip(), row[39:42].strip(), row[42:45].strip(), row[45:48].strip(), row[48:51].strip(), row[51:54].strip(), row[54:57].strip(), row[57:60].strip(), row[60:63].strip(),row[63:66].strip(), row[66:69].strip()] for row in block]
+
+
+def _split_bond_block(block: list[str]) -> list[list[str]]:
     """[first_atom_index, second_atom_index, bond_type, stereochemistry]"""
-    return [row.split() for row in block]
+    return [[row[0:3].strip(), row[3:6].strip(), row[6:9].strip(), row[9:12].strip()] for row in block]
 
 
 def _clean_file_list(file_list: list[str]) -> list[str]:
@@ -96,15 +85,6 @@ def _clean_file_list(file_list: list[str]) -> list[str]:
             return file_list[i:]
 
     raise MoleParsingError("First row not found. (looking for 'V2000')")
-
-
-def _get_block_last_index(file_list: list[str]) -> int:
-    row_length = len(file_list[0].split())
-    for i, row in enumerate(file_list):
-        if len(row.split()) != row_length:
-            return i - 1
-
-    raise MoleParsingError("No transition between atom and bond blocks found.")
 
 
 class Sgroup(enum.Enum):

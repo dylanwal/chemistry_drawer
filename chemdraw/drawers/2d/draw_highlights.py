@@ -1,5 +1,3 @@
-
-import numpy as np
 import plotly.graph_objs as go
 
 from chemdraw.drawers.general_classes import Highlight

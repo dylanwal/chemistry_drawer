@@ -235,3 +235,23 @@ fig.show()
 
 For more information on how the code works see: 
 [chemdraw.README.md](https://github.com/dylanwal/chemdraw/tree/master/chemdraw) 
+
+
+
+
+# Recent Improvements
+* bug fixes
+  * mol file parser
+* Increase flexablity in drawing structure
+* add hoverover details
+* add isotopes substripts
+* charges are superscripts
+* add acs style
+
+O1C(CC(=O)O1)(C(C)C)O bad with atom numbers
+parenthesis and brakets
+-S(=O)(=O)- double bond
+
+
+Future stuff
+* handle metals [Fe+3]

@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 
+
 from chemdraw.data_types import PointType
 
 
@@ -87,6 +88,7 @@ def shorten_line(x0: float, x1: float, y0: float, y1: float, short_percent: floa
 
     return x0_new, x1_new, y0_new, y1_new
 
+
 def offset_point_vector(x0: float, y0: float, vector: tuple[float, float] | list[float, float] | np.ndarray,
          offset: float) -> tuple[float, float]:
     if vector[0] == 0:
@@ -113,6 +115,7 @@ def rotation_matrix(current_vector: np.ndarray, new_vector: np.ndarray) -> np.nd
     theta = np.arctan2(det, dot)
     cos_, sin_ = np.cos(theta), np.sin(theta)
     return np.array(((cos_, sin_), (-sin_, cos_)))
+
 
 
 def local_run():

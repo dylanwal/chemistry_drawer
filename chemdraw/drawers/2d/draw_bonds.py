@@ -1,37 +1,79 @@
+import abc
+
 import numpy as np
 import plotly.graph_objs as go
 
-from chemdraw.drawers.general_classes import Line
+
 from chemdraw.objects.bonds import Bond, BondType, BondAlignment, BondStereoChem
 import chemdraw.utils.vector_math as vector_math
 import chemdraw.utils.general_math as general_math
 
-
-class ConfigDrawerBonds:
-    def __init__(self, parent):
-        self.parent = parent
-
-        self.show = True
-        self.line_format = Line(parent, width=8, color="black")
-        self.offset = 0.37
-        self.double_bond_offset = 0.35  # width
-        self.double_bond_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
-        self.double_bond_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer
-        self.triple_bond_offset = 0.23   # width
-        self.triple_bond_length = 0.5
-        self.stereo_offset = 0.23  # how wide is the triangle
-        self.stereo_wedge_number_lines = 6
-        self.stereo_wedge_line_width = 6
-        self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
-
-    def __repr__(self):
-        return f"show: {self.show}"
+class DrawBond(abc.ABC):
+    def __init__(self, start: np.ndarray, end: np.ndarray):
+        self.start = start
+        self.end = end
 
 
-def draw_bonds(fig: go.Figure, config: ConfigDrawerBonds, bonds: list[Bond]) -> go.Figure:
-    if not config.show:
-        return fig
+class DrawSingleBond(DrawBond):
+    ...
 
+class DrawWedgeBond(DrawBond):
+    def __init__(self, start: np.ndarray, end: np.ndarray, xy: np.ndarray):
+        super().__init__(start, end)
+        self.xy = xy
+
+    @classmethod
+    def get_corrdinats(self, bond: Bond, stereo_offset: np.ndarray):
+        x_left = x[1] + bond.perpendicular[0] * config.stereo_offset
+        x_right = x[1] - bond.perpendicular[0] * config.stereo_offset
+        y_left = y[1] + bond.perpendicular[1] * config.stereo_offset
+        y_right = y[1] - bond.perpendicular[1] * config.stereo_offset
+        x_plot = np.array([x[0], x_left, x_right, x[0]])
+        y_plot = np.array([y[0], y_left, y_right, y[0]])
+        return cls(x_plot, y_plot)
+
+class DrawHashBond(DrawBond):
+    pass
+
+    @classmethod
+    def get_corrdinats(cls, bond: Bond, stereo_offset: np.ndarray):
+        num_lines = config.stereo_wedge_number_lines
+        xy = general_math.points_along_line((x[0], y[0]), (x[1], y[1]), num_lines + 2)
+        # the +2  is for the ends
+        # remove the ends
+        xy = xy[1:-1, :]
+
+        points = np.empty((3 * num_lines, 2), dtype="float64")
+        offset = np.linspace(1 / num_lines, 1, num_lines) * config.stereo_offset
+        for i in range(num_lines):
+            i_ = i * 3
+            points[i_:i_ + 2, :] = general_math.get_offset_points(xy[i, :], bond.perpendicular, offset[i])
+            points[i_ + 2, :] = [None, None]
+        return cls(xy, points)
+
+class DrawWaveBond(DrawBond):
+    def _get_line(self):
+        pass
+
+
+class DrawDoubleBond(DrawBond):
+    pass
+
+class DrawTripleBond(DrawBond):
+
+class DrawBonds:
+    def __init__(self):
+        self.bonds = []
+
+    def _draw_lines(self):
+        return
+
+    def _draw_fill(self):
+        return
+
+
+def draw_bonds(bonds: list[Bond], config: ConfigDrawerBonds, template) -> DrawBonds:
+    draw_bonds = DrawBonds()
     for bond in bonds:
         x, y = bond.get_coordinates(config.parent.atoms.show_carbons, config.offset)
         if bond.type_ == BondType.single:
@@ -161,36 +203,9 @@ def _shorten_bond_triple(config: ConfigDrawerBonds, bond: Bond, x: np.ndarray, y
 
 
 def _draw_stereo_bond(fig: go.Figure, config: ConfigDrawerBonds, x: np.ndarray, y: np.ndarray, bond: Bond) -> go.Figure:
-    color = config.line_format.get_attr("color", bond.line_format)
-
-    if bond.stereo_chem == BondStereoChem.up:
-        x_left = x[1] + bond.perpendicular[0] * config.stereo_offset
-        x_right = x[1] - bond.perpendicular[0] * config.stereo_offset
-        y_left = y[1] + bond.perpendicular[1] * config.stereo_offset
-        y_right = y[1] - bond.perpendicular[1] * config.stereo_offset
-        x_plot = np.array([x[0], x_left, x_right, x[0]])
-        y_plot = np.array([y[0], y_left, y_right, y[0]])
-
-        fig.add_trace(
-            go.Scatter(x=x_plot, y=y_plot, mode="lines", fill="toself", fillcolor=color,
-                       line=dict(color=color))
-        )
-
-        return fig
 
     # down
-    num_lines = config.stereo_wedge_number_lines
-    xy = general_math.points_along_line((x[0], y[0]), (x[1], y[1]), num_lines + 2)
-    # the +2  is for the ends
-    # remove the ends
-    xy = xy[1:-1, :]
 
-    points = np.empty((3 * num_lines, 2), dtype="float64")
-    offset = np.linspace(1 / num_lines, 1, num_lines) * config.stereo_offset
-    for i in range(num_lines):
-        i_ = i * 3
-        points[i_:i_ + 2, :] = general_math.get_offset_points(xy[i, :], bond.perpendicular, offset[i])
-        points[i_ + 2, :] = [None, None]
 
     fig.add_trace(
         go.Scatter(x=points[:, 0], y=points[:, 1], mode="lines",

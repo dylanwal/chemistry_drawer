@@ -1,5 +1,4 @@
 import copy
-import math
 import os
 
 import plotly.graph_objs as go

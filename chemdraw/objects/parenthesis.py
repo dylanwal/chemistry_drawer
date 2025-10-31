@@ -7,6 +7,68 @@ from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond
 import chemdraw.utils.vector_math as vector_math
 
+def _add_parenthesis(self, s_block: dict) -> list[Parenthesis]:
+    counter = 0
+    parenthesis_list = []
+    for k, v in s_block.items():
+        if v["type_"] == Sgroup.SRU or v["type_"] == Sgroup.GEN:
+            kwargs = dict(
+                atoms=[self.atoms[i] for i in v['atoms']] if 'atoms' in v else None,
+                contained_bonds=[self.atoms[i] for i in v['bonds']] if 'bonds' in v else None,
+                parent=self
+            )
+            pos = np.array(v["position"])
+            coordinate1 = np.array([np.mean([pos[0], pos[2]]), np.mean([pos[1], pos[3]])])
+            coordinate2 = np.array([np.mean([pos[4], pos[6]]), np.mean([pos[5], pos[7]])])
+            self._add_parenthesis_coordinates([coordinate1, coordinate2])
+            vector = vector_math.normalize(np.array(coordinate1-coordinate2))
+
+            par1 = Parenthesis(**kwargs,
+                               id_=counter,
+                               vector=-vector,
+                               size=vector_math.pythagoras_theorem(pos[:2], pos[2:4])/2
+                               )
+            counter += 1
+            par2 = Parenthesis(**kwargs,
+                               id_=counter,
+                               vector=vector,
+                               sub_script=v["label"] if 'label' in v else None,
+                               super_script=v["connectivity"].label if 'connectivity' in v else None,
+                               size=vector_math.pythagoras_theorem(pos[4:6], pos[6:])/2
+                               )
+            counter += 1
+            par1.partner = par2
+            par2.partner = par1
+            parenthesis_list += [par1, par2]
+
+    return parenthesis_list
+
+def add_parenthesis(self, bond_ids: list[int], sub_script: str = None, super_script: str = None):
+    bonds = [self.bonds[id_] for id_ in bond_ids]
+    if self.parenthesis_coordinates is None:
+        self.parenthesis_coordinates = bonds[0].center.reshape((1, 2))
+    else:
+        self.parenthesis_coordinates = np.vstack((self.parenthesis_coordinates, bonds[0].center))
+    self.parenthesis_coordinates = np.vstack((self.parenthesis_coordinates, bonds[1].center))
+
+    vector = self.parenthesis_coordinates[-1] - self.parenthesis_coordinates[-2]
+
+    self.parenthesis.append(
+        Parenthesis(self,
+                    id_=len(self.parenthesis_coordinates)-2,
+                    vector=vector
+                    )
+    )
+    self.parenthesis.append(
+        Parenthesis(self,
+                    id_=len(self.parenthesis_coordinates)-1,
+                    vector=-vector,
+                    sub_script=sub_script,
+                    super_script=super_script
+                    )
+    )
+
+
 
 class Parenthesis:
 
