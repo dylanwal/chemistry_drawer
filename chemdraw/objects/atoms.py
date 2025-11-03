@@ -1,6 +1,7 @@
 import numpy as np
 
 from chemdraw.drawers.general_classes import Font, Highlight
+from sklearn.utils.multiclass import check_classification_targets
 
 ATOM_VALENCY = {
     "H": 1,
@@ -20,9 +21,12 @@ ATOM_VALENCY = {
 
 
 class Atom:
-    # __slots__ = ("symbol", "_id", "parent", "_show", "font", "highlight", "number", "_atom_number_position")
-    def __init__(self, symbol: str, _id: int, parent):
+    # __slots__ = ("symbol", "_id", "parent", "_show", "font", "highlight", "number",
+    # "_atom_number_position", "radical", "charge")
+    def __init__(self, symbol: str, _id: int, parent, charge: int = 0, radical: bool = False):
         self.symbol = symbol
+        self.charge = charge
+        self.radical = radical
         self._id = _id
         self.parent = parent
 

@@ -137,7 +137,7 @@ class Molecule:
         atoms = []
         for i, symbol in enumerate(atom_symbols):
             atoms.append(
-                Atom(symbol=symbol, _id=i, parent=self)
+                Atom(symbol=symbol, _id=i, parent=self)  # TODO: add radical and charge to parser
             )
         return atoms
 

@@ -13,6 +13,7 @@ class StyleTemplate:
         self.draw_order = ["ring_highlights", "highlights", "bonds", "atoms", "parenthesis",
                            "atom_numbers", "bond_numbers", "ring_numbers",
                            "debug", "label"]
+        # first in list is drawn at the bottom
 
         background_color = "rgba(0,0,0,0)"
 

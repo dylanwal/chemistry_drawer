@@ -3,10 +3,10 @@ import abc
 import numpy as np
 import plotly.graph_objs as go
 
-
 from chemdraw.objects.bonds import Bond, BondType, BondAlignment, BondStereoChem
 import chemdraw.utils.vector_math as vector_math
 import chemdraw.utils.general_math as general_math
+
 
 class DrawBond(abc.ABC):
     def __init__(self, start: np.ndarray, end: np.ndarray):
@@ -16,6 +16,7 @@ class DrawBond(abc.ABC):
 
 class DrawSingleBond(DrawBond):
     ...
+
 
 class DrawWedgeBond(DrawBond):
     def __init__(self, start: np.ndarray, end: np.ndarray, xy: np.ndarray):
@@ -31,6 +32,7 @@ class DrawWedgeBond(DrawBond):
         x_plot = np.array([x[0], x_left, x_right, x[0]])
         y_plot = np.array([y[0], y_left, y_right, y[0]])
         return cls(x_plot, y_plot)
+
 
 class DrawHashBond(DrawBond):
     pass
@@ -51,6 +53,7 @@ class DrawHashBond(DrawBond):
             points[i_ + 2, :] = [None, None]
         return cls(xy, points)
 
+
 class DrawWaveBond(DrawBond):
     def _get_line(self):
         pass
@@ -59,17 +62,8 @@ class DrawWaveBond(DrawBond):
 class DrawDoubleBond(DrawBond):
     pass
 
-class DrawTripleBond(DrawBond):
 
-class DrawBonds:
-    def __init__(self):
-        self.bonds = []
 
-    def _draw_lines(self):
-        return
-
-    def _draw_fill(self):
-        return
 
 
 def draw_bonds(bonds: list[Bond], config: ConfigDrawerBonds, template) -> DrawBonds:
@@ -203,9 +197,7 @@ def _shorten_bond_triple(config: ConfigDrawerBonds, bond: Bond, x: np.ndarray, y
 
 
 def _draw_stereo_bond(fig: go.Figure, config: ConfigDrawerBonds, x: np.ndarray, y: np.ndarray, bond: Bond) -> go.Figure:
-
     # down
-
 
     fig.add_trace(
         go.Scatter(x=points[:, 0], y=points[:, 1], mode="lines",
