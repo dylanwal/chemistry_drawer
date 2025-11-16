@@ -76,28 +76,31 @@ class Text:
                  symbol: str,
                  color: str,
                  font: str,
-                 size: float
-                 ) -> None:
+                 size: float,
+                 bold: bool
+                 ):
         self.x = x
         self.y = y
         self.symbol = symbol
         self.color = color
         self.font = font
         self.size = size
+        self.bold =bold
 
 
 class Texts:
     """Stores text labels with shared font properties."""
 
-    def __init__(self, color: str, font: str, size: float):
+    def __init__(self, color: str, font: str, size: float, bold: bool):
         self.x: np.ndarray = np.array([])
         self.y: np.ndarray = np.array([])
         self.symbols: list[str] = []
         self.color = color
         self.font = font
         self.size = size
+        self.bold = bold
 
-    def add_segment(self, x: float, y: float, symbol: str) -> None:
+    def add_segment(self, x: float, y: float, symbol: str):
         self.x = np.concatenate([self.x, x])
         self.y = np.concatenate([self.y, y])
         self.symbols.append(symbol)

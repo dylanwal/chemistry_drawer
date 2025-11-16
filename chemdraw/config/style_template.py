@@ -7,47 +7,49 @@ import yaml
 class StyleTemplate:
     """ For styling the molecule's look (no parameters that are plotting package dependent). """
     def __init__(self):
-        self.auto_rotate = True
-        # rotates molecule longest axis to [1,0]  or [1,0,0]
-        # self.show_hydrogens = False
-        #
+        self.auto_rotate = True # rotates molecule longest axis to [1,0]  or [1,0,0]
 
+        # self.show_hydrogens = False
+        # self.methyl = None # or "Me"
         ### drawing
         # self.draw_order = ["ring_highlights", "highlights", "bonds", "atoms", "parenthesis",
         #                    "atom_numbers", "bond_numbers", "ring_numbers",
         #                    "debug", "label"]
-        self.draw_order = ["bonds"]
+        self.draw_order = ["bonds", "atoms"]
         # first in list is drawn at the bottom
-
         background_color = "rgba(0,0,0,0)"
 
-        # # font
-        # self.font = 'Arial'
-        # self.font_size = 1
-        # self.atom_color = "black"  # or "element"
-        # self.bold = False
-        #
-        # self.bond_length = 1
-        # self.spacing = 0.18 # of double bond perpendicular
-        # self.bond_color = 'black'
-        # self.bond_width = 1
-        # self.margin = 0.1  # space around atom label (how much to shorten bond)
-        #
-        # self.methyl = None # or "Me"
-        #
-        # # bond
+        ## bond
         self.bond_length = 1 # global scaling
         self.bond_color = "black"
         self.bond_width = 1
         self.bond_offset = 0.37
-        self.bond_double_offset = 0.35  # width
+        self.bond_double_offset = 0.35  # of double bond perpendicular
         self.bond_double_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer
         self.bond_double_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
-        self.bond_triple_offset = 0.23   # width
+        self.bond_triple_offset = 0.23   # of triple bond perpendicular
         self.bond_triple_length = 0.5
         self.bond_stereo_offset = 0.23  # how wide is the triangle
         self.bond_stereo_wedge_number_lines = 6
         # self.bond_stereo_wedge_line_width = 6
+
+        ## atom
+        self.atom_show_carbons = False  # show carbon atoms
+        # self.atom_prefix = ""  # useful for invisible text modifiers
+        # self.atom_suffix = "" # useful for invisible text modifiers
+        self.atom_text_x_offset = 0.1  # TODO make font size dependent
+        self.atom_text_y_offset = 0.07  # TODO make font size dependent
+        self.atom_font_family = 'Arial'
+        self.atom_font_bold = False
+        self.atom_font_size = 1
+        self.atom_font_color = "black"  # or "element"
+        self.atom_color_scheme = {
+            "C": "black",
+            "O": "red",
+            "N": "green",
+            "S": "yellow"
+        }
+        # self.margin = 0.1  # space around atom label (how much to shorten bond)
 
     def set_style(self, filename: str | pathlib.Path):
         with open(filename, 'r') as f:
@@ -61,6 +63,19 @@ class StyleTemplate:
             else:
                 warnings.warn(f"{k} is not a valid style label. Skipping.")
 
+    def save_style(self, filename: str | pathlib.Path):
+        with open(filename, 'w') as f:
+            yaml.dump(self.__dict__, f)
+
+    def make_subscript(self, text: str) -> str:
+        return f"<sub>{text}</sub>"
+
+    def make_superscript(self, text: str) -> str:
+        return f"<sup>{text}</sup>"
+
+    def get_atom_color(self, atom_symbol: str) -> str:
+        return self.atom_color_scheme.get(atom_symbol, "black")
+
     @classmethod
     def from_file(cls, filename: str | pathlib.Path):
         style = cls()
@@ -70,3 +85,5 @@ class StyleTemplate:
 
 current_folder = pathlib.Path(__file__).absolute().parent
 STYLE_TEMPLATE = StyleTemplate.from_file(current_folder / "style_templates" / "acs_1996.yaml")
+
+

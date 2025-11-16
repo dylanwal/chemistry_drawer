@@ -19,7 +19,7 @@ from chemdraw.drawers.two_d.draw_primatives import DrawingContainer
 
 DRAWERS = {
         "bonds": draw_bonds.draw_bonds,
-        # "atoms": draw_atoms.draw_atoms,
+        "atoms": draw_atoms.draw_atoms,
         # "label": draw_label.draw_label,
         # "debug": draw_debug.draw_debug,
         # "atom_numbers": draw_atom_numbers.draw_atom_numbers,

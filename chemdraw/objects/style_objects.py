@@ -9,18 +9,18 @@ class StyleFont:
                  size: int = None,
                  bold: bool = None,
                  color: str = None,
-                 offset: float = None,
+                 # offset: float = None,
                  alignment: str = None,
-                 top_offset: float = None,
+                 # top_offset: float = None,
                  ):
         self.show = show
         self.family = family
         self.bold = bold
         self.size = size
         self.color = color
-        self.offset = offset
+        # self.offset = offset
         self.alignment = alignment
-        self.top_offset = top_offset
+        # self.top_offset = top_offset
         self.parent = parent
 
 

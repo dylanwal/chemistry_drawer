@@ -1,95 +1,51 @@
-import numpy as np
-import plotly.graph_objs as go
 
-from chemdraw.objects Font
+from chemdraw.config.style_template import STYLE_TEMPLATE
+from chemdraw.objects.molecule import Molecule
 from chemdraw.objects.atoms import Atom
 
-
-class ConfigDrawerAtoms:
-    def __init__(self, parent):
-        self.parent = parent
-
-        self.show = True
-        self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
-        self.font = Font(parent, family="Arial", size=40, bold=True, color="black", offset=0.3, top_offset=0.6)
-        self.colors_add = False  # set 'method' to False
-        self.font_color = "black"
-        self.colors = {
-            "C": "black",
-            "O": "red",
-            "N": "green",
-            "S": "yellow"
-        }
-        self.show_carbons = False
-        # self.align_offset = 0.3
-        self.scatter_kwargs = dict(hoverinfo="skip")
-        self.text_y_offset = 0.07
-
-    def __repr__(self):
-        return f"show: {self.show}"
-
-    def get_text_y_offset(self):
-        return self.text_y_offset
+from chemdraw.drawers.two_d.draw_primatives import DrawingContainer, Text
 
 
-def draw_atoms(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
-    if not config.show:
-        return fig
-    return _add_atoms_with_scatter(fig, config, atoms)
+def draw_atoms(container: DrawingContainer, mol: Molecule):
+    for atom in mol.atom:
+        if not atom._show:
+            continue
+
+        objs = draw_atom(atom)
+        if objs is None:
+            continue
+
+        # set style sheet values if not set locally.
+        if not isinstance(objs, list):
+            objs = [objs]
 
 
+        container.add_objects(objs)
 
 
-def _add_atoms_with_scatter(fig: go.Figure, config: ConfigDrawerAtoms, atoms: list[Atom]) -> go.Figure:
-    xy = np.empty((int(len(atoms) * 1.5), 2), dtype="float64")
-    counter = 0
-    symbols = []
-    for atom in atoms:
-        if not config.show_carbons and atom.symbol == "C":
-            continue  # skip drawing carbons
-        symbol, x, y, direction = _get_symbol(config, atom)
-        symbols.append(symbol)
-        xy[counter, :] = [x, y - config.get_text_y_offset()]
-        counter += 1
+def draw_atom(atom: Atom) -> Text | None:
+    if not STYLE_TEMPLATE.show_carbons and atom.symbol == "C":
+        return None  # skip drawing carbons
 
-        # add hydrogens that are above or below atom
-        if direction is not None:
-            hydrogen_symbol = _get_hydrogen_symbol(atom)
-            if config.font.get_attr("bold", atom.font):
-                hydrogen_symbol = "<b>" + hydrogen_symbol + "</b>"
-            symbols.append(hydrogen_symbol)
-            top_offset = config.font.get_attr("top_offset", atom.font)
-            if direction == "up":
-                xy[counter, :] = [atom.coordinates[0], atom.coordinates[1] + top_offset - config.get_text_y_offset()]
-            else:
-                xy[counter, :] = [atom.coordinates[0], atom.coordinates[1] - top_offset - config.get_text_y_offset()]
-            counter += 1
-
-    fig.add_trace(
-        go.Scatter(
-            x=xy[:counter, 0], y=xy[:counter, 1],
-            mode="text",
-            text=symbols,
-            textfont=dict(
-                family=config.font.family,
-                color=config.font.color,
-                size=max([int(config.font.get_attr("size", atoms[0].font)), 1])
-            ),
-            **config.scatter_kwargs
-        ))
-
-    return fig
-
-
-def _get_symbol(config: ConfigDrawerAtoms, atom: Atom) -> tuple[str, float, float, str | None]:
-    # add hydrogen
+    # symbol
     symbol, align, direction = _add_hydrogen_text(atom)
+    x, y = text_alignment(atom, align)
 
-    if config.font.get_attr("bold", atom.font):
-        symbol = "<b>" + symbol + "</b>"
+    # xy[counter, :] = [x, y - config.get_text_y_offset()]
 
-    x, y = _text_alignment(config, atom, align)
-    return symbol, x, y, direction
+    # add hydrogens that are above or below atom
+    # if direction is not None:
+    #     hydrogen_symbol = _get_hydrogen_symbol(atom)
+    #     if config.font.get_attr("bold", atom.font):
+    #         hydrogen_symbol = "<b>" + hydrogen_symbol + "</b>"
+    #     symbols.append(hydrogen_symbol)
+    #     top_offset = config.font.get_attr("top_offset", atom.font)
+    #     if direction == "up":
+    #         xy[counter, :] = [atom.coordinates[0], atom.coordinates[1] + top_offset - config.get_text_y_offset()]
+    #     else:
+    #         xy[counter, :] = [atom.coordinates[0], atom.coordinates[1] - top_offset - config.get_text_y_offset()]
+
+        return Text(x, y, symbol, color=atom.style.color, font=atom.style.font, size=atom.style.size)
 
 
 def _add_hydrogen_text(atom: Atom) -> tuple[str, str, str | None]:
@@ -114,19 +70,15 @@ def _add_hydrogen_text(atom: Atom) -> tuple[str, str, str | None]:
 
 
 def _get_hydrogen_symbol(atom: Atom) -> str:
-    if atom.number_hydrogens < 1:
+    if atom.number_hydrogens == 0:
         return ""
-
-    if atom.number_hydrogens == 1:
-        subscript = ""
-    else:
-        subscript = "<sub>" + str(atom.number_hydrogens) + "</sub>"
-
-    return "H" + subscript
+    elif atom.number_hydrogens == 1:
+        return "H"
+    return f"H{STYLE_TEMPLATE.make_subscript(str(atom.number_hydrogens))}"
 
 
-def _text_alignment(config: ConfigDrawerAtoms, atom: Atom, align: str) -> tuple[float, float]:
-    offset = config.font.get_attr("offset", atom.font)
+def text_alignment(atom: Atom, align: str) -> tuple[float, float]:
+    offset = STYLE_TEMPLATE.atom_text_x_offset
     if align == "center":
         return atom.coordinates[0], atom.coordinates[1]
     elif align == "left":
@@ -134,12 +86,5 @@ def _text_alignment(config: ConfigDrawerAtoms, atom: Atom, align: str) -> tuple[
     elif align == "right":
         return atom.coordinates[0] + offset, atom.coordinates[1]
 
-    raise ValueError("Coding error")
+    raise RuntimeError("Coding error")
 
-
-def _get_color(config: ConfigDrawerAtoms, atom: Atom) -> str:
-    if config.colors_add:
-        if atom.symbol in config.colors:
-            return config.colors[atom.symbol]
-
-    return config.font.get_attr("color", atom.font)
