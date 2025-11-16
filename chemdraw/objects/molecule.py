@@ -6,7 +6,7 @@ from rdkit import Chem
 from chemdraw.config.style_template import style_template
 from chemdraw.utils.mole_file_parser import parse_mole_file, Sgroup
 from chemdraw.objects.atoms import Atom
-from chemdraw.objects.bonds import Bond
+from chemdraw.objects.bonds import Bond, BOND_COUNT
 from chemdraw.objects.rings import Ring
 from chemdraw.utils.math_points import set_largest_axis
 
@@ -137,7 +137,7 @@ class Molecule:
         atoms = []
         for i, symbol in enumerate(atom_symbols):
             atoms.append(
-                Atom(symbol=symbol, _id=i, parent=self)  # TODO: add radical and charge to parser
+                Atom(symbol=symbol, id_=i, parent=self)  # TODO: add radical and charge to parser
             )
         return atoms
 
@@ -149,7 +149,7 @@ class Molecule:
                     atom1_id=row[0]-1, # -1 is to start counting at 0 instead of 1
                     atom2_id=row[1]-1, # -1 is to start counting at 0 instead of 1
                     bond_type=row[2],
-                    _id=i,
+                    id_=i,
                     stereo_chem=row[3],
                     parent=self
                 )

@@ -3,11 +3,9 @@ import math
 import numpy as np
 
 
-from chemdraw.data_types import PointType
-
-
 def normalize(vector: np.ndarray) -> np.ndarray:
     """
+    vector = np.array([x,y])
     Object is guaranteed to be a unit quaternion after calling this
     operation UNLESS the object is equivalent to Quaternion(0)
     """
@@ -18,11 +16,14 @@ def normalize(vector: np.ndarray) -> np.ndarray:
         return vector
 
 
-def pythagoras_theorem(point1: PointType, point2: PointType) -> float:
+def pythagoras_theorem(point1: np.ndarray, point2: np.ndarray) -> float:
     return ((point2[0] - point1[0]) ** 2 + (point2[1] - point1[1]) ** 2) ** (1 / 2)
 
 
-def perpendicular(vector: PointType) -> PointType:
+def perpendicular(vector: np.ndarray) -> np.ndarray:
+    """
+    vector = np.array([x,y])
+    """
     return np.array([-vector[1], vector[0]])
 
 
@@ -90,7 +91,7 @@ def shorten_line(x0: float, x1: float, y0: float, y1: float, short_percent: floa
 
 
 def offset_point_vector(x0: float, y0: float, vector: tuple[float, float] | list[float, float] | np.ndarray,
-         offset: float) -> tuple[float, float]:
+                        offset: float) -> tuple[float, float]:
     if vector[0] == 0:
         if vector[1] == 0:
             return x0, y0
@@ -110,12 +111,11 @@ def offset_point_vector(x0: float, y0: float, vector: tuple[float, float] | list
 def rotation_matrix(current_vector: np.ndarray, new_vector: np.ndarray) -> np.ndarray:
     if np.all(current_vector == new_vector):
         return np.array([[1, 0], [0, 1]], dtype="float64")
-    dot = current_vector[0]*new_vector[0] + current_vector[1]*new_vector[1]     # dot product
-    det = current_vector[0]*new_vector[1] - current_vector[1]*new_vector[0]     # determinant
+    dot = current_vector[0] * new_vector[0] + current_vector[1] * new_vector[1]  # dot product
+    det = current_vector[0] * new_vector[1] - current_vector[1] * new_vector[0]  # determinant
     theta = np.arctan2(det, dot)
     cos_, sin_ = np.cos(theta), np.sin(theta)
     return np.array(((cos_, sin_), (-sin_, cos_)))
-
 
 
 def local_run():
@@ -129,7 +129,7 @@ def local_run():
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=[a[0]], y=[a[1]], mode="markers"))
-    fig.add_trace(go.Scatter(x=[a[0], a[0]+vector[0]], y=[a[1], a[1]+vector[1]], mode="lines"))
+    fig.add_trace(go.Scatter(x=[a[0], a[0] + vector[0]], y=[a[1], a[1] + vector[1]], mode="lines"))
     fig.add_trace(go.Scatter(x=[b[0]], y=[b[1]], mode="markers", marker=dict(color="red")))
     fig.show()
 

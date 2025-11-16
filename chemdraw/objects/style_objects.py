@@ -1,28 +1,7 @@
-import abc
 
 
-class Base(abc.ABC):
-    scale = []
-    parent = None
-
-    def get_attr(self, attr_: str, other):
-        """ Get attribute from other, but if not there use self. """
-        attr_self = getattr(self, attr_)
-        if attr_self is None:
-            raise ValueError(f"Unsupported attribute for this Font. {attr_}")
-        attr_other = getattr(other, attr_)
-
-        attr_out = attr_other if attr_other is not None else attr_self
-
-        if attr_ in self.scale:
-            attr_out = attr_out / self.parent._scaling
-
-        return attr_out
-
-
-class Font(Base):
-    scale = ["size"]
-
+class StyleFont:
+    __slots__ = ['show', 'family', 'bold', 'size', 'color', 'offset', 'alignment', 'top_offset', 'parent']
     def __init__(self,
                  parent=None,
                  show: bool = None,
@@ -45,9 +24,8 @@ class Font(Base):
         self.parent = parent
 
 
-class Line(Base):
-    scale = ["width"]
-
+class StyleLine:
+    __slots__ = ['show', 'width', 'color', 'parent']
     def __init__(self,
                  parent=None,
                  show: bool = None,
@@ -60,9 +38,8 @@ class Line(Base):
         self.parent = parent
 
 
-class Highlight(Base):
-    scale = ["size"]
-
+class StyleHighlight:
+    __slots__ = ['show', 'size', 'color', 'offset', 'parent']
     def __init__(self,
                  parent=None,
                  show: bool = None,
