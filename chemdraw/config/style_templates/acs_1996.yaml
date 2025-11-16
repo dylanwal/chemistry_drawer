@@ -1,6 +1,16 @@
-font = Arial
-font_size = 10
-atom_color = black  # black or multi
-bond_length = 1
-bond_color = black
-bond_width = 1
+#font : Arial
+#font_size : 10
+#atom_color : black  # black or multi
+
+# bonds
+bond_length: 1
+bond_color: black
+bond_width: 3
+bond_offset: 0.37
+bond_double_offset: 0.15
+bond_double_center_length: 1
+bond_double_offset_length: 0.8
+bond_triple_offset: 0.1
+bond_triple_length: 1
+bond_stereo_offset: 0.15
+bond_stereo_wedge_number_lines: 8

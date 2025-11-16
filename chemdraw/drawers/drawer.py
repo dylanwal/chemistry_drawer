@@ -2,7 +2,7 @@
 import plotly.graph_objs as go
 
 from chemdraw.objects.molecule import Molecule
-from chemdraw.config.style_template import style_template, StyleTemplate
+from chemdraw.config.style_template import STYLE_TEMPLATE, StyleTemplate
 # import chemdraw.drawers.draw_debug as draw_debug
 # import chemdraw.drawers.draw_label as draw_label
 # import chemdraw.drawers.draw_atoms as draw_atoms
@@ -31,14 +31,12 @@ DRAWERS = {
     }
 
 
-def draw(molecule: str | Molecule, template: StyleTemplate = None) -> go.Figure:
+def draw(molecule: str | Molecule) -> go.Figure:
     if isinstance(molecule, str):
         molecule = Molecule(molecule, label=molecule)
-    if template is None:
-        template = style_template
 
     container = DrawingContainer()
-    for key in template.draw_order:
+    for key in STYLE_TEMPLATE.draw_order:
         drawer = DRAWERS[key]
         drawer(container, molecule)
 

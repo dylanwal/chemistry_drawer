@@ -1,6 +1,6 @@
-
 import numpy as np
 
+from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.objects.molecule import Molecule
 from chemdraw.objects.bonds import Bond, BondType, BondAlignment, BondStereoChem
 import chemdraw.utils.math_vectors as math_vectors
@@ -23,9 +23,22 @@ def draw_bonds(container: DrawingContainer, mol: Molecule):
         # elif bond.type_ == BondType.hash:
         #     objs = draw_hash_bond(bond)
         elif bond.type_ == BondType.triple:
-           objs = draw_triple_bond(bond)
+            objs = draw_triple_bond(bond)
         else:
             raise RuntimeError(f"Unknown bond type: {bond.type_}")
+
+        # set style sheet values if not set locally.
+        if not isinstance(objs, list):
+            objs = [objs]
+        for obj in objs:
+            if isinstance(obj, Line):
+                if obj.color is None:
+                    obj.color = STYLE_TEMPLATE.bond_color
+                if obj.width is None:
+                    obj.width = STYLE_TEMPLATE.bond_width
+            if isinstance(obj, Fill):
+                if obj.color is None:
+                    obj.color = STYLE_TEMPLATE.bond_color
 
         container.add_objects(objs)
 
@@ -35,7 +48,7 @@ def draw_single_bond(bond: Bond) -> Line | Fill | list[Line]:
         return draw_stereo_bond(bond)
 
     x, y = bond.coordinates
-    return Line(x, y, color=bond.style.color, width=bond.style.width)
+    return Line(x, y, bond.style.color, bond.style.width)
 
 
 def draw_stereo_bond(bond: Bond) -> Line | Fill | list[Line]:
@@ -44,9 +57,9 @@ def draw_stereo_bond(bond: Bond) -> Line | Fill | list[Line]:
     # bond_center = bond.center
     perpendicular = bond.perpendicular
 
-    stereo_offset: float = .15  #TODO
+    stereo_offset = STYLE_TEMPLATE.bond_stereo_offset
 
-    if bond.stereo_chem is BondStereoChem.up: # wedge
+    if bond.stereo_chem is BondStereoChem.up:  # wedge
         x_left = x[1] + perpendicular[0] * stereo_offset
         x_right = x[1] - perpendicular[0] * stereo_offset
         y_left = y[1] + perpendicular[1] * stereo_offset
@@ -57,9 +70,9 @@ def draw_stereo_bond(bond: Bond) -> Line | Fill | list[Line]:
         return Fill(x_plot, y_plot, color=bond.style.color)
 
     # hash
-    num_lines: int = 5  #TODO
-    xy = general_math.points_along_line((x[0], y[0]), (x[1], y[1]), num_lines + 2) # the +2  is for the ends
-    xy = xy[1:-1, :] # remove the ends
+    num_lines = STYLE_TEMPLATE.bond_stereo_wedge_number_lines
+    xy = general_math.points_along_line((x[0], y[0]), (x[1], y[1]), num_lines + 2)  # the +2  is for the ends
+    xy = xy[1:-1, :]  # remove the ends
     hash_lengths = np.linspace(1 / num_lines, 1, num_lines) * stereo_offset
 
     lines = []
@@ -75,9 +88,9 @@ def draw_double_bond(bond: Bond):
     # bond_vector = bond.vector
     # bond_center = bond.center
     perpendicular = bond.perpendicular
-    double_bond_offset = 0.15 #TODO
-    double_bond_center_length = 1 #TODO
-    double_bond_offset_length = 0.8 # TODO
+    double_bond_offset = STYLE_TEMPLATE.bond_double_offset
+    double_bond_center_length = STYLE_TEMPLATE.bond_double_center_length
+    double_bond_offset_length = STYLE_TEMPLATE.bond_double_offset_length
 
     alignment = bond.alignment
     if alignment is None:
@@ -90,11 +103,11 @@ def draw_double_bond(bond: Bond):
         y_right = y - perpendicular[1] * double_bond_offset / 2
         if double_bond_center_length != 1:
             x0, x1, y0, y1 = math_vectors.shorten_line(x_left[0], x_left[1], y_left[0], y_left[1],
-                                                      double_bond_center_length)
+                                                       double_bond_center_length)
             x_left = [x0, x1]
             y_left = [y0, y1]
             x0, x1, y0, y1 = math_vectors.shorten_line(x_right[0], x_right[1], y_right[0], y_right[1],
-                                                      double_bond_center_length)
+                                                       double_bond_center_length)
             x_right = [x0, x1]
             y_right = [y0, y1]
 
@@ -117,7 +130,7 @@ def draw_double_bond(bond: Bond):
         y_off = [y0, y1]
 
     return [
-        Line(x, y, bond.style.color, bond.style.width), # center
+        Line(x, y, bond.style.color, bond.style.width),  # center
         Line(x_off, y_off, bond.style.color, bond.style.width),
     ]
 
@@ -186,8 +199,8 @@ def alignment_decision(vector: np.ndarray, bond_perpendicular: np.ndarray) -> Bo
 def draw_triple_bond(bond: Bond) -> list[Line]:
     x, y = bond.coordinates
     perpendicular = bond.perpendicular
-    triple_bond_offset = 0.1 #TODO
-    triple_bond_length = 1 # TODO
+    triple_bond_offset = STYLE_TEMPLATE.bond_triple_offset
+    triple_bond_length = STYLE_TEMPLATE.bond_triple_length
 
     x_left = x + perpendicular[0] * triple_bond_offset
     x_right = x - perpendicular[0] * triple_bond_offset
@@ -199,7 +212,7 @@ def draw_triple_bond(bond: Bond) -> list[Line]:
         x_right, y_right = _shorten_bond_triple(x_right, y_right, triple_bond_length)
 
     return [
-        Line(x,y, bond.style.color, bond.style.width),
+        Line(x, y, bond.style.color, bond.style.width),
         Line(x_left, y_left, bond.style.color, bond.style.width),
         Line(x_right, y_right, bond.style.color, bond.style.width),
     ]
@@ -235,4 +248,3 @@ def _shorten_bond_triple(x: np.ndarray, y: np.ndarray, triple_bond_length) \
         y = np.array([y[0], y1])
 
     return x, y
-

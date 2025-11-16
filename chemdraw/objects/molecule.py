@@ -3,7 +3,7 @@ import pathlib
 import numpy as np
 from rdkit import Chem
 
-from chemdraw.config.style_template import style_template
+from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.utils.mole_file_parser import parse_mole_file, Sgroup
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond, BOND_COUNT
@@ -95,7 +95,7 @@ class Molecule:
         # get sblock
         # if  self._add_parenthesis(s_block)
         #     pass
-        if style_template.auto_rotate:
+        if STYLE_TEMPLATE.auto_rotate:
             self.coordinates = set_largest_axis(self.coordinates)
 
     def __repr__(self) -> str:

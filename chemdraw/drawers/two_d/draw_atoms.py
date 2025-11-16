@@ -1,7 +1,7 @@
 import numpy as np
 import plotly.graph_objs as go
 
-from chemdraw.drawers.general_classes import Font
+from chemdraw.objects Font
 from chemdraw.objects.atoms import Atom
 
 

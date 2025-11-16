@@ -1,4 +1,7 @@
 import pathlib
+import warnings
+
+import yaml
 
 
 class StyleTemplate:
@@ -33,25 +36,37 @@ class StyleTemplate:
         # self.methyl = None # or "Me"
         #
         # # bond
-        # self.bond_offset = 0.37
-        # self.bond_double_offset = 0.35  # width
-        # self.bond_double_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
-        # self.bond_double_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer
-        # self.bond_triple_offset = 0.23   # width
-        # self.bond_triple_length = 0.5
-        # self.bond_stereo_offset = 0.23  # how wide is the triangle
-        # self.bond_stereo_wedge_number_lines = 6
+        self.bond_length = 1 # global scaling
+        self.bond_color = "black"
+        self.bond_width = 1
+        self.bond_offset = 0.37
+        self.bond_double_offset = 0.35  # width
+        self.bond_double_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer
+        self.bond_double_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
+        self.bond_triple_offset = 0.23   # width
+        self.bond_triple_length = 0.5
+        self.bond_stereo_offset = 0.23  # how wide is the triangle
+        self.bond_stereo_wedge_number_lines = 6
         # self.bond_stereo_wedge_line_width = 6
-        # self.bond_scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
+
+    def set_style(self, filename: str | pathlib.Path):
+        with open(filename, 'r') as f:
+            text = f.read()
+
+        data = yaml.safe_load(text)
+
+        for k, v in data.items():
+            if hasattr(self, k):
+                setattr(self, k, v)
+            else:
+                warnings.warn(f"{k} is not a valid style label. Skipping.")
 
     @classmethod
     def from_file(cls, filename: str | pathlib.Path):
         style = cls()
-        with open(filename, 'r') as f:
-            for line in f.readlines():
-                pass
-
+        style.set_style(filename)
         return style
 
+
 current_folder = pathlib.Path(__file__).absolute().parent
-style_template = StyleTemplate.from_file(current_folder / "style_templates" / "acs_1996.yaml")
+STYLE_TEMPLATE = StyleTemplate.from_file(current_folder / "style_templates" / "acs_1996.yaml")
