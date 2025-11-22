@@ -8,6 +8,7 @@ class StyleTemplate:
     """ For styling the molecule's look (no parameters that are plotting package dependent). """
     def __init__(self):
         self.auto_rotate = True # rotates molecule longest axis to [1,0]  or [1,0,0]
+        self.auto_center = True # move bound box center to [0, 0]
 
         # self.show_hydrogens = False
         # self.methyl = None # or "Me"
@@ -41,7 +42,7 @@ class StyleTemplate:
         self.atom_text_y_offset = 0.07  # TODO make font size dependent
         self.atom_font_family = 'Arial'
         self.atom_font_bold = False
-        self.atom_font_size = 100
+        self.atom_font_size = 70
         self.atom_font_color = "black"  # color or "element"
         self.atom_color_scheme = {
             "C": "black",

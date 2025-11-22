@@ -42,7 +42,6 @@ class Atom:
 
         # computed data
         self._bonds = []
-        self._number_bonds = None
         self._vector = None
 
     def __repr__(self) -> str:
@@ -59,7 +58,7 @@ class Atom:
 
     @property
     def coordinates(self) -> np.ndarray:
-        return self.parent.coordinates[self.id_, :]
+        return self.parent.coordinates[:, self.id_]
 
     @coordinates.setter
     def coordinates(self, coordinates: np.ndarray):
@@ -84,17 +83,18 @@ class Atom:
         self.parent.coordinates[self.id_, :] = coordinates
 
     def _get_bonds(self):
-        if self.parent.bonds is not None:
+        if len(self._bonds) == 0:
             for bond in self.parent.bonds:
                 if self.id_ == bond.atom1_id or self.id_ == bond.atom2_id:
                     self._bonds.append(bond)
 
     def number_bonds(self) -> int:
-        if self._number_bonds is None:
-            self._get_bonds()
-            self._number_bonds = sum(BOND_COUNT[bond.type_] for bond in self._bonds)
+        self._get_bonds()
+        return sum(BOND_COUNT[bond.type_] for bond in self._bonds)
 
-        return self._number_bonds
+    def _number_connections(self) -> int:
+        self._get_bonds()
+        return len(self._bonds)
 
     def number_hydrogens(self) -> int:
         return ATOM_VALENCY.get(self.symbol, 0)
@@ -103,38 +103,18 @@ class Atom:
         if self._vector is None:
             self._get_bonds()
 
-            vector = np.zeros(2, dtype="float64")
-            if self.number_bonds() == 1:
+            if self._number_connections() == 1:
                 self._vector = -1 * math_vectors.normalize(self._bonds[0].center - self.coordinates)
 
-            elif self.number_bonds() == 2:
+            elif self._number_connections() == 2 or self._number_connections() == 3:
+                bond_vectors = []
                 for bond in self._bonds:
-                    vector += math_vectors.normalize(bond.center - self.coordinates)
-                self._vector = -1 * vector
-
-            elif self.number_bonds() == 3:
-                for bond in self._bonds:
-                    from chemdraw.objects.bonds import BondType
-                    if bond.type_ == BondType.double:
-                        self._vector = -1 * (bond.center - self.coordinates)
-                        break
-                else:
-                    for bond in self._bonds:
-                        vector += math_vectors.normalize(bond.center - self.parent.coordinates)
-                        self._vector = math_vectors.normalize(vector)
+                    # flip vector direction depending on atom - bond center locations
+                    b = np.array([bond.center[0]-self.coordinates[0], bond.center[1] - self.coordinates[1]])
+                    bond_vectors.append(math_vectors.normalize(b))
+                self._vector = math_vectors.get_furthest_direction(bond_vectors)
 
             else:
-                # dots = {}
-                # for bond in self.bonds:
-                #     for bond_ in self.bonds:
-                #         dots[f"{np.max([bond.id_, bond_.id_])}_{np.min([bond.id_, bond_.id_])}"] = \
-                #         np.dot(bond.center-self.position, bond_.center-self.position)
-                #
-                # keys = []
-                # values = []
-                # for k, v in dots.items():
-                #     keys.append(k)
-                #     values.append(v)
                 self._vector = (1, 0)
 
         return self._vector

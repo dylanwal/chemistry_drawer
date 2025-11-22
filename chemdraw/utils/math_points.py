@@ -156,13 +156,13 @@ def mirror_points_about_center(points: np.ndarray, axis: int | None = None) -> n
 def get_largest_principle_component(coordinates: np.ndarray) -> np.ndarray:
     pca = PCA(n_components=2)
     pca.fit(coordinates)
-    return math_vectors.normalize(pca.components_[0])
+    return math_vectors.normalize(np.ravel(pca.components_[:, 0]))
 
 
 def set_largest_axis(coordinates: np.ndarray, new_vector: np.ndarray = np.array([1, 0], dtype="float64")) -> np.ndarray:
     vector = get_largest_principle_component(coordinates)
     rot_matrix = math_vectors.rotation_matrix(vector, new_vector)
-    return np.dot(coordinates, rot_matrix)
+    return np.dot(rot_matrix, coordinates)
 
 
 def get_bounding_box(points: np.ndarray) -> np.ndarray:
@@ -178,12 +178,12 @@ def get_bounding_box(points: np.ndarray) -> np.ndarray:
     """
     pts = np.asarray(points)
 
-    if len(pts) < 3:
+    if pts.shape[1] < 3:
         raise ValueError("`points` must contain at least 3 points.")
 
     # Find min and max along each axis (x, y, z...)
-    min_vals = np.min(pts, axis=0)
-    max_vals = np.max(pts, axis=0)
+    min_vals = np.min(pts, axis=1)
+    max_vals = np.max(pts, axis=1)
 
     # corners = list(itertools.product(*zip(min_vals, max_vals)))
     corners = np.array(

@@ -84,7 +84,7 @@ class Bond:
     @property
     def coordinates(self) -> np.ndarray:
         return np.array(
-            [self.parent.coordinates[(self.atom1_id, self.atom2_id), i] for i in range(self.parent.coordinates.shape[1])]
+            [self.parent.coordinates[i, (self.atom1_id, self.atom2_id)] for i in range(self.parent.coordinates.shape[0])]
         )
 
     @property

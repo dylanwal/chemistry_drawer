@@ -83,7 +83,7 @@ class Molecule:
 
         # parse mole file
         atom_symbols, atom_coordinates, bond_block, file_version, s_block = parse_mole_file(mole_file)
-        self.coordinates = atom_coordinates   # [2,N] or [3, N] atoms coordinates are linked to this array (updates in ATOM class effect this)
+        self.coordinates = atom_coordinates.T   # [2,N] or [3, N] atoms coordinates are linked to this array (updates in ATOM class effect this)
         self.atoms: list[Atom] = self._add_atoms(atom_symbols)
         self.bonds: list[Bond] = self._add_bonds(bond_block)
         self.file_version: str = file_version
@@ -97,6 +97,11 @@ class Molecule:
         #     pass
         if STYLE_TEMPLATE.auto_rotate:
             self.coordinates = math_points.set_largest_axis(self.coordinates)
+        if STYLE_TEMPLATE.auto_center:
+            self.coordinates = math_points.transform_points(
+                points=self.coordinates,
+                move=-math_points.get_bounding_box_center(self.coordinates)
+            )
 
     def __repr__(self) -> str:
         text = ""
@@ -135,6 +140,7 @@ class Molecule:
 
     @property
     def center(self) -> np.ndarray:
+        """ center of bounding box of molecule """
         return math_points.get_bounding_box_center(self.coordinates)
 
     @property

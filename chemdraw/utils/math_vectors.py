@@ -179,6 +179,58 @@ def get_triangle_vertices(
     return np.array([tip_point, p2, p3, tip_point])
 
 
+def get_furthest_direction(vectors: list[np.ndarray]) -> np.ndarray:
+    """
+    Finds the unit vector direction that maximizes the angular distance
+    from a list of 3 input 2D unit vectors.
+
+    Args:
+        vectors (list or np.array): A list of 3 vectors, e.g., [[1,0], [0,1], [-1,0]]
+
+    Returns:
+        np.array: The unit vector representing the furthest direction.
+    """
+    # 1. Convert vectors to angles (radians) in range (-pi, pi]
+    # np.arctan2 handles the quadrants correctly regardless of magnitude
+    angles = [np.arctan2(v[1], v[0]) for v in vectors]
+
+    # 2. Sort the angles to find adjacent differences
+    angles.sort()
+
+    # 3. Calculate the gaps (arc lengths) between adjacent vectors
+    # We have 3 vectors, so we have 3 gaps.
+    # Gap 1: Between Angle 2 and Angle 1
+    # Gap 2: Between Angle 3 and Angle 2
+    # Gap 3: The wrap-around gap between Angle 1 and Angle 3
+
+    gaps = []
+    # Normal adjacent gaps
+    for i in range(len(angles) - 1):
+        gaps.append(angles[i+1] - angles[i])
+
+    # Wrap-around gap (crossing the 180/-180 degree cut)
+    # Formula: (2*pi - last_angle) + first_angle
+    wrap_gap = (2 * np.pi - angles[-1]) + angles[0]
+    gaps.append(wrap_gap)
+
+    # 4. Find the index of the largest gap
+    max_gap_index = np.argmax(gaps)
+    max_gap = gaps[max_gap_index]
+
+    # 5. Calculate the angle exactly in the middle of that largest gap
+    if max_gap_index < len(angles) - 1:
+        # Normal case: Average the two angles defining the gap
+        # OR: Start angle + half the gap
+        optimal_angle = angles[max_gap_index] + (max_gap / 2.0)
+    else:
+        # Wrap-around case: Start at the last angle, add half the gap,
+        # and normalize if it exceeds pi (though sin/cos handle overflow fine)
+        optimal_angle = angles[-1] + (max_gap / 2.0)
+
+    # 6. Convert the optimal angle back to a unit vector
+    return normalize(np.array([np.cos(optimal_angle), np.sin(optimal_angle)]))
+
+
 def local_run():
     import plotly.graph_objs as go
 
