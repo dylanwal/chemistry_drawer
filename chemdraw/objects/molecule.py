@@ -8,7 +8,7 @@ from chemdraw.utils.mole_file_parser import parse_mole_file, Sgroup
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond, BOND_COUNT
 from chemdraw.objects.rings import Ring
-from chemdraw.utils.math_points import set_largest_axis
+import chemdraw.utils.math_points as math_points
 
 def count_digits_in_string(str_: str) -> int:
     digit_count = 0
@@ -96,7 +96,7 @@ class Molecule:
         # if  self._add_parenthesis(s_block)
         #     pass
         if STYLE_TEMPLATE.auto_rotate:
-            self.coordinates = set_largest_axis(self.coordinates)
+            self.coordinates = math_points.set_largest_axis(self.coordinates)
 
     def __repr__(self) -> str:
         text = ""
@@ -132,6 +132,14 @@ class Molecule:
     @property
     def has_highlights(self) -> bool:
         return any([self.atom_highlights, self.bond_highlights])
+
+    @property
+    def center(self) -> np.ndarray:
+        return math_points.get_bounding_box_center(self.coordinates)
+
+    @property
+    def bounding_box(self) -> np.ndarray:
+        return math_points.get_bounding_box(self.coordinates)
 
     def _add_atoms(self, atom_symbols: list[str]) -> list[Atom]:
         atoms = []

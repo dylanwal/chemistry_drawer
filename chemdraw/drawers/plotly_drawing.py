@@ -1,16 +1,29 @@
 
 import plotly.graph_objs as go
 
-from chemdraw.drawers.two_d.draw_primatives import Fills, Lines, Texts, DrawingContainer
+from chemdraw.drawers.two_d.draw_primatives import Dots, Fills, Lines, Texts, DrawingContainer
 
 def container_to_figure(container: DrawingContainer) -> go.Figure:
     fig = go.Figure()
 
+    draw_dots(fig, container.dots)
     draw_lines(fig, container.lines)
     draw_fills(fig, container.fills)
     draw_texts(fig, container.texts)
 
     return fig
+
+
+def draw_dots(fig: go.Figure, dots: list[Dots]):
+    for d in dots:
+        fig.add_scatter(
+            x=d.x,
+            y=d.y,
+            mode="markers",
+            marker=dict(color=d.color, size=d.size),
+            hoverinfo="skip",
+            showlegend=False,
+        )
 
 
 def draw_lines(fig: go.Figure, lines: list[Lines]):

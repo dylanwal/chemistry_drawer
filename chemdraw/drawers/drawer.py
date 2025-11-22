@@ -3,9 +3,9 @@ import plotly.graph_objs as go
 
 from chemdraw.objects.molecule import Molecule
 from chemdraw.config.style_template import STYLE_TEMPLATE, StyleTemplate
-# import chemdraw.drawers.draw_debug as draw_debug
+import chemdraw.drawers.two_d.draw_debug as draw_debug
 # import chemdraw.drawers.draw_label as draw_label
-# import chemdraw.drawers.draw_atoms as draw_atoms
+import chemdraw.drawers.two_d.draw_atoms as draw_atoms
 import chemdraw.drawers.two_d.draw_bonds as draw_bonds
 # import chemdraw.drawers.draw_atom_numbers as draw_atom_numbers
 # import chemdraw.drawers.draw_bond_numbers as draw_bond_numbers
@@ -21,7 +21,7 @@ DRAWERS = {
         "bonds": draw_bonds.draw_bonds,
         "atoms": draw_atoms.draw_atoms,
         # "label": draw_label.draw_label,
-        # "debug": draw_debug.draw_debug,
+        "debug": draw_debug.draw_debug,
         # "atom_numbers": draw_atom_numbers.draw_atom_numbers,
         # "bond_numbers": draw_bond_numbers.draw_bond_numbers,
         # "ring_numbers": draw_ring_numbers.draw_ring_numbers,
@@ -42,4 +42,4 @@ def draw(molecule: str | Molecule) -> go.Figure:
 
     print(container)
     from chemdraw.drawers.plotly_drawing import container_to_figure
-    return container_to_figure(container)
+    return container_to_figure(container.prepare_for_drawing())

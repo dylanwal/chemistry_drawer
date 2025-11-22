@@ -118,6 +118,67 @@ def rotation_matrix(current_vector: np.ndarray, new_vector: np.ndarray) -> np.nd
     return np.array(((cos_, sin_), (-sin_, cos_)))
 
 
+def get_triangle_vertices(
+        base_center: np.ndarray,
+        height: int | float,
+        vector_to_tip: np.ndarray,
+        base_width: int | float = None
+):
+    """
+    Calculates the 3 vertices of a triangle given a base center, height,
+    and a direction vector pointing to the tip.
+
+    Args:
+        base_center (list or np.array): The [x, y] or [x, y, z] coordinates of the base center.
+        height (float): The distance from the base center to the tip.
+        vector_to_tip (list or np.array): A vector indicating the direction from base to tip.
+                                          (Does not need to be normalized).
+        base_width (float, optional): The width of the base. If None, calculates width
+                                      for an Equilateral triangle.
+
+    Returns:
+        np.array: A 3xN array containing the 3 points of the triangle.
+                  [Tip_Point, Base_Point_Left, Base_Point_Right]
+    """
+
+    # 1. Convert inputs to numpy arrays for vector math
+    center = np.array(base_center, dtype=float)
+    direction = np.array(vector_to_tip, dtype=float)
+
+    # 2. Validate dimensions (2D or 3D)
+    dim = len(center)
+    if len(direction) != dim:
+        raise ValueError("Base center and direction vector must have the same dimensions.")
+
+    # 3. Normalize the direction vector (Tip Direction)
+    # This ensures we just get the direction, and scale it by 'height' manually
+    norm = np.linalg.norm(direction)
+    if norm == 0:
+        raise ValueError("Vector to tip cannot be zero.")
+    unit_up = direction / norm
+
+    # 4. Calculate the Tip Point
+    # Tip = Center + (UnitDirection * Height)
+    tip_point = center + (unit_up * height)
+
+    # 5. Determine Base Width
+    if base_width is None: # assume an Equilateral Triangle
+        base_width = (2 * height) / np.sqrt(3)
+    half_width = base_width / 2.0
+
+    # 6. Calculate the Base Vector (Perpendicular to Up)
+    unit_right = np.array([-unit_up[1], unit_up[0]])
+
+    # 7. Calculate Base Points
+    # Move left and right from the center along the perpendicular vector
+    p2 = center - (unit_right * half_width)
+    p3 = center + (unit_right * half_width)
+
+    # 8. Return the 3 points
+    # Format: [Tip, Left_Base, Right_Base]
+    return np.array([tip_point, p2, p3, tip_point])
+
+
 def local_run():
     import plotly.graph_objs as go
 

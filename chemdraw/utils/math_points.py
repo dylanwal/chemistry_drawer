@@ -1,3 +1,4 @@
+import itertools
 
 import numpy as np
 from sklearn.decomposition import PCA
@@ -162,6 +163,40 @@ def set_largest_axis(coordinates: np.ndarray, new_vector: np.ndarray = np.array(
     vector = get_largest_principle_component(coordinates)
     rot_matrix = math_vectors.rotation_matrix(vector, new_vector)
     return np.dot(coordinates, rot_matrix)
+
+
+def get_bounding_box(points: np.ndarray) -> np.ndarray:
+    """
+    Calculates the corner points of an axis-aligned bounding box for a set of points.
+
+    Args:
+        points (list or np.array): An array of points (Nx2 or Nx3).
+
+    Returns:
+        np.array: An array containing the corners of the bounding box.
+                  (4 points for 2D, 8 points for 3D)
+    """
+    pts = np.asarray(points)
+
+    if len(pts) < 3:
+        raise ValueError("`points` must contain at least 3 points.")
+
+    # Find min and max along each axis (x, y, z...)
+    min_vals = np.min(pts, axis=0)
+    max_vals = np.max(pts, axis=0)
+
+    # corners = list(itertools.product(*zip(min_vals, max_vals)))
+    corners = np.array(
+        [
+            [min_vals[0], min_vals[0], max_vals[0], max_vals[0]],
+            [min_vals[1], max_vals[1], max_vals[1], min_vals[1]],
+        ]
+    )
+
+    return np.array(corners)
+
+def get_bounding_box_center(points: np.ndarray) -> np.ndarray:
+    return np.mean(get_bounding_box(points), axis=1)
 
 
 def tests():

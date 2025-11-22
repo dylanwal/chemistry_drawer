@@ -12,10 +12,10 @@ class StyleTemplate:
         # self.show_hydrogens = False
         # self.methyl = None # or "Me"
         ### drawing
-        # self.draw_order = ["ring_highlights", "highlights", "bonds", "atoms", "parenthesis",
+        # self.draw_order = ["ring_highlights", "highlights", "parenthesis",
         #                    "atom_numbers", "bond_numbers", "ring_numbers",
-        #                    "debug", "label"]
-        self.draw_order = ["bonds", "atoms"]
+        #                    "label"]
+        self.draw_order = ["bonds", "atoms", "debug"]
         # first in list is drawn at the bottom
         background_color = "rgba(0,0,0,0)"
 
@@ -41,8 +41,8 @@ class StyleTemplate:
         self.atom_text_y_offset = 0.07  # TODO make font size dependent
         self.atom_font_family = 'Arial'
         self.atom_font_bold = False
-        self.atom_font_size = 1
-        self.atom_font_color = "black"  # or "element"
+        self.atom_font_size = 100
+        self.atom_font_color = "black"  # color or "element"
         self.atom_color_scheme = {
             "C": "black",
             "O": "red",
@@ -50,6 +50,37 @@ class StyleTemplate:
             "S": "yellow"
         }
         # self.margin = 0.1  # space around atom label (how much to shorten bond)
+
+
+        ## debug
+        self.debug = True
+        self.debug_show_molecule = True
+        self.debug_molecule_color = 'gray'
+        self.debug_molecule_size = 15
+        self.debug_molecule_line_width = 3
+        self.debug_molecule_dash = "dash" # None or "dash"
+
+        self.debug_show_bond_vector = True
+        self.debug_show_bond_perpendicular = True
+        self.debug_bond_vector_length = 0.3
+        self.debug_bond_vector_color = "green"
+        self.debug_bond_vector_perp_color = "blue"
+        self.debug_bond_vector_line_width = 2
+        self.debug_bond_vector_head_width = 0.1
+        self.debug_bond_vector_head_height = 0.1
+        self.debug_bond_vector_dash = None
+        self.debug_bond_vector_style = 0
+
+        self.debug_show_atom_vector = True
+        self.debug_atom_vector_length = 0.3
+        self.debug_atom_vector_color = "red"
+        self.debug_atom_vector_line_width = 2
+        self.debug_atom_vector_head_width = 0.1
+        self.debug_atom_vector_head_height = 0.1
+        self.debug_atom_vector_dash = None
+        self.debug_atom_vector_style = 0
+
+        # self.debug_show_parenthesis = False
 
     def set_style(self, filename: str | pathlib.Path):
         with open(filename, 'r') as f:
@@ -74,7 +105,9 @@ class StyleTemplate:
         return f"<sup>{text}</sup>"
 
     def get_atom_color(self, atom_symbol: str) -> str:
-        return self.atom_color_scheme.get(atom_symbol, "black")
+        if self.atom_font_color == "element":
+            return self.atom_color_scheme.get(atom_symbol, "black")
+        return self.atom_font_color
 
     @classmethod
     def from_file(cls, filename: str | pathlib.Path):

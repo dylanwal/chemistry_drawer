@@ -46,7 +46,7 @@ class Atom:
         self._vector = None
 
     def __repr__(self) -> str:
-        return f"{self.symbol} (id: {self.id_}): [{','.join(self.coordinates)}]"
+        return f"{self.symbol} (id: {self.id_}): [{','.join(str(i) for i in self.coordinates)}]"
 
     @property
     def show(self):
@@ -59,7 +59,7 @@ class Atom:
 
     @property
     def coordinates(self) -> np.ndarray:
-        return self.parent.coordinates[:, self.id_]
+        return self.parent.coordinates[self.id_, :]
 
     @coordinates.setter
     def coordinates(self, coordinates: np.ndarray):
@@ -96,20 +96,23 @@ class Atom:
 
         return self._number_bonds
 
+    def number_hydrogens(self) -> int:
+        return ATOM_VALENCY.get(self.symbol, 0)
+
     def vector(self) -> np.ndarray:
         if self._vector is None:
             self._get_bonds()
 
             vector = np.zeros(2, dtype="float64")
-            if len(self._bonds) == 1:
+            if self.number_bonds() == 1:
                 self._vector = -1 * math_vectors.normalize(self._bonds[0].center - self.coordinates)
 
-            elif len(self._bonds) == 2:
+            elif self.number_bonds() == 2:
                 for bond in self._bonds:
                     vector += math_vectors.normalize(bond.center - self.coordinates)
                 self._vector = -1 * vector
 
-            elif len(self._bonds) == 3:
+            elif self.number_bonds() == 3:
                 for bond in self._bonds:
                     from chemdraw.objects.bonds import BondType
                     if bond.type_ == BondType.double:
