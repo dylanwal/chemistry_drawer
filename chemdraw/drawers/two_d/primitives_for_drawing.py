@@ -5,6 +5,8 @@ import copy
 import numpy as np
 
 import chemdraw.utils.math_vectors as math_vectors
+import chemdraw.utils.math_points as math_points
+
 
 class Dot:
     def __init__(self,
@@ -18,6 +20,7 @@ class Dot:
         self.y = y
         self.color = color
         self.size = size
+
 
 class Dots:
     """Stores dots with shared style properties (color, size)."""
@@ -33,11 +36,15 @@ class Dots:
         self.x = np.append(self.x, x)
         self.y = np.append(self.y, y)
 
+    def join(self, other: Dots) -> None:
+        self.x = np.append(self.x, other.x)
+        self.y = np.append(self.y, other.y)
+
     def matches(self, color: str, size: float | int) -> bool:
         """Return True if style matches."""
         return (
-            self.color == color
-            and self.size == size
+                self.color == color
+                and self.size == size
         )
 
 
@@ -57,6 +64,7 @@ class Line:
         self.dash = dash
         self.wave = wave
 
+
 class Lines:
     """Stores segments with shared style properties (color, width, dash, wave)."""
 
@@ -72,13 +80,18 @@ class Lines:
         self.x = np.concatenate((self.x, x, [None]))
         self.y = np.concatenate((self.y, y, [None]))
 
+    def join(self, other: Lines) -> None:
+        self.x = np.append(self.x, other.x)
+        self.y = np.append(self.y, other.y)
+
     def matches(self, color: str, width: float, dash: str) -> bool:
         """Return True if style matches."""
         return (
-            self.color == color
-            and self.width == width
-            and self.dash == dash
+                self.color == color
+                and self.width == width
+                and self.dash == dash
         )
+
 
 class Fill:
     def __init__(self,
@@ -103,8 +116,13 @@ class Fills:
         self.x = np.concatenate((self.x, x, [None]))
         self.y = np.concatenate((self.y, y, [None]))
 
+    def join(self, other: Fills) -> None:
+        self.x = np.append(self.x, other.x)
+        self.y = np.append(self.y, other.y)
+
     def matches(self, color: str) -> bool:
         return self.color == color
+
 
 class Text:
     def __init__(self,
@@ -122,7 +140,7 @@ class Text:
         self.color = color
         self.font = font
         self.size = size
-        self.bold =bold
+        self.bold = bold
 
 
 class Texts:
@@ -142,11 +160,16 @@ class Texts:
         self.y = np.concatenate((self.y, np.array([y])))
         self.symbols.append(symbol)
 
+    def join(self, other: Texts) -> None:
+        self.x = np.append(self.x, other.x)
+        self.y = np.append(self.y, other.y)
+        self.symbols.extend(other.symbols)
+
     def matches(self, color: str, font: str, size: float) -> bool:
         return (
-            self.color == color
-            and self.font == font
-            and self.size == size
+                self.color == color
+                and self.font == font
+                and self.size == size
         )
 
 
@@ -213,16 +236,28 @@ class Arrows:
             return None
         return self.arrows[0].head_height
 
+    def _num_points(self) -> int:
+        return sum(a.x.size for a in self.arrows)
+
+    def _coordinates(self) -> np.ndarray:
+        xs = []
+        ys = []
+        for a in self.arrows:
+            xs.append(a.x)
+            ys.append(a.y)
+
+        return np.vstack((np.concatenate(xs), np.concatenate(ys)))
+
     def add(self, a: Arrow) -> None:
         self.arrows.append(a)
 
     def matches(self, color: str, line_width: float, dash: str, style: int) -> bool:
         """Return True if style matches."""
         return (
-            self.color == color
-            and self.line_width == line_width
-            and self.dash == dash
-            and self.style == style
+                self.color == color
+                and self.line_width == line_width
+                and self.dash == dash
+                and self.style == style
         )
 
     def to_lines_fills(self) -> tuple[Lines, Fills]:
@@ -237,7 +272,7 @@ class Arrows:
                 points = math_vectors.get_triangle_vertices(
                     base_center=np.array([arrow.x[-1], arrow.y[-1]]),
                     height=arrow.head_height,
-                    vector_to_tip=np.array([arrow.x[1]-arrow.x[0], arrow.y[1]-arrow.y[0]]),
+                    vector_to_tip=np.array([arrow.x[1] - arrow.x[0], arrow.y[1] - arrow.y[0]]),
                     base_width=arrow.head_width
                 )
                 fills.add_segment(points[:, 0], points[:, 1])
@@ -258,10 +293,46 @@ class DrawingContainer:
         self.fills: list[Fills] = []
         self.texts: list[Texts] = []
         self.arrows: list[Arrows] = []
+        # the location of None is when to draw itself (this allows layering)
+        self.containers: list[DrawingContainer | None] = [None]
+
+        self._coordinates = None
 
     def __str__(self):
         text = f"lines: {len(self.lines)} | fills: {len(self.fills)} | text: {len(self.texts)}"
         return text
+
+    def coordinates(self) -> np.ndarray:
+        if self._coordinates:
+            return self._coordinates
+
+        xs = []
+        ys = []
+
+        # 1. Group standard objects together to reduce code repetition
+        standard_objects = self.dots + self.lines + self.fills + self.texts
+
+        for obj in standard_objects:
+            xs.append(obj.x)
+            ys.append(obj.y)
+
+        # 2. Handle arrows separately (since they use _x and _y)
+        for arrow in self.arrows:
+            c = arrow._coordinates()
+            xs.append(c[0, :])
+            ys.append(c[1, :])
+
+        # 4. Concatenate and Stack
+        # np.vstack creates a (2, N) array.
+        self._coordinates = np.vstack((np.concatenate(xs), np.concatenate(ys)))
+        return self._coordinates
+
+    def center(self) -> np.ndarray:
+        """ center of bounding box of molecule """
+        return math_points.get_bounding_box_center(self.coordinates())
+
+    def bounding_box(self) -> np.ndarray:
+        return math_points.get_bounding_box(self.coordinates())
 
     def add_dot(self, dot: Dot):
         for d in self.dots:
@@ -273,6 +344,13 @@ class DrawingContainer:
         new_dot.add_segment(dot.x, dot.y)
         self.dots.append(new_dot)
 
+    def add_dots(self, dots: Dots):
+        for d in self.dots:
+            if d.matches(dots.color, dots.size):
+                d.join(dots)
+                return
+        self.dots.append(copy.deepcopy(dots))
+
     def add_line(self, line: Line):
         for l in self.lines:
             if l.matches(line.color, line.width, line.dash):
@@ -283,6 +361,14 @@ class DrawingContainer:
         new_line.add_segment(line.x, line.y)
         self.lines.append(new_line)
 
+    def add_lines(self, lines: Lines):
+        for d in self.lines:
+            if d.matches(lines.color, lines.width, lines.dash):
+                d.join(lines)
+                return
+
+        self.lines.append(copy.deepcopy(lines))
+
     def add_fill(self, fill: Fill) -> None:
         for f in self.fills:
             if f.matches(fill.color):
@@ -292,7 +378,15 @@ class DrawingContainer:
         new_fill = Fills(fill.color)
         new_fill.add_segment(fill.x, fill.y)
         self.fills.append(new_fill)
-        
+
+    def add_fills(self, fills: Fills):
+        for d in self.fills:
+            if d.matches(fills.color):
+                d.join(fills)
+                return
+
+        self.fills.append(copy.deepcopy(fills))
+
     def add_text(self, text: Text) -> None:
         for f in self.texts:
             if f.matches(text.color, text.font, text.size):
@@ -303,6 +397,14 @@ class DrawingContainer:
         new_text.add_segment(text.x, text.y, text.symbol)
         self.texts.append(new_text)
 
+    def add_texts(self, texts: Texts):
+        for d in self.texts:
+            if d.matches(texts.color, texts.font, texts.size):
+                d.join(texts)
+                return
+
+        self.texts.append(copy.deepcopy(texts))
+
     def add_arrow(self, arrow: Arrow) -> None:
         for a in self.arrows:
             if a.matches(arrow.color, arrow.line_width, arrow.dash, arrow.style):
@@ -312,6 +414,8 @@ class DrawingContainer:
         new_arrow = Arrows()
         new_arrow.add(arrow)
         self.arrows.append(new_arrow)
+
+    # Do not add add_arrows; it should not be needed as they are converted to lines/fills
 
     def add_objects(self, objs: Dot | Line | Fill | Text | Arrow | Sequence[Dot | Line | Fill | Text | Arrow]):
         if not isinstance(objs, Sequence):
@@ -333,9 +437,28 @@ class DrawingContainer:
 
     def prepare_for_drawing(self):
         # call prior to plotting - some objects need to be converted into lines and fills
-        obj = copy.deepcopy(self)
+        self_obj = copy.copy(self)
         for a in self.arrows:
             a_line, a_fill = a.to_lines_fills()
-            obj.lines.append(a_line)
-            obj.fills.append(a_fill)
-        return obj
+            self_obj.lines.append(a_line)
+            self_obj.fills.append(a_fill)
+
+        # resolve containers and merge into a new one
+        new_obj = self.__class__()
+        for container in self.containers:
+            if container is None:
+                container = self_obj
+            else:
+                container = container.prepare_for_drawing()
+
+            for obj in container.dots:
+                new_obj.add_dots(obj)
+            for obj in container.lines:
+                new_obj.add_lines(obj)
+            for obj in container.fills:
+                new_obj.add_fills(obj)
+            for obj in container.texts:
+                new_obj.add_texts(obj)
+            # arrows should be converted to text/fills already
+
+        return new_obj

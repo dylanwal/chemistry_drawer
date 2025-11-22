@@ -1,73 +1,43 @@
 
-import numpy as np
-import plotly.graph_objs as go
+from chemdraw.config.style_template import STYLE_TEMPLATE
+from chemdraw.objects.molecule import Molecule
 
-from chemdraw.drawers.general_classes import Font
-from chemdraw.objects.bonds import Bond
-
-
-class ConfigDrawerBondNumber:
-    def __init__(self, parent):
-        self.parent = parent
-
-        self.show = False
-        self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
-        self.font = Font(parent, family="Arial", size=12, bold=True, color="gray", offset=0.3, alignment="best")
-        # ["best", "left", "right", "top", "bottom"] alignment
-        self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
-
-    def __repr__(self):
-        return f"show: {self.show}"
+from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
 
-def draw_bond_numbers(fig: go.Figure, config: ConfigDrawerBondNumber, bonds: list[Bond]) -> go.Figure:
-    if not config.show:
-        return fig
+def draw_bond_numbers(container: DrawingContainer, mol: Molecule):
+    if not STYLE_TEMPLATE.bond_numbers_show:
+        return
 
-    if config.method:
-        return _add_bond_numbers_with_scatter(fig, config, bonds)
-    else:
-        return _add_bond_numbers_with_annotation(fig, config, bonds)
+    alignment = STYLE_TEMPLATE.bond_alignment
+    offset = STYLE_TEMPLATE.bond_numbers_offset
+    for bond in mol.bonds:
+        if alignment == "left":
+            x = bond.center[0] + offset
+            y = bond.center[1]
+        elif alignment == "right":
+            x = bond.center[0] - offset
+            y = bond.center[1]
+        elif alignment == "top":
+            x = bond.center[0]
+            y = bond.center[1] + offset
+        elif alignment == "bottom":
+            x = bond.center[0]
+            y = bond.center[1] - offset
+        else:
+            # best
+            x = bond.center[0] + bond.perpendicular[0] * offset
+            y = bond.center[1] + bond.perpendicular[1] * offset
 
 
-def _add_bond_numbers_with_annotation(fig: go.Figure, config: ConfigDrawerBondNumber, bonds: list[Bond]) -> go.Figure:
-    for bond in bonds:
-        x, y = bond.get_bond_number_position(config.font.alignment, config.font.offset)
-
-        fig.add_annotation(
-            x=x,
-            y=y,
-            text=_get_bond_number_text(config, bond),
-            showarrow=False,
-            font=dict(
-                family=config.font.family,
-                size=config.font.size,
-                color=config.font.color
-            ),
-            # bgcolor=self.config.bond_bgcolor if self.config.bond_background_shape == "tight" else None,
-            # borderwidth=self.config.bond_borderwidth,
-            # borderpad=self.config.bond_borderpad,
-            # opacity=0.8
+        container.add_objects(
+            Text(
+                x=x,
+                y=y,
+                symbol=str(bond.label),
+                color=STYLE_TEMPLATE.bond_numbers_font_color,
+                font=STYLE_TEMPLATE.bond_numbers_font_family,
+                size=STYLE_TEMPLATE.bond_numbers_font_size,
+                bold=STYLE_TEMPLATE.bond_numbers_font_bold,
+            )
         )
-
-    return fig
-
-
-def _add_bond_numbers_with_scatter(fig: go.Figure, config: ConfigDrawerBondNumber, bonds: list[Bond]) -> go.Figure:
-    symbols = [_get_bond_number_text(config, bond) for bond in bonds]
-    xy = np.array([bond.get_bond_number_position(config.font.alignment, config.font.offset) for bond in bonds])
-
-    fig.add_trace(go.Scatter(x=xy[:, 0], y=xy[:, 1], mode="text", text=symbols,
-                             textfont=dict(family=config.font.family, color=config.font.color, size=config.font.size),
-                             **config.scatter_kwargs))
-
-    return fig
-
-
-def _get_bond_number_text(config: ConfigDrawerBondNumber, bond: Bond) -> str:
-    symbol = str(bond.number)
-
-    if config.font.bold:
-        symbol = "<b>" + symbol + "</b>"
-
-    return symbol

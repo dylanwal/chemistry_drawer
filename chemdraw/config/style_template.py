@@ -14,9 +14,9 @@ class StyleTemplate:
         # self.methyl = None # or "Me"
         ### drawing
         # self.draw_order = ["ring_highlights", "highlights", "parenthesis",
-        #                    "atom_numbers", "bond_numbers", "ring_numbers",
+        #                    "ring_numbers",
         #                    "label"]
-        self.draw_order = ["bonds", "atoms", "debug"]
+        self.draw_order = ["bonds", "atoms", "debug", "bond_numbers", "atom_numbers"]
         # first in list is drawn at the bottom
         background_color = "rgba(0,0,0,0)"
 
@@ -51,6 +51,25 @@ class StyleTemplate:
             "S": "yellow"
         }
         # self.margin = 0.1  # space around atom label (how much to shorten bond)
+
+
+
+        ## atom and bond numbers
+        self.bond_numbers_show = True
+        self.bond_numbers_offset = 0.3
+        self.bond_alignment = "best" # ["best", "left", "right", "top", "bottom"]
+        self.bond_numbers_font_family = 'Arial'
+        self.bond_numbers_font_bold = False
+        self.bond_numbers_font_size = 20
+        self.bond_numbers_font_color = "gray"  # color or "element"
+
+        self.atom_numbers_show = True
+        self.atom_numbers_offset = 0.3
+        self.atom_alignment = "best" # ["best", "left", "right", "top", "bottom"]
+        self.atom_numbers_font_family = 'Arial'
+        self.atom_numbers_font_bold = False
+        self.atom_numbers_font_size = 20
+        self.atom_numbers_font_color = "tan"  # color or "element"
 
 
         ## debug

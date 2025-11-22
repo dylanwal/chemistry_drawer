@@ -3,7 +3,7 @@ from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.objects.molecule import Molecule
 from chemdraw.objects.atoms import Atom
 
-from chemdraw.drawers.two_d.draw_primatives import DrawingContainer, Text
+from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
 
 def draw_atoms(container: DrawingContainer, mol: Molecule):

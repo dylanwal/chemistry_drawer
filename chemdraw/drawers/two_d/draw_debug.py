@@ -2,7 +2,7 @@ import numpy as np
 
 from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.objects.molecule import Molecule
-from chemdraw.drawers.two_d.draw_primatives import DrawingContainer, Dot, Arrow, Line
+from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Dot, Arrow, Line
 
 
 def draw_debug(container: DrawingContainer, mol: Molecule):

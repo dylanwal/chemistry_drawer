@@ -6,7 +6,7 @@ from chemdraw.objects.bonds import Bond, BondType, BondAlignment, BondStereoChem
 import chemdraw.utils.math_vectors as math_vectors
 import chemdraw.utils.general_math as general_math
 
-from chemdraw.drawers.two_d.draw_primatives import DrawingContainer, Line, Fill
+from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Line, Fill
 
 
 def draw_bonds(container: DrawingContainer, mol: Molecule):

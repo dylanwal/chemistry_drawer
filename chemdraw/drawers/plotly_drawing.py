@@ -1,7 +1,7 @@
 
 import plotly.graph_objs as go
 
-from chemdraw.drawers.two_d.draw_primatives import Dots, Fills, Lines, Texts, DrawingContainer
+from chemdraw.drawers.two_d.primitives_for_drawing import Dots, Fills, Lines, Texts, DrawingContainer
 
 def container_to_figure(container: DrawingContainer) -> go.Figure:
     fig = go.Figure()

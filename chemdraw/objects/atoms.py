@@ -37,7 +37,7 @@ class Atom:
         self._show = None
         self.style = StyleFont()
         self.highlight = StyleHighlight()
-        self.number = self.id_
+        self.label = self.id_
         self._atom_number_position = None
 
         # computed data
