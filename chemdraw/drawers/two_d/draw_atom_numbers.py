@@ -5,9 +5,9 @@ from chemdraw.objects.molecule import Molecule
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
 
-def draw_atom_numbers(container: DrawingContainer, mol: Molecule):
+def draw_atom_numbers(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
     if not STYLE_TEMPLATE.atom_numbers_show:
-        return
+        return container
 
     alignment = STYLE_TEMPLATE.atom_alignment
     offset = STYLE_TEMPLATE.atom_numbers_offset
@@ -41,3 +41,5 @@ def draw_atom_numbers(container: DrawingContainer, mol: Molecule):
                 bold=STYLE_TEMPLATE.atom_numbers_font_bold,
             )
         )
+
+    return container

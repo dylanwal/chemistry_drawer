@@ -299,7 +299,19 @@ class DrawingContainer:
         self._coordinates = None
 
     def __str__(self):
-        text = f"lines: {len(self.lines)} | fills: {len(self.fills)} | text: {len(self.texts)}"
+        text = ""
+        if self.dots:
+            text += f"dots: {len(self.dots)} |"
+        if self.lines:
+            text += f"lines: {len(self.lines)} |"
+        if self.fills:
+            text += f"fills: {len(self.fills)} |"
+        if self.texts:
+            text += f"text: {len(self.texts)} |"
+        if self.arrows:
+            text += f"arrows: {len(self.arrows)} |"
+        if self.containers:
+            text += f"containers: {len(self.containers)} |"
         return text
 
     def coordinates(self) -> np.ndarray:
@@ -324,7 +336,13 @@ class DrawingContainer:
 
         # 4. Concatenate and Stack
         # np.vstack creates a (2, N) array.
-        self._coordinates = np.vstack((np.concatenate(xs), np.concatenate(ys)))
+        x = np.concatenate(xs)
+        y = np.concatenate(ys)
+        x = x[x != None]
+        y = y[y != None]
+        coords = np.vstack((x, y))
+
+        self._coordinates = coords
         return self._coordinates
 
     def center(self) -> np.ndarray:

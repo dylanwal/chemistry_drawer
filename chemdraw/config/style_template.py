@@ -7,18 +7,19 @@ import yaml
 class StyleTemplate:
     """ For styling the molecule's look (no parameters that are plotting package dependent). """
     def __init__(self):
+        self.plotter = "plotly"
         self.auto_rotate = True # rotates molecule longest axis to [1,0]  or [1,0,0]
         self.auto_center = True # move bound box center to [0, 0]
 
         # self.show_hydrogens = False
         # self.methyl = None # or "Me"
-        ### drawing
-        # self.draw_order = ["ring_highlights", "highlights", "parenthesis",
-        #                    "ring_numbers",
-        #                    "label"]
-        self.draw_order = ["bonds", "atoms", "debug", "bond_numbers", "atom_numbers"]
-        # first in list is drawn at the bottom
-        background_color = "rgba(0,0,0,0)"
+        # background_color = "rgba(0,0,0,0)"
+
+        ### drawing (first in list is drawn at the bottom)
+        # 'label' should be last as it needs the molecule built to know where it should be.
+        # self.draw_order = ["ring_highlights", "highlights", "parenthesis", "ring_numbers"]
+        self.draw_order = ["bonds", "atoms", "debug", "bond_numbers", "atom_numbers", "label"]
+
 
         ## bond
         self.bond_length = 1 # global scaling
@@ -53,7 +54,6 @@ class StyleTemplate:
         # self.margin = 0.1  # space around atom label (how much to shorten bond)
 
 
-
         ## atom and bond numbers
         self.bond_numbers_show = True
         self.bond_numbers_offset = 0.3
@@ -61,7 +61,7 @@ class StyleTemplate:
         self.bond_numbers_font_family = 'Arial'
         self.bond_numbers_font_bold = False
         self.bond_numbers_font_size = 20
-        self.bond_numbers_font_color = "gray"  # color or "element"
+        self.bond_numbers_font_color = "gray"
 
         self.atom_numbers_show = True
         self.atom_numbers_offset = 0.3
@@ -69,7 +69,19 @@ class StyleTemplate:
         self.atom_numbers_font_family = 'Arial'
         self.atom_numbers_font_bold = False
         self.atom_numbers_font_size = 20
-        self.atom_numbers_font_color = "tan"  # color or "element"
+        self.atom_numbers_font_color = "tan"
+
+
+        ## label
+        self.label_show = True
+        self.label_location = "bottom"  # options = ["top", "bottom"]
+        self.label_font_family = 'Arial'
+        self.label_font_bold = False
+        self.label_font_size = 50
+        self.label_font_color = "black"
+        self.label_auto_wrap = True
+        self.label_auto_wrap_length = 20
+        self.label_pad = 0.75 # distance between molecule and text
 
 
         ## debug
@@ -119,10 +131,22 @@ class StyleTemplate:
             yaml.dump(self.__dict__, f)
 
     def make_subscript(self, text: str) -> str:
-        return f"<sub>{text}</sub>"
+        if self.plotter == "plotly":
+            return f"<sub>{text}</sub>"
+
+        return text
 
     def make_superscript(self, text: str) -> str:
-        return f"<sup>{text}</sup>"
+        if self.plotter == "plotly":
+            return f"<sup>{text}</sup>"
+
+        return text
+
+    def get_text_break(self) -> str:
+        if self.plotter == "plotly":
+            return f"<br>"
+
+        return "\n"
 
     def get_atom_color(self, atom_symbol: str) -> str:
         if self.atom_font_color == "element":

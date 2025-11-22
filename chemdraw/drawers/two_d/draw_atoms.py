@@ -6,7 +6,7 @@ from chemdraw.objects.atoms import Atom
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
 
-def draw_atoms(container: DrawingContainer, mol: Molecule):
+def draw_atoms(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
     for atom in mol.atoms:
         if atom._show is False:
             continue
@@ -29,6 +29,8 @@ def draw_atoms(container: DrawingContainer, mol: Molecule):
                 obj.size = STYLE_TEMPLATE.atom_font_size
 
         container.add_objects(objs)
+
+    return container
 
 
 def draw_atom(atom: Atom) -> Text | None:

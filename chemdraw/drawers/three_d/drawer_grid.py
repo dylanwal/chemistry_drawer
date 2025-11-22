@@ -4,7 +4,7 @@ import os
 import plotly.graph_objs as go
 import numpy as np
 
-from chemdraw.drawers.drawer import Drawer, Config
+from chemdraw.drawers.two_d.drawer_2d import Drawer, Config
 from chemdraw.objects.molecule import Molecule
 
 

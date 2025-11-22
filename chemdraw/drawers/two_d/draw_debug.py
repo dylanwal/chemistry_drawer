@@ -5,9 +5,9 @@ from chemdraw.objects.molecule import Molecule
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Dot, Arrow, Line
 
 
-def draw_debug(container: DrawingContainer, mol: Molecule):
+def draw_debug(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
     if not STYLE_TEMPLATE.debug:
-        return
+        return container
 
     if STYLE_TEMPLATE.debug_show_molecule:
         draw_molecule_center(container, mol)
@@ -17,6 +17,8 @@ def draw_debug(container: DrawingContainer, mol: Molecule):
         draw_bond_perpendicular(container, mol)
     if STYLE_TEMPLATE.debug_show_atom_vector:
         draw_atom_vector(container, mol)
+
+    return container
 
 
 def draw_molecule_center(container: DrawingContainer, mol: Molecule):
