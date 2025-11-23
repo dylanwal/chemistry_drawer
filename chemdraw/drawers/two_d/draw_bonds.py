@@ -2,6 +2,7 @@ import numpy as np
 
 from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.objects.molecule import Molecule
+from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond, BondType, BondAlignment, BondStereoChem
 import chemdraw.utils.math_vectors as math_vectors
 import chemdraw.utils.general_math as general_math
@@ -45,11 +46,13 @@ def draw_bonds(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
     return container
 
 
+
+
 def draw_single_bond(bond: Bond) -> Line | Fill | list[Line]:
     if bond.stereo_chem != BondStereoChem.default:
         return draw_stereo_bond(bond)
 
-    x, y = bond.coordinates
+    x, y = shorten_bond_for_atom_label(bond)
     return Line(x, y, bond.style.color, bond.style.width)
 
 
@@ -104,14 +107,8 @@ def draw_double_bond(bond: Bond):
         y_left = y + perpendicular[1] * double_bond_offset / 2
         y_right = y - perpendicular[1] * double_bond_offset / 2
         if double_bond_center_length != 1:
-            x0, x1, y0, y1 = math_vectors.shorten_line(x_left[0], x_left[1], y_left[0], y_left[1],
-                                                       double_bond_center_length)
-            x_left = [x0, x1]
-            y_left = [y0, y1]
-            x0, x1, y0, y1 = math_vectors.shorten_line(x_right[0], x_right[1], y_right[0], y_right[1],
-                                                       double_bond_center_length)
-            x_right = [x0, x1]
-            y_right = [y0, y1]
+            x_left, y_left = math_vectors.shorten_line(x_left, y_left, double_bond_center_length)
+            x_right, y_right = math_vectors.shorten_line(x_right, y_right, double_bond_center_length)
 
         return [
             Line(x_left, y_left, bond.style.color, bond.style.width),  # left
@@ -127,9 +124,7 @@ def draw_double_bond(bond: Bond):
         y_off = y - perpendicular[1] * double_bond_offset
 
     if double_bond_offset_length != 1:
-        x0, x1, y0, y1 = math_vectors.shorten_line(x_off[0], x_off[1], y_off[0], y_off[1], double_bond_offset_length)
-        x_off = [x0, x1]
-        y_off = [y0, y1]
+        x_off, y_off = math_vectors.shorten_line(x_off, y_off, double_bond_offset_length)
 
     return [
         Line(x, y, bond.style.color, bond.style.width),  # center
@@ -222,7 +217,7 @@ def draw_triple_bond(bond: Bond) -> list[Line]:
 
 def _shorten_bond_triple(x: np.ndarray, y: np.ndarray, triple_bond_length) \
         -> tuple[np.ndarray, np.ndarray]:
-    x0, x1, y0, y1 = math_vectors.shorten_line(x[0], x[1], y[0], y[1], triple_bond_length)
+    x_new, y_new = math_vectors.shorten_line(x, y, triple_bond_length)
 
     # only shorten the terminal end
     # if bond.vector[0] == 0:  # vertical
@@ -242,11 +237,30 @@ def _shorten_bond_triple(x: np.ndarray, y: np.ndarray, triple_bond_length) \
     #         x = np.array([x[0], x1])
     #         y = np.array([y[0], y1])
     # else:
-    if x0 < x1:
-        x = np.array([x0, x[1]])
-        y = np.array([y0, y[1]])
+    if x_new[0] < x_new[1]:
+        x = np.array([x_new[0], x[1]])
+        y = np.array([y_new[0], y[1]])
     else:
-        x = np.array([x[0], x1])
-        y = np.array([y[0], y1])
+        x = np.array([x[0], x_new[1]])
+        y = np.array([y[0], y_new[1]])
 
     return x, y
+
+
+def shorten_bond_for_atom_label(bond: Bond):
+    x, y = bond.coordinates
+    if determine_if_show_atom_label(bond.parent.atoms[bond.atom1_id]):
+        x, y = math_vectors.shorten_line(x, y, STYLE_TEMPLATE.bond_offset, 0)
+    if determine_if_show_atom_label(bond.parent.atoms[bond.atom2_id]):
+        x, y = math_vectors.shorten_line(x, y, STYLE_TEMPLATE.bond_offset, 1)
+
+    return x, y
+
+
+def determine_if_show_atom_label(atom: Atom) -> bool:
+    if atom._show is False:
+        return False
+    if not STYLE_TEMPLATE.atom_show_carbons and atom.symbol == "C" and atom.charge == 0 and not atom.radical:
+        return False
+
+    return True

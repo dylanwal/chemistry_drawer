@@ -25,12 +25,12 @@ class StyleTemplate:
         self.bond_length = 1 # global scaling
         self.bond_color = "black"
         self.bond_width = 1
-        self.bond_offset = 0.37
-        self.bond_double_offset = 0.35  # of double bond perpendicular
-        self.bond_double_center_length = 1.1  # [1 - 1.5] 1 = full length; >1 = longer
-        self.bond_double_offset_length = 0.7  # [0 - 1] 1 = full length; <1 = shorter
+        self.bond_offset = 0.73
+        self.bond_double_offset = 0.25  # of double bond perpendicular
+        self.bond_double_center_length = 0.65  # [1 - 1.5] 1 = full length; >1 = longer
+        self.bond_double_offset_length = 0.8  # [0 - 1] 1 = full length; <1 = shorter
         self.bond_triple_offset = 0.23   # of triple bond perpendicular
-        self.bond_triple_length = 0.5
+        self.bond_triple_length = 1
         self.bond_stereo_offset = 0.23  # how wide is the triangle
         self.bond_stereo_wedge_number_lines = 6
         # self.bond_stereo_wedge_line_width = 6
@@ -90,7 +90,7 @@ class StyleTemplate:
 
 
         ## debug
-        self.debug = True
+        self.debug = False
         self.debug_show_molecule = True
         self.debug_molecule_color = 'gray'
         self.debug_molecule_size = 15
@@ -124,6 +124,10 @@ class StyleTemplate:
             text = f.read()
 
         data = yaml.safe_load(text)
+
+        if data is None:  # no data found
+            warnings.warn(f"No style properties found from {filename}. Skipping.")
+            return
 
         for k, v in data.items():
             if hasattr(self, k):
