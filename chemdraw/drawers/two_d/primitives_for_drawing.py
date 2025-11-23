@@ -128,7 +128,7 @@ class Text:
     def __init__(self,
                  x: int | float,
                  y: int | float,
-                 symbol: str,
+                 symbol: str | list[str] | tuple[str],
                  color: str,
                  font: str,
                  size: float,
@@ -136,7 +136,7 @@ class Text:
                  ):
         self.x = x
         self.y = y
-        self.symbol = symbol
+        self.symbol = symbol  # if in list/tuple; convert to page returns upon drawing
         self.color = color
         self.font = font
         self.size = size
@@ -149,7 +149,7 @@ class Texts:
     def __init__(self, color: str, font: str, size: float, bold: bool):
         self.x: np.ndarray = np.array([])
         self.y: np.ndarray = np.array([])
-        self.symbols: list[str] = []
+        self.symbols: list[str | list[str] | tuple[str]] = []
         self.color = color
         self.font = font
         self.size = size

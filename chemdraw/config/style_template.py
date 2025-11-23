@@ -8,7 +8,7 @@ class StyleTemplate:
     """ For styling the molecule's look (no parameters that are plotting package dependent). """
     def __init__(self):
         self.plotter = "plotly"
-        self.auto_rotate = True # rotates molecule longest axis to [1,0]  or [1,0,0]
+        self.auto_rotate = False # rotates molecule longest axis to [1,0]  or [1,0,0]
         self.auto_center = True # move bound box center to [0, 0]
 
         # self.show_hydrogens = False
@@ -51,6 +51,11 @@ class StyleTemplate:
             "N": "green",
             "S": "yellow"
         }
+        self.atom_global_offset_x = 0
+        self.atom_global_offset_y = -0.1
+        self.atom_charge_offset = .2
+        self.atom_H_offset_x = 0.3
+        self.atom_H_offset_y = 0
         # self.margin = 0.1  # space around atom label (how much to shorten bond)
 
 

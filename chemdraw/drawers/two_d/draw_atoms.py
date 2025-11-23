@@ -38,71 +38,67 @@ def draw_atom(atom: Atom) -> Text | None:
         return None  # skip drawing carbons
 
     # symbol
-    symbol, align, direction = _add_hydrogen_text(atom)
-    x, y = text_alignment(atom, align)
+    symbol = atom.symbol
+    charge_offset = 0
+    if atom.charge != 0:
+        if abs(atom.charge) == 1:
+            symbol += STYLE_TEMPLATE.make_superscript(f"{'+' if atom.charge > 0 else '-'}")
+            charge_offset += 1
+        else:
+            symbol += STYLE_TEMPLATE.make_superscript(f"{'+' if atom.charge > 0 else ''}{atom.charge}")
+            charge_offset += 2
+    if atom.radical:
+        symbol += STYLE_TEMPLATE.make_superscript("\u2022")
+        charge_offset += 1
 
-    # xy[counter, :] = [x, y - config.get_text_y_offset()]
+    h_text, h_offset, direction = get_hydrogen_data(atom)
 
-    # add hydrogens that are above or below atom
-    # if direction is not None:
-    #     hydrogen_symbol = _get_hydrogen_symbol(atom)
-    #     if config.font.get_attr("bold", atom.font):
-    #         hydrogen_symbol = "<b>" + hydrogen_symbol + "</b>"
-    #     symbols.append(hydrogen_symbol)
-    #     top_offset = config.font.get_attr("top_offset", atom.font)
-    #     if direction == "up":
-    #         xy[counter, :] = [atom.coordinates[0], atom.coordinates[1] + top_offset - config.get_text_y_offset()]
-    #     else:
-    #         xy[counter, :] = [atom.coordinates[0], atom.coordinates[1] - top_offset - config.get_text_y_offset()]
+    # add hydrogen to text
+    if direction is None:
+        if h_offset > 0:
+            symbol += h_text
+        else:
+            symbol = h_text + symbol
+    else:
+        if direction == "up":
+            symbol = [h_text, symbol]
+        else: # direction == "down":
+            symbol = [symbol, h_text]
+
+    # adjust position to account for charge and hydrogens
+    x = atom.coordinates[0] + STYLE_TEMPLATE.atom_global_offset_x
+    y = atom.coordinates[1] + STYLE_TEMPLATE.atom_global_offset_y
+    x += charge_offset*STYLE_TEMPLATE.atom_charge_offset
+    if direction is None:
+        x += h_offset*STYLE_TEMPLATE.atom_H_offset_x
+    else:
+        if direction == "up":
+            y -= STYLE_TEMPLATE.atom_H_offset_y
+        else:
+            y += STYLE_TEMPLATE.atom_H_offset_y
 
     return Text(x, y, symbol, color=atom.style.color, font=atom.style.family, size=atom.style.size, bold=atom.style.bold)
 
 
-def _add_hydrogen_text(atom: Atom) -> tuple[str, str, str | None]:
+def get_hydrogen_data(atom: Atom) -> tuple[str, int, str | None]:
     """ add hydrogen and subscript to atoms"""
-    main_symbol = atom.symbol
-    if atom.charge != 0:
-        if abs(atom.charge) == 1:
-            main_symbol += STYLE_TEMPLATE.make_superscript(f"{'+' if atom.charge > 0 else '-'}")
-        else:
-            main_symbol += STYLE_TEMPLATE.make_superscript(f"{'+' if atom.charge > 0 else ''}{atom.charge}")
-    if atom.radical:
-        main_symbol += STYLE_TEMPLATE.make_superscript("\u2022")
-
     if atom.number_hydrogens() == 0:
-        return main_symbol, "center", None
+        return "", 0, None
 
+    h_symbol = "H" if atom.number_hydrogens() == 1 else f"H{STYLE_TEMPLATE.make_subscript(str(atom.number_hydrogens()))}"
+    offset = 1 if atom.number_hydrogens() == 1 else 1.6  # 0.4 is for the subscript
     vector = atom.vector()
     if abs(vector[0]) > abs(vector[1]) or atom.number_bonds != 2:
         if vector[0] < 0:
             # hydrogen on left side of atom
-            return _get_hydrogen_symbol(atom.number_hydrogens()) + main_symbol, "left", None
+            return h_symbol, -offset, None
         else:
             # hydrogen on right side of atom
-            return main_symbol + _get_hydrogen_symbol(atom.number_hydrogens()), "right", None
+            return h_symbol, offset, None
     else:
         if vector[1] > 0:
             # hydrogen on top side of atom
-            return main_symbol, "center", "up"
+            return h_symbol, 0, "up"
         else:
             # hydrogen on right side of atom
-            return main_symbol, "center", "down"
-
-
-def _get_hydrogen_symbol(num_h: int) -> str:
-    if num_h == 1:
-        return "H"
-    return f"H{STYLE_TEMPLATE.make_subscript(str(num_h))}"
-
-
-def text_alignment(atom: Atom, align: str) -> tuple[float, float]:
-    offset = STYLE_TEMPLATE.atom_text_x_offset
-    if align == "center":
-        return atom.coordinates[0], atom.coordinates[1]
-    elif align == "left":
-        return atom.coordinates[0] - offset, atom.coordinates[1]
-    elif align == "right":
-        return atom.coordinates[0] + offset, atom.coordinates[1]
-
-    raise RuntimeError("Coding error")
-
+            return h_symbol, 0, "down"
