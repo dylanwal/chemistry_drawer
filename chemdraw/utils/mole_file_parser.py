@@ -5,7 +5,7 @@ import numpy as np
 from chemdraw.errors import MoleParsingError
 
 
-def parse_mole_file(mole_file: str) -> tuple[list[str], np.ndarray, np.ndarray, str, dict]:
+def parse_mole_file(mole_file: str) -> tuple[list[str], np.ndarray, np.ndarray, str, dict[str, dict]]:
     first_row, atom_block, bond_block, s_block = _parse_mole_file_main(mole_file)
     atom_symbols, atom_coordinates = _get_atoms(atom_block)
     bond_block = np.array(bond_block, dtype="int16")
@@ -108,8 +108,8 @@ class SgroupConnectivity(enum.Enum):
     EU = 3  # unknown
 
 
-def _get_s_block(s_block: list[str]) -> dict:
-    out = dict()
+def _get_s_block(s_block: list[str]) -> dict[str, dict]:
+    rows: dict[str, dict] = dict()
     for i in range(len(s_block)):
         try:
             line = s_block.pop(0)
@@ -118,14 +118,36 @@ def _get_s_block(s_block: list[str]) -> dict:
 
         if "END" in line:
             break
-        if "STY" in line:
-            line = line.split()
-            id_ = int(line[3])
-            type_ = Sgroup[line[4].strip()]
-            attr_ = _get_s_block_attr(s_block)
-            out[id_] = dict(type_=type_) | attr_
+        # if "STY" in line:
+        #     line = line.split()
+        #     id_ = int(line[3])
+        #     type_ = Sgroup[line[4].strip()]
+        #     attr_ = _get_s_block_attr(s_block)
+        #     rows[id_] = dict(type_=type_) | attr_
+        if "CHG" in line:
+            line_split = line.split()
+            dict_ = dict()
+            line_split = line_split[2:] # remove "M" "CHG"
+            num_atoms = int(line_split.pop(0))
+            for _ in range(num_atoms):
+                atom_id = int(line_split.pop(0))
+                charge = int(line_split.pop(0))
+                dict_[atom_id] = charge
 
-    return out
+            rows["CHG"] = dict_
+        if "RAD" in line:
+            line_split = line.split()
+            dict_ = dict()
+            line_split = line_split[2:] # remove "M" "RAD"
+            num_atoms = int(line_split.pop(0))
+            for _ in range(num_atoms):
+                atom_id = int(line_split.pop(0))
+                charge = int(line_split.pop(0))
+                dict_[atom_id] = charge
+
+            rows["RAD"] = dict_
+
+    return rows
 
 
 def _get_s_block_attr(s_block: list[str]) -> dict:

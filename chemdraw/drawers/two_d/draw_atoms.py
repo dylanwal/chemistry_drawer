@@ -34,7 +34,7 @@ def draw_atoms(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
 
 
 def draw_atom(atom: Atom) -> Text | None:
-    if not STYLE_TEMPLATE.atom_show_carbons and atom.symbol == "C":
+    if not STYLE_TEMPLATE.atom_show_carbons and atom.symbol == "C" and atom.charge == 0 and not atom.radical:
         return None  # skip drawing carbons
 
     # symbol
@@ -60,32 +60,39 @@ def draw_atom(atom: Atom) -> Text | None:
 
 def _add_hydrogen_text(atom: Atom) -> tuple[str, str, str | None]:
     """ add hydrogen and subscript to atoms"""
-    if atom.number_hydrogens() < 1:
-        return atom.symbol, "center", None
+    main_symbol = atom.symbol
+    if atom.charge != 0:
+        if abs(atom.charge) == 1:
+            main_symbol += STYLE_TEMPLATE.make_superscript(f"{'+' if atom.charge > 0 else '-'}")
+        else:
+            main_symbol += STYLE_TEMPLATE.make_superscript(f"{'+' if atom.charge > 0 else ''}{atom.charge}")
+    if atom.radical:
+        main_symbol += STYLE_TEMPLATE.make_superscript("\u2022")
+
+    if atom.number_hydrogens() == 0:
+        return main_symbol, "center", None
 
     vector = atom.vector()
     if abs(vector[0]) > abs(vector[1]) or atom.number_bonds != 2:
         if vector[0] < 0:
             # hydrogen on left side of atom
-            return _get_hydrogen_symbol(atom) + atom.symbol, "left", None
+            return _get_hydrogen_symbol(atom.number_hydrogens()) + main_symbol, "left", None
         else:
             # hydrogen on right side of atom
-            return atom.symbol + _get_hydrogen_symbol(atom), "right", None
+            return main_symbol + _get_hydrogen_symbol(atom.number_hydrogens()), "right", None
     else:
         if vector[1] > 0:
             # hydrogen on top side of atom
-            return atom.symbol, "center", "up"
+            return main_symbol, "center", "up"
         else:
             # hydrogen on right side of atom
-            return atom.symbol, "center", "down"
+            return main_symbol, "center", "down"
 
 
-def _get_hydrogen_symbol(atom: Atom) -> str:
-    if atom.number_hydrogens == 0:
-        return ""
-    elif atom.number_hydrogens == 1:
+def _get_hydrogen_symbol(num_h: int) -> str:
+    if num_h == 1:
         return "H"
-    return f"H{STYLE_TEMPLATE.make_subscript(str(atom.number_hydrogens()))}"
+    return f"H{STYLE_TEMPLATE.make_subscript(str(num_h))}"
 
 
 def text_alignment(atom: Atom, align: str) -> tuple[float, float]:

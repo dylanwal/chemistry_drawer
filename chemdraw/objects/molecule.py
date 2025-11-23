@@ -84,7 +84,7 @@ class Molecule:
         # parse mole file
         atom_symbols, atom_coordinates, bond_block, file_version, s_block = parse_mole_file(mole_file)
         self.coordinates = atom_coordinates.T   # [2,N] or [3, N] atoms coordinates are linked to this array (updates in ATOM class effect this)
-        self.atoms: list[Atom] = self._add_atoms(atom_symbols)
+        self.atoms: list[Atom] = self._add_atoms(atom_symbols, s_block)
         self.bonds: list[Bond] = self._add_bonds(bond_block)
         self.file_version: str = file_version
 
@@ -147,12 +147,15 @@ class Molecule:
     def bounding_box(self) -> np.ndarray:
         return math_points.get_bounding_box(self.coordinates)
 
-    def _add_atoms(self, atom_symbols: list[str]) -> list[Atom]:
-        atoms = []
-        for i, symbol in enumerate(atom_symbols):
-            atoms.append(
-                Atom(symbol=symbol, id_=i, parent=self)  # TODO: add radical and charge to parser
-            )
+    def _add_atoms(self, atom_symbols: list[str], sblock: dict[str, dict]) -> list[Atom]:
+        atoms = [Atom(symbol=symbol, id_=i, parent=self) for i, symbol in enumerate(atom_symbols)]
+
+        if 'CHG' in sblock:
+            for i, v in sblock['CHG'].items():
+                atoms[i-1].charge = v  # i-1 since python start a zero and mol file starts at 1
+        if 'RAD' in sblock:
+            for i, v in sblock['RAD'].items():
+                atoms[i-1].radical = True # i-1 since python start a zero and mol file starts at 1
         return atoms
 
     def _add_bonds(self, bond_block: np.ndarray) -> list[Bond]:

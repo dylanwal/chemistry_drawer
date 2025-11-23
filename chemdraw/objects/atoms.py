@@ -45,7 +45,14 @@ class Atom:
         self._vector = None
 
     def __repr__(self) -> str:
-        return f"{self.symbol} (id: {self.id_}): [{','.join(str(i) for i in self.coordinates)}]"
+        text = f"{self.symbol}"
+        if self.charge != 0:
+            text += f"+{self.charge}" if self.charge > 0 else f"{self.charge}"
+        if self.radical:
+            text += "{radical}"
+        text += f" (id: {self.id_}) "
+        text += f"[{','.join(str(i) for i in self.coordinates)}]"
+        return text
 
     @property
     def show(self):
@@ -97,7 +104,11 @@ class Atom:
         return len(self._bonds)
 
     def number_hydrogens(self) -> int:
-        return ATOM_VALENCY.get(self.symbol, 0)
+        h_count = ATOM_VALENCY.get(self.symbol, 0)
+        h_count -= self.number_bonds()
+        h_count += self.charge
+        h_count -= 1 if self.radical else 0
+        return  h_count
 
     def vector(self) -> np.ndarray:
         if self._vector is None:

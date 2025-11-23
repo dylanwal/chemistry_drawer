@@ -148,17 +148,17 @@ def determine_double_bond_alignment(bond: Bond):
     perpendicular = bond.perpendicular
 
     # rings
-    in_ring = None
-    for ring in mol.rings:
-        if bond in ring:
-            if in_ring is None:
-                in_ring = ring
-            elif ring.aromatic:
-                in_ring = ring
-                break
-    if in_ring is not None:
-        bond_ring_vector = in_ring.center - bond_center
-        return alignment_decision(perpendicular, bond_ring_vector)
+    # in_ring = None
+    # for ring in mol.rings:
+    #     if bond in ring:
+    #         if in_ring is None:
+    #             in_ring = ring
+    #         elif ring.aromatic:
+    #             in_ring = ring
+    #             break
+    # if in_ring is not None:
+    #     bond_ring_vector = in_ring.center - bond_center
+    #     return alignment_decision(perpendicular, bond_ring_vector)
 
     # general
     num_bonds_atom1 = atom1.number_bonds()
