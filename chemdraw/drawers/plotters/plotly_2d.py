@@ -1,9 +1,16 @@
-
-import plotly.graph_objs as go
 import numpy as np
 
 from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.drawers.two_d.primitives_for_drawing import Dots, Fills, Lines, Texts, DrawingContainer
+
+try:
+    import plotly.graph_objs as go
+except ImportError:
+    raise ImportError(
+        "Please install matplotlib with `pip install plotly` and `pip install kaleido==0.1.0post1` "
+        "(for image generation) or use another plotting package."
+    )
+
 
 def draw_single_2d(container: DrawingContainer) -> go.Figure:
     fig = go.Figure()
@@ -12,44 +19,44 @@ def draw_single_2d(container: DrawingContainer) -> go.Figure:
 
     return fig
 
+
 def apply_layout(fig: go.Figure, container: DrawingContainer):
-        kwargs = {
-            "showlegend": False,
-            "hovermode": False,
-            "plot_bgcolor": STYLE_TEMPLATE.plot_background_color,
-            "paper_bgcolor": STYLE_TEMPLATE.plot_background_color,
-            "margin": dict(l=0, r=0, b=0, t=0, pad=0),
-        }
+    kwargs = {
+        "showlegend": False,
+        "hovermode": False,
+        "plot_bgcolor": STYLE_TEMPLATE.plot_background_color,
+        "paper_bgcolor": STYLE_TEMPLATE.plot_background_color,
+        "margin": dict(l=0, r=0, b=0, t=0, pad=0),
+    }
 
-        xaxes_kwargs = {
-            "visible": False,
-            # "fixedrange": True,
-            "layer": "below traces",
-        }
+    xaxes_kwargs = {
+        "visible": False,
+        # "fixedrange": True,
+        "layer": "below traces",
+    }
 
-        yaxes_kwargs = {
-            "visible": False,
-            # "fixedrange": True,
-            "layer": "below traces"
-        }
+    yaxes_kwargs = {
+        "visible": False,
+        # "fixedrange": True,
+        "layer": "below traces"
+    }
 
-        # zooming
-        kwargs["width"] = STYLE_TEMPLATE.plot_width
-        kwargs["height"] = STYLE_TEMPLATE.plot_height
+    # zooming
+    kwargs["width"] = STYLE_TEMPLATE.plot_width
+    kwargs["height"] = STYLE_TEMPLATE.plot_height
 
-        points = container.bounding_box()
-        x_span = np.array([np.min(points[0]), np.max(points[0])])
-        y_span = np.array([np.min(points[1]), np.max(points[1])])
-        dx = x_span[1] - x_span[0]
-        dy = y_span[1] - y_span[0]
-        scale = STYLE_TEMPLATE.plot_buffer # add a buffer for text
-        xaxes_kwargs["range"] = x_span[0] - dx * scale, x_span[1] + dx * scale
-        yaxes_kwargs["range"] = y_span[0] - dy * scale, y_span[1] + dy * scale
+    points = container.bounding_box()
+    x_span = np.array([np.min(points[0]), np.max(points[0])])
+    y_span = np.array([np.min(points[1]), np.max(points[1])])
+    dx = x_span[1] - x_span[0]
+    dy = y_span[1] - y_span[0]
+    scale = STYLE_TEMPLATE.plot_buffer  # add a buffer for text
+    xaxes_kwargs["range"] = x_span[0] - dx * scale, x_span[1] + dx * scale
+    yaxes_kwargs["range"] = y_span[0] - dy * scale, y_span[1] + dy * scale
 
-        fig.update_layout(**kwargs)
-        fig.update_xaxes(**xaxes_kwargs)
-        fig.update_yaxes(**yaxes_kwargs)
-
+    fig.update_layout(**kwargs)
+    fig.update_xaxes(**xaxes_kwargs)
+    fig.update_yaxes(**yaxes_kwargs)
 
 
 def draw_containers(fig: go.Figure, container: DrawingContainer):
@@ -57,6 +64,7 @@ def draw_containers(fig: go.Figure, container: DrawingContainer):
     draw_lines(fig, container.lines)
     draw_fills(fig, container.fills)
     draw_texts(fig, container.texts)
+
 
 def draw_dots(fig: go.Figure, dots: list[Dots]):
     for d in dots:
@@ -107,6 +115,3 @@ def draw_texts(fig: go.Figure, text: list[Texts]):
             hoverinfo="skip",
             showlegend=False,
         )
-
-
-

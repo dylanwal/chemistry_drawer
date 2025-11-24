@@ -1,18 +1,21 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
-# Assuming these imports exist in your environment as per your original code
 from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.drawers.two_d.primitives_for_drawing import Dots, Fills, Lines, Texts, DrawingContainer
 
-def draw_single_2d(container: DrawingContainer) -> plt.Figure:
-    # Create figure and axes
-    # Matplotlib sizes are in inches, so we convert pixels to inches using a DPI
-    dpi = 100
-    w = STYLE_TEMPLATE.plot_width / dpi
-    h = STYLE_TEMPLATE.plot_height / dpi
+try:
+    import matplotlib.pyplot as plt
+    from matplotlib.text import TextPath
+    from matplotlib.path import Path
+    from matplotlib.collections import PathCollection
+    from matplotlib.font_manager import FontProperties
+except ImportError:
+    raise ImportError("Please install matplotlib with `pip install matplotlib` or use another plotting package.")
 
-    fig, ax = plt.subplots(figsize=(w, h), dpi=dpi)
+
+def draw_single_2d(container: DrawingContainer) -> plt.Figure:
+    box = container.bounding_box()
+    fig, ax = plt.subplots(figsize=(max(box[0]),  max(box[1])), dpi=STYLE_TEMPLATE.matplotlib_dpi)
 
     draw_containers(ax, container)
     apply_layout(ax, container)
@@ -95,7 +98,6 @@ def draw_lines(ax: plt.Axes, lines: list[Lines]):
 
 def draw_fills(ax: plt.Axes, fills: list[Fills]):
     for f in fills:
-        # fill argument fills the polygon defined by x and y
         ax.fill(
             f.x,
             f.y,
@@ -104,25 +106,123 @@ def draw_fills(ax: plt.Axes, fills: list[Fills]):
             linewidth=0
         )
 
-def draw_texts(ax: plt.Axes, text_objs: list[Texts]):
-    for t in text_objs:
-        # Matplotlib text() does not accept arrays for x/y/text.
-        # We must iterate if the primitive contains lists of coordinates.
 
-        # Normalize inputs to lists if they are scalars
+# ISSUE: ax.text scales with fig size
+# def draw_texts(ax: plt.Axes, text_objs: list[Texts]):
+#     for t in text_objs:
+#         # Matplotlib text() does not accept arrays for x/y/text.
+#         # We must iterate if the primitive contains lists of coordinates.
+#
+#         # Normalize inputs to lists if they are scalars
+#         xs = t.x if isinstance(t.x, (list, np.ndarray)) else [t.x]
+#         ys = t.y if isinstance(t.y, (list, np.ndarray)) else [t.y]
+#         syms = t.symbols if isinstance(t.symbols, (list, np.ndarray)) else [t.symbols]
+#
+#         for x, y, s in zip(xs, ys, syms):
+#             ax.text(
+#                 x,
+#                 y,
+#                 s,
+#                 color=t.color,
+#                 fontsize=t.size,
+#                 fontfamily=t.font,
+#                 ha='center', # Horizontal alignment: center (matches Plotly text mode default)
+#                 va='center', # Vertical alignment: center
+#                 clip_on=False # Allow text to overlap edges slightly like Plotly
+#             )
+
+
+def draw_texts(ax: plt.Axes, text_objs: list):
+    paths = []
+    colors = []
+
+    for t in text_objs:
         xs = t.x if isinstance(t.x, (list, np.ndarray)) else [t.x]
         ys = t.y if isinstance(t.y, (list, np.ndarray)) else [t.y]
         syms = t.symbols if isinstance(t.symbols, (list, np.ndarray)) else [t.symbols]
+        fp = FontProperties(family=t.font)
 
         for x, y, s in zip(xs, ys, syms):
-            ax.text(
-                x,
-                y,
-                s,
-                color=t.color,
-                fontsize=t.size,
-                fontfamily=t.font,
-                ha='center', # Horizontal alignment: center (matches Plotly text mode default)
-                va='center', # Vertical alignment: center
-                clip_on=False # Allow text to overlap edges slightly like Plotly
-            )
+            # Use our new helper to generate the multiline path
+            path = create_multiline_textpath(x, y, s, t.size, fp)
+
+            if path:
+                paths.append(path)
+                colors.append(t.color)
+
+    if not paths:
+        return
+
+    # Create the efficient collection
+    pc = PathCollection(
+        paths,
+        facecolors=colors,
+        edgecolors='none',
+        linewidths=0
+    )
+
+    pc.set_transform(ax.transData)
+    ax.add_collection(pc)
+
+def create_multiline_textpath(x, y, s, size, prop, ha='center', va='center'):
+    """
+    Creates a single compound Path for multiline text, centered at (x,y).
+    """
+    lines = s.split('\n')
+    if not lines:
+        return None
+
+    # 1. Generate raw paths for each line centered at (0,0)
+    paths = []
+    widths = []
+
+    # Standard line spacing (approx 1.2x font size)
+    line_spacing = size * 1.2
+
+    for line in lines:
+        # Create path for this line
+        tp = TextPath((0, 0), line, size=size, prop=prop)
+
+        # Get width for horizontal centering
+        bb = tp.get_extents()
+        widths.append(bb.width)
+        paths.append(tp)
+
+    # 2. Stack vertices
+    all_verts = []
+    all_codes = []
+
+    # Calculate total block height to determine vertical offset
+    # (lines - 1) * spacing + height of one line (approx 'size')
+    total_block_height = (len(lines) - 1) * line_spacing + size
+
+    # Starting Y position (top line) relative to vertical center
+    # We shift up by half the total height to center the block
+    current_y = (total_block_height / 2) - (size / 2) # Adjust to align baseline roughly
+
+    for i, (tp, w) in enumerate(zip(paths, widths)):
+        # Get vertices (must copy because they are read-only)
+        verts = tp.vertices.copy()
+        codes = tp.codes
+
+        # Horizontal Alignment (Center)
+        # Shift left by half the line width
+        verts[:, 0] -= w / 2
+
+        # Vertical Alignment
+        # Move this line to its slot in the stack
+        verts[:, 1] += current_y
+
+        # Move cursor down for next line
+        current_y -= line_spacing
+
+        all_verts.append(verts)
+        all_codes.append(codes)
+
+    # 3. Merge into one compound path and shift to target (x, y)
+    merged_verts = np.vstack(all_verts)
+    merged_verts[:, 0] += x
+    merged_verts[:, 1] += y
+    merged_codes = np.concatenate(all_codes)
+
+    return Path(merged_verts, merged_codes)

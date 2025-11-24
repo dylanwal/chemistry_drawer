@@ -1,5 +1,5 @@
+from typing import Sequence
 
-import plotly.graph_objs as go
 
 from chemdraw.objects.molecule import Molecule
 from chemdraw.config.style_template import STYLE_TEMPLATE
@@ -14,7 +14,7 @@ import chemdraw.drawers.two_d.draw_bond_numbers as draw_bond_numbers
 # import chemdraw.drawers.draw_highlights as draw_highlights
 # import chemdraw.drawers.draw_ring_highlights as draw_ring_highlights
 
-from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer
+from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, DrawingContainerGrid
 
 
 DRAWERS = {
@@ -31,7 +31,22 @@ DRAWERS = {
     }
 
 
-def draw(molecule: str | Molecule) -> go.Figure:
+def draw(molecule: str | Molecule):
+    """
+    Return a figure object for a single molecule.
+    Figure object depends on plotting package used.
+
+    Parameters
+    ----------
+    molecule: str | Molecule
+        str = SMILES string
+
+    Returns
+    -------
+    Plotly: go.Figure
+    Matplotlib: plt.subplots
+
+    """
     if isinstance(molecule, str):
         molecule = Molecule(molecule, label=molecule)
 
@@ -45,3 +60,21 @@ def draw(molecule: str | Molecule) -> go.Figure:
 
     return plotter(container)
 
+
+
+def draw_grid(molecules: Sequence[str] | Sequence[Molecule], shape: Sequence[int] | None = None):
+    if isinstance(molecules[0], str):
+        molecules = (Molecule(m) for m in molecules)
+
+    container_grid = DrawingContainerGrid(shape)
+    for m in molecules:
+        container = DrawingContainer()
+        for key in STYLE_TEMPLATE.draw_order:
+            drawer = DRAWERS[key]
+            container = drawer(container, m)
+        container_grid.add(container)
+
+    container_grid = container_grid.prepare_for_drawing()
+    plotter = STYLE_TEMPLATE.get_plotter()
+
+    return plotter(container_grid)

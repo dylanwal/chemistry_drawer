@@ -1,6 +1,9 @@
 from __future__ import annotations
+
+import warnings
 from typing import Sequence
 import copy
+from itertools import chain
 
 import numpy as np
 
@@ -315,7 +318,7 @@ class DrawingContainer:
         return text
 
     def coordinates(self) -> np.ndarray:
-        if self._coordinates:
+        if self._coordinates is not None:
             return self._coordinates
 
         if len(self.containers) > 1:
@@ -474,6 +477,70 @@ class DrawingContainer:
             else:
                 container = container.prepare_for_drawing()
 
+            for obj in container.dots:
+                new_obj.add_dots(obj)
+            for obj in container.lines:
+                new_obj.add_lines(obj)
+            for obj in container.fills:
+                new_obj.add_fills(obj)
+            for obj in container.texts:
+                new_obj.add_texts(obj)
+            # arrows should be converted to text/fills already
+
+        return new_obj
+
+    def move(self, x: float, y: float):
+        if len(self.arrows) > 0 or len(self.containers) > 1:
+            raise RuntimeError("Call prepare_for_drawing() first.")
+
+        for obj in chain(self.dots, self.lines, self.fills, self.texts):
+            mask_none = (obj.x != None)
+            obj.x[mask_none] += x
+            obj.y[mask_none] += y
+
+
+class DrawingContainerGrid:
+    def __init__(self, shape: Sequence[int] | None = None):
+        self.containers: list[DrawingContainer] = []
+
+        if shape is not None:
+            if len(shape) != 2 and isinstance(shape[0], int):
+                raise ValueError("'shape' must be a tuple(integer, integer).")
+        self.shape: Sequence[int] | None = None
+
+    def add(self, container: DrawingContainer):
+        self.containers.append(container)
+
+    def _get_shape(self) -> Sequence[int]:
+        if self.shape is not None:
+            if self.shape[0] * self.shape[1] > len(self.containers):
+                return self.shape
+            warnings.warn(
+                f"`shape` for grid drawing does not match number of molecules. "
+                f"Reverting to default shape."
+            )
+
+        num_cols = int(np.sqrt(len(self.containers)))
+        num_rows = len(self.containers) // num_cols + (1 if len(self.containers) % num_cols else 0)
+        return num_rows, num_cols
+
+    def prepare_for_drawing(self) -> DrawingContainer:
+        new_obj = DrawingContainer()
+
+        prep_containers = [container.prepare_for_drawing() for container in self.containers]
+
+        bounding_box = [c.bounding_box() for c in prep_containers]
+        cell_width = max(np.max(b[0]) - np.min(b[0]) for b in bounding_box)
+        cell_height = max(np.max(b[1]) - np.min(b[1]) for b in bounding_box)
+        grid_shape = self._get_shape()
+        # grid_size = (cell_width * grid_shape[0], cell_height * grid_shape[1])
+
+        for i, c in enumerate(prep_containers):
+            row = i // grid_shape[0]
+            col = i % grid_shape[0]
+            c.move(col*cell_width, row*cell_height)
+
+        for container in prep_containers:
             for obj in container.dots:
                 new_obj.add_dots(obj)
             for obj in container.lines:

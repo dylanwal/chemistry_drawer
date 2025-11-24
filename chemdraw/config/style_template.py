@@ -6,14 +6,14 @@ import yaml
 
 class StyleTemplate:
     """ For styling the molecule's look (no parameters that are plotting package dependent). """
+
     def __init__(self):
-        self.plotter = "matplotlib" # "plotly"
-        self.auto_rotate = False # rotates molecule longest axis to [1,0]  or [1,0,0]
-        self.auto_center = True # move bound box center to [0, 0]
+        self.plotter = "matplotlib"  # "plotly"
+        self.auto_rotate = False  # rotates molecule longest axis to [1,0]  or [1,0,0]
+        self.auto_center = True  # move bound box center to [0, 0]
 
         # self.show_hydrogens = False
         # self.methyl = None # or "Me"
-
 
         ### drawing (first in list is drawn at the bottom)
         # 'label' should be last as it needs the molecule built to know where it should be.
@@ -23,12 +23,11 @@ class StyleTemplate:
         ## plotting
         self.plot_width = 700
         self.plot_height = 560
-        self.plot_background_color = "white" #"rgba(0,0,0,0)"
+        self.plot_background_color = "white"  # "rgba(0,0,0,0)"
         self.plot_buffer = 0.1  # in percent
 
-
         ## bond
-        self.bond_length = 1 # global scaling
+        self.bond_length = 1  # global scaling
         self.bond_color = "black"
         self.bond_width = 2
         self.bond_offset = 0.67
@@ -36,7 +35,7 @@ class StyleTemplate:
         self.bond_double_center_length = 0.65  # [1 - 1.5] 1 = full length; >1 = longer
         self.bond_double_center_length_double = 0.4
         self.bond_double_offset_length = 0.75  # [0 - 1] 1 = full length; <1 = shorter
-        self.bond_triple_offset = 0.23   # of triple bond perpendicular
+        self.bond_triple_offset = 0.23  # of triple bond perpendicular
         self.bond_triple_length = 1
         self.bond_stereo_offset = 0.23  # how wide is the triangle
         self.bond_stereo_wedge_number_lines = 6
@@ -46,8 +45,8 @@ class StyleTemplate:
         self.atom_show_carbons = False  # show carbon atoms
         # self.atom_prefix = ""  # useful for invisible text modifiers
         # self.atom_suffix = "" # useful for invisible text modifiers
-        self.atom_text_x_offset = 0.1  # TODO make font size dependent
-        self.atom_text_y_offset = 0.07  # TODO make font size dependent
+        self.atom_text_x_offset = 0.1
+        self.atom_text_y_offset = 0.07
         self.atom_font_family = 'Arial'
         self.atom_font_bold = False
         self.atom_font_size = 40
@@ -65,24 +64,22 @@ class StyleTemplate:
         self.atom_H_offset_y = 0
         # self.margin = 0.1  # space around atom label (how much to shorten bond)
 
-
         ## atom and bond numbers
-        self.bond_numbers_show = False
-        self.bond_numbers_offset = 0.3
-        self.bond_alignment = "best" # ["best", "left", "right", "top", "bottom"]
+        self.bond_numbers_show = True
+        self.bond_numbers_offset = 0.4
+        self.bond_alignment = "best"  # ["best", "left", "right", "top", "bottom"]
         self.bond_numbers_font_family = 'Arial'
         self.bond_numbers_font_bold = False
-        self.bond_numbers_font_size = 20
+        self.bond_numbers_font_size = 0.5
         self.bond_numbers_font_color = "gray"
 
         self.atom_numbers_show = False
-        self.atom_numbers_offset = 0.3
-        self.atom_alignment = "best" # ["best", "left", "right", "top", "bottom"]
+        self.atom_numbers_offset = 0.4
+        self.atom_alignment = "best"  # ["best", "left", "right", "top", "bottom"]
         self.atom_numbers_font_family = 'Arial'
         self.atom_numbers_font_bold = False
-        self.atom_numbers_font_size = 20
+        self.atom_numbers_font_size = 0.5
         self.atom_numbers_font_color = "tan"
-
 
         ## label
         self.label_show = True
@@ -93,8 +90,7 @@ class StyleTemplate:
         self.label_font_color = "black"
         self.label_auto_wrap = True
         self.label_auto_wrap_length = 20
-        self.label_pad = 0.75 # distance between molecule and text
-
+        self.label_pad = 0.75  # distance between molecule and text
 
         ## debug
         self.debug = False
@@ -102,7 +98,7 @@ class StyleTemplate:
         self.debug_molecule_color = 'gray'
         self.debug_molecule_size = 15
         self.debug_molecule_line_width = 3
-        self.debug_molecule_dash = "dash" # None or "dash"
+        self.debug_molecule_dash = "dash"  # None or "dash"
 
         self.debug_show_bond_vector = True
         self.debug_show_bond_perpendicular = True
@@ -125,6 +121,9 @@ class StyleTemplate:
         self.debug_atom_vector_style = 0
 
         # self.debug_show_parenthesis = False
+
+        ## matplotlib
+        self.matplotlib_dpi = 100
 
     def set_style(self, filename: str | pathlib.Path):
         with open(filename, 'r') as f:
@@ -175,7 +174,7 @@ class StyleTemplate:
 
     def get_plotter(self):
         if self.plotter == "plotly":
-            from chemdraw.drawers.plotters.plotly_drawing import draw_single_2d
+            from chemdraw.drawers.plotters.plotly_2d import draw_single_2d
             return draw_single_2d
         elif self.plotter == "matplotlib":
             from chemdraw.drawers.plotters.matplotlib_2d import draw_single_2d
@@ -190,5 +189,27 @@ class StyleTemplate:
         return style
 
 
+def determine_which_plotting_lib_installed() -> list[str]:
+    libs = []
+    try:
+        libs.append("matplotlib")
+    except ImportError:
+        pass
+    try:
+        import plotly
+        libs.append("plotly")
+    except ImportError:
+        pass
+
+    if len(libs) == 0:
+        raise ImportError(
+            'Please install a plotting library: '
+            '\n\t`pip install matplotlib`'
+            '\n\t`pip install plotly`'
+        )
+
+    return libs
+
+plotting_libs = determine_which_plotting_lib_installed()
 current_folder = pathlib.Path(__file__).absolute().parent
-STYLE_TEMPLATE = StyleTemplate.from_file(current_folder / "style_templates" / "acs_1996.yaml")
+STYLE_TEMPLATE = StyleTemplate.from_file(current_folder / "style_templates" / f"acs_1996_{plotting_libs[0]}.yaml")

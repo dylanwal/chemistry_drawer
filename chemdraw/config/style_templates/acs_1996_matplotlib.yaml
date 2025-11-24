@@ -10,9 +10,9 @@ atom_color_scheme:
 atom_font_bold: false
 atom_font_color: black
 atom_font_family: Arial
-atom_font_size: 30
+atom_font_size: 1
 atom_global_offset_x: 0
-atom_global_offset_y: -0.1
+atom_global_offset_y: -0.3
 atom_show_carbons: false
 atom_text_x_offset: 0.1
 atom_text_y_offset: 0.07
@@ -30,7 +30,7 @@ bond_stereo_wedge_number_lines: 6
 bond_triple_length: 1
 bond_triple_offset: 0.23
 bond_width: 2
-debug: false
+debug: true
 debug_atom_vector_color: red
 debug_atom_vector_dash: null
 debug_atom_vector_head_height: 0.1
@@ -66,7 +66,7 @@ label_auto_wrap_length: 20
 label_font_bold: false
 label_font_color: black
 label_font_family: Arial
-label_font_size: 20
+label_font_size: 1
 label_location: bottom
 label_pad: 0.75
 label_show: true

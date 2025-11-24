@@ -114,7 +114,7 @@ def png_table(imgs: list[str], shape: tuple[int, int], file_label: str = "molecu
                 FLAG = False
                 break
             im = Image.open(img)
-            new_im.paste(im, (col*cell_width, row*cell_height))
+            new_im.paste(im, )
 
         if not FLAG:
             break

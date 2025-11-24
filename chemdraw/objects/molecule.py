@@ -4,11 +4,12 @@ import numpy as np
 from rdkit import Chem
 
 from chemdraw.config.style_template import STYLE_TEMPLATE
-from chemdraw.utils.mole_file_parser import parse_mole_file, Sgroup
+from chemdraw.utils.mole_file_parser import parse_mole_file
 from chemdraw.objects.atoms import Atom
-from chemdraw.objects.bonds import Bond, BOND_COUNT
+from chemdraw.objects.bonds import Bond
 from chemdraw.objects.rings import Ring
 import chemdraw.utils.math_points as math_points
+
 
 def count_digits_in_string(str_: str) -> int:
     digit_count = 0
