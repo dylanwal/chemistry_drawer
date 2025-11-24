@@ -94,8 +94,6 @@ def draw_double_bond(bond: Bond):
     # bond_center = bond.center
     perpendicular = bond.perpendicular
     double_bond_offset = STYLE_TEMPLATE.bond_double_offset
-    double_bond_center_length = STYLE_TEMPLATE.bond_double_center_length
-    double_bond_offset_length = STYLE_TEMPLATE.bond_double_offset_length
 
     alignment = bond.alignment
     if alignment is None:
@@ -106,9 +104,19 @@ def draw_double_bond(bond: Bond):
         x_right = x - perpendicular[0] * double_bond_offset / 2
         y_left = y + perpendicular[1] * double_bond_offset / 2
         y_right = y - perpendicular[1] * double_bond_offset / 2
-        if double_bond_center_length != 1:
-            x_left, y_left = math_vectors.shorten_line(x_left, y_left, double_bond_center_length)
-            x_right, y_right = math_vectors.shorten_line(x_right, y_right, double_bond_center_length)
+
+        short1 = determine_if_show_atom_label(bond.parent.atoms[bond.atom1_id])
+        short2 = determine_if_show_atom_label(bond.parent.atoms[bond.atom2_id])
+
+        if short1 and short2:
+            x_left, y_left = math_vectors.shorten_line(x_left, y_left, STYLE_TEMPLATE.bond_double_center_length_double, None)
+            x_right, y_right = math_vectors.shorten_line(x_right, y_right, STYLE_TEMPLATE.bond_double_center_length_double, None)
+        elif short1:
+            x_left, y_left = math_vectors.shorten_line(x_left, y_left, STYLE_TEMPLATE.bond_double_center_length, 0)
+            x_right, y_right = math_vectors.shorten_line(x_right, y_right, STYLE_TEMPLATE.bond_double_center_length, 0)
+        elif short2:
+            x_left, y_left = math_vectors.shorten_line(x_left, y_left, STYLE_TEMPLATE.bond_double_center_length, 1)
+            x_right, y_right = math_vectors.shorten_line(x_right, y_right, STYLE_TEMPLATE.bond_double_center_length, 1)
 
         return [
             Line(x_left, y_left, bond.style.color, bond.style.width),  # left
@@ -123,8 +131,8 @@ def draw_double_bond(bond: Bond):
         x_off = x - perpendicular[0] * double_bond_offset
         y_off = y - perpendicular[1] * double_bond_offset
 
-    if double_bond_offset_length != 1:
-        x_off, y_off = math_vectors.shorten_line(x_off, y_off, double_bond_offset_length)
+    if STYLE_TEMPLATE.bond_double_offset_length != 1:
+        x_off, y_off = math_vectors.shorten_line(x_off, y_off, STYLE_TEMPLATE.bond_double_offset_length)
 
     return [
         Line(x, y, bond.style.color, bond.style.width),  # center

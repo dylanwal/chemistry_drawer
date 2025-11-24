@@ -318,18 +318,23 @@ class DrawingContainer:
         if self._coordinates:
             return self._coordinates
 
+        if len(self.containers) > 1:
+            container = self.prepare_for_drawing()
+        else:
+            container = self
+
         xs = []
         ys = []
 
         # 1. Group standard objects together to reduce code repetition
-        standard_objects = self.dots + self.lines + self.fills + self.texts
+        standard_objects = container.dots + container.lines + container.fills + container.texts
 
         for obj in standard_objects:
             xs.append(obj.x)
             ys.append(obj.y)
 
         # 2. Handle arrows separately (since they use _x and _y)
-        for arrow in self.arrows:
+        for arrow in container.arrows:
             c = arrow._coordinates()
             xs.append(c[0, :])
             ys.append(c[1, :])
@@ -342,8 +347,8 @@ class DrawingContainer:
         y = y[y != None]
         coords = np.vstack((x, y))
 
-        self._coordinates = coords
-        return self._coordinates
+        container._coordinates = coords
+        return container._coordinates
 
     def center(self) -> np.ndarray:
         """ center of bounding box of molecule """

@@ -8,7 +8,7 @@ from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
 def draw_label(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
     label = mol.label
-    if not STYLE_TEMPLATE.atom_numbers_show or label is None:
+    if not STYLE_TEMPLATE.label_show or label is None:
         return container
 
     new_container = DrawingContainer()

@@ -40,6 +40,8 @@ def draw(molecule: str | Molecule) -> go.Figure:
         drawer = DRAWERS[key]
         container = drawer(container, molecule)
 
-    print(container)
-    from chemdraw.drawers.plotters.plotly_drawing import container_to_figure
-    return container_to_figure(container.prepare_for_drawing())
+    container = container.prepare_for_drawing()
+    plotter = STYLE_TEMPLATE.get_plotter()
+
+    return plotter(container)
+
