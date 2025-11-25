@@ -147,8 +147,6 @@ def determine_double_bond_alignment(bond: Bond):
             return alignment_decision(perpendicular, vec)
         if len(rings) == 2:
             aromatic = [r.aromatic for r in rings]
-            if not any(aromatic):
-                return BondAlignment.center  # two aliphatic rings
             if not aromatic[1]:
                 ring_center = rings[0].center
             else:

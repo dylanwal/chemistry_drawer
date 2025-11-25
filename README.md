@@ -6,15 +6,17 @@
 ![downloads](https://static.pepy.tech/badge/chemdraw)
 ![license](https://img.shields.io/github/license/dylanwal/chemdraw)
 
-Draw molecules with [Plotly](https://github.com/plotly/plotly.py).
+Draw molecules with graphing packages (matplotlib or plotly).
 
 **Make molecules look the way you want it!**
 
-The package provides global control of aesthetics with `config`, and allows for local control by specifying details 
-for every atom, bond, and ring.
+The package provides global control of aesthetics with `StyleTemplate`, and allows for local control by specifying details 
+for every atom, bond, and ring. (Metal atom not well-supported.)
 
 
 (Development still in progress. So there are some bugs. But its working pretty well so far!)
+
+**NEW Version 0.0.8** brings breaking changes and performance improvements. ([Change Log](./change_log.md))
 
 ---
 
@@ -31,20 +33,19 @@ Pip installable package available.
 
 ## Dependencies
 
-* [numpy](https://github.com/numpy/numpy) (1.23.1)
+* [numpy](https://github.com/numpy/numpy) (>1.23.1)
   * Used for math
-* [plotly](https://github.com/plotly/plotly.py) (5.9.0)
-  * Plots molecules
-* [kaleido](https://github.com/plotly/Kaleido)  (0.1.0post1)
-  * Converts plotly graphs to images (png, svg, etc.)
-  * I am not using the most recent version of kaleido as it does not play nice with my computer. Try the newest 
-    version, but if you are having issues install this specific version. 
+* [scipy](https://github.com/scikit-learn/scikit-learn) (1.13.1)
+  * Used to reorient molecules.
 * [rdkit](https://github.com/rdkit/rdkit) (2022.3.4)
   * Convert SMILES to position coordinates.
-* [Pillow](https://github.com/python-pillow/Pillow) (9.2.0)
-  * Used for image manipulation.
-* [scikit-learn](https://github.com/scikit-learn/scikit-learn) (1.1.1)
-  * Used to reorient molecules.
+
+* Choose you plotting software (you will have to manually `pip install`):
+  * [Matplotlib](> 3.10.7)
+  * [plotly](https://github.com/plotly/plotly.py) (>5.9.0) + [kaleido](https://github.com/plotly/Kaleido)  (0.1.0post1)
+      * kaleido converts plotly graphs to images (png, svg, etc.)
+      * I am not using the most recent version of kaleido as it does not play nice with my computer. Try the newest 
+        version, but if you are having issues install this specific version. 
 
 ---
 ---
@@ -235,23 +236,3 @@ fig.show()
 
 For more information on how the code works see: 
 [chemdraw.README.md](https://github.com/dylanwal/chemdraw/tree/master/chemdraw) 
-
-
-
-
-# Recent Improvements
-* bug fixes
-  * mol file parser
-* Increase flexablity in drawing structure
-* add hoverover details
-* add isotopes substripts
-* charges are superscripts
-* add acs style
-
-O1C(CC(=O)O1)(C(C)C)O bad with atom numbers
-parenthesis and brakets
--S(=O)(=O)- double bond
-
-
-Future stuff
-* handle metals [Fe+3]

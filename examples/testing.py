@@ -24,12 +24,14 @@ def main():
         Chem.MolFromSmiles("c1cccc2c1cccc2")
     ]
 
+    mols = []
     for i, m in enumerate(molecules):
         mol = chemdraw.Molecule(m)
-        # drawer = chemdraw.Drawer(mol)
-        # drawer.draw_img(fr"test_imgs/{i}.png")
+        mols.append(mol)
         print(mol)
 
+    fig = chemdraw.draw_grid(mols)
+    fig.savefig('my_transparent_plot.svg', transparent=True, format='svg')
 
 if __name__ == '__main__':
     main()

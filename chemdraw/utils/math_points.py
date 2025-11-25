@@ -1,9 +1,6 @@
-import itertools
 
 import numpy as np
-from sklearn.decomposition import PCA
-
-import chemdraw.utils.math_vectors as math_vectors
+from scipy.spatial import ConvexHull
 
 
 def transform_points(
@@ -153,17 +150,6 @@ def mirror_points_about_center(points: np.ndarray, axis: int | None = None) -> n
     return mirrored + center  # translate back
 
 
-def get_largest_principle_component(coordinates: np.ndarray) -> np.ndarray:
-    pca = PCA(n_components=2)
-    pca.fit(coordinates)
-    return math_vectors.normalize(np.ravel(pca.components_[:, 0]))
-
-
-def set_largest_axis(coordinates: np.ndarray, new_vector: np.ndarray = np.array([1, 0], dtype="float64")) -> np.ndarray:
-    vector = get_largest_principle_component(coordinates)
-    rot_matrix = math_vectors.rotation_matrix(vector, new_vector)
-    return np.dot(rot_matrix, coordinates)
-
 
 def get_bounding_box(points: np.ndarray) -> np.ndarray:
     """
@@ -198,8 +184,6 @@ def get_bounding_box(points: np.ndarray) -> np.ndarray:
 def get_bounding_box_center(points: np.ndarray) -> np.ndarray:
     return np.mean(get_bounding_box(points), axis=1)
 
-
-from scipy.spatial import ConvexHull
 
 def find_min_bbox_rotation_vector(points):
     """
