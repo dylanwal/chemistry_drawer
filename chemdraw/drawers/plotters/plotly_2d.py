@@ -106,6 +106,7 @@ def draw_fills(fig: go.Figure, fills: list[Fills]):
 
 def draw_texts(fig: go.Figure, text: list[Texts]):
     for t in text:
+        t.prepare_for_drawing("\n")
         fig.add_scatter(
             x=t.x,
             y=t.y,

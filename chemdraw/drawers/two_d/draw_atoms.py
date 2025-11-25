@@ -88,7 +88,7 @@ def get_hydrogen_data(atom: Atom) -> tuple[str, int, str | None]:
     h_symbol = "H" if atom.number_hydrogens() == 1 else f"H{STYLE_TEMPLATE.make_subscript(str(atom.number_hydrogens()))}"
     offset = 1 if atom.number_hydrogens() == 1 else 1.6  # 0.4 is for the subscript
     vector = atom.vector()
-    if abs(vector[0]) > abs(vector[1]) or atom.number_bonds != 2:
+    if abs(vector[0]) > abs(vector[1]) or atom.number_bonds() != 2:
         if vector[0] < 0:
             # hydrogen on left side of atom
             return h_symbol, -offset, None

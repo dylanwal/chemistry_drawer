@@ -152,7 +152,7 @@ class Texts:
     def __init__(self, color: str, font: str, size: float, bold: bool):
         self.x: np.ndarray = np.array([])
         self.y: np.ndarray = np.array([])
-        self.symbols: list[str | list[str] | tuple[str]] = []
+        self.symbols: list[str | list[str] | tuple[str]] = []  # list[str] will be converted to page returns
         self.color = color
         self.font = font
         self.size = size
@@ -174,6 +174,15 @@ class Texts:
                 and self.font == font
                 and self.size == size
         )
+
+    def prepare_for_drawing(self, new_line: str):
+        symbols = []
+        for i in self.symbols:
+            if isinstance(i, list) or isinstance(i, tuple):
+                symbols.append(f"{new_line}".join(i))
+            else:
+                symbols.append(i)
+        self.symbols = symbols
 
 
 class Arrow:

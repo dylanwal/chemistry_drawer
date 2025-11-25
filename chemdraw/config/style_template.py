@@ -35,7 +35,7 @@ class StyleTemplate:
         self.bond_double_center_length = 0.65  # [1 - 1.5] 1 = full length; >1 = longer
         self.bond_double_center_length_double = 0.4
         self.bond_double_offset_length = 0.75  # [0 - 1] 1 = full length; <1 = shorter
-        self.bond_triple_offset = 0.23  # of triple bond perpendicular
+        self.bond_triple_offset = 0.125  # of triple bond perpendicular
         self.bond_triple_length = 1
         self.bond_stereo_offset = 0.23  # how wide is the triangle
         self.bond_stereo_wedge_number_lines = 6
@@ -65,21 +65,27 @@ class StyleTemplate:
         # self.margin = 0.1  # space around atom label (how much to shorten bond)
 
         ## atom and bond numbers
-        self.bond_numbers_show = True
-        self.bond_numbers_offset = 0.4
+        self.bond_numbers_show = False
+        self.bond_numbers_offset = 0.2
         self.bond_alignment = "best"  # ["best", "left", "right", "top", "bottom"]
         self.bond_numbers_font_family = 'Arial'
         self.bond_numbers_font_bold = False
         self.bond_numbers_font_size = 0.5
         self.bond_numbers_font_color = "gray"
+        self.bond_numbers_box_type = "bottom_center"  # "bottom_center" or None
+        self.bond_numbers_box_x = 0.3
+        self.bond_numbers_box_y = 0.3
 
         self.atom_numbers_show = False
-        self.atom_numbers_offset = 0.4
+        self.atom_numbers_offset = 0.3
         self.atom_alignment = "best"  # ["best", "left", "right", "top", "bottom"]
         self.atom_numbers_font_family = 'Arial'
         self.atom_numbers_font_bold = False
         self.atom_numbers_font_size = 0.5
         self.atom_numbers_font_color = "tan"
+        self.atom_numbers_box_type = "bottom_center"  # "bottom_center" or None
+        self.atom_numbers_box_x = 0.4
+        self.atom_numbers_box_y = 0.4
 
         ## label
         self.label_show = True
@@ -187,6 +193,21 @@ class StyleTemplate:
         style = cls()
         style.set_style(filename)
         return style
+
+    def get_text_size(self, text: str, font_family: str, size: int | float) -> float:
+        if self.plotter != "matplotlib":
+            raise ValueError("Only support matplotlib plotter.")
+
+        from matplotlib.text import TextPath
+        from matplotlib.font_manager import FontProperties
+
+        fp = FontProperties(family=font_family)
+        # Create the path (position doesn't matter for size)
+        tp = TextPath((0, 0), text, size=size, prop=fp)
+
+        # Get the bounding box
+        bbox = tp.get_extents()
+        return bbox.width, bbox.height
 
 
 def determine_which_plotting_lib_installed() -> list[str]:

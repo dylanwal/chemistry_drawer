@@ -4,6 +4,7 @@ from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.objects.molecule import Molecule
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond, BondType, BondAlignment, BondStereoChem
+from chemdraw.drawers.two_d.draw_atoms import draw_atom
 import chemdraw.utils.math_vectors as math_vectors
 import chemdraw.utils.general_math as general_math
 
@@ -255,14 +256,101 @@ def _shorten_bond_triple(x: np.ndarray, y: np.ndarray, triple_bond_length) \
     return x, y
 
 
-def shorten_bond_for_atom_label(bond: Bond):
+def shorten_bond_for_atom_label(bond: Bond) -> tuple[np.ndarray, np.ndarray]:
     x, y = bond.coordinates
-    if determine_if_show_atom_label(bond.parent.atoms[bond.atom1_id]):
-        x, y = math_vectors.shorten_line(x, y, STYLE_TEMPLATE.bond_offset, 0)
-    if determine_if_show_atom_label(bond.parent.atoms[bond.atom2_id]):
-        x, y = math_vectors.shorten_line(x, y, STYLE_TEMPLATE.bond_offset, 1)
+    # if STYLE_TEMPLATE.plotter == "matplotlib":
+    #     return matplotlib_shorten_bond_for_atom_label(bond)
+
+    atom1 = bond.parent.atoms[bond.atom1_id]
+    atom2 = bond.parent.atoms[bond.atom2_id]
+    if (atom1.charge != 0 or atom1.radical) and atom1.coordinates[1] < atom2.coordinates[1]:
+        multiplier1 = 0.5
+        multiplier2 = 1
+    elif (atom2.charge != 0 or atom2.radical) and atom2.coordinates[1] < atom1.coordinates[1]:
+        multiplier2 = 0.5
+        multiplier1 = 1
+    else:
+        multiplier1 = 1
+        multiplier2 = 1
+
+    if determine_if_show_atom_label(atom1) and determine_if_show_atom_label(atom2):
+        x, y = math_vectors.shorten_line(x, y, STYLE_TEMPLATE.bond_offset**2*multiplier1*multiplier2, None)
+    elif determine_if_show_atom_label(atom1):
+        x, y = math_vectors.shorten_line(x, y, STYLE_TEMPLATE.bond_offset*multiplier1, 0)
+    elif determine_if_show_atom_label(atom2):
+        x, y = math_vectors.shorten_line(x, y, STYLE_TEMPLATE.bond_offset*multiplier2, 1)
 
     return x, y
+
+# def matplotlib_shorten_bond_for_atom_label(bond: Bond) -> tuple[np.ndarray, np.ndarray]:
+#     x, y = bond.coordinates
+#
+#     atom1 = bond.parent.atoms[bond.atom1_id]
+#     atom2 = bond.parent.atoms[bond.atom2_id]
+#     if determine_if_show_atom_label(atom1):
+#         text_obj = draw_atom(atom1)
+#         if text_obj.font is None:
+#             text_obj.font = STYLE_TEMPLATE.atom_font_family
+#         if text_obj.bold is None:
+#             text_obj.bold = STYLE_TEMPLATE.atom_font_bold
+#         if text_obj.color is None:
+#             text_obj.color = STYLE_TEMPLATE.get_atom_color(text_obj)
+#         if text_obj.size is None:
+#             text_obj.size = STYLE_TEMPLATE.atom_font_size
+#
+#         if isinstance(text_obj.symbol, str):
+#             text = text_obj.symbol
+#         else:
+#             text = text_obj.symbol[0]
+#         label_width, label_height = STYLE_TEMPLATE.get_text_size(text, text_obj.font, text_obj.size)
+#         try:
+#             x_new, y_new = general_math.find_rectangle_intersection(
+#                 np.array(
+#                     [
+#                         [text_obj.x-label_width/2, text_obj.x+label_width/2],
+#                         [text_obj.y, text_obj.y+label_height],
+#                     ]
+#                 ),
+#                 np.vstack((x,y))
+#             )
+#         except Exception:
+#             return x, y
+#         x[0] = x_new
+#         y[0] = y_new
+#
+#     if determine_if_show_atom_label(atom2):
+#         text_obj = draw_atom(atom2)
+#         if text_obj.font is None:
+#             text_obj.font = STYLE_TEMPLATE.atom_font_family
+#         if text_obj.bold is None:
+#             text_obj.bold = STYLE_TEMPLATE.atom_font_bold
+#         if text_obj.color is None:
+#             text_obj.color = STYLE_TEMPLATE.get_atom_color(text_obj)
+#         if text_obj.size is None:
+#             text_obj.size = STYLE_TEMPLATE.atom_font_size
+#
+#         if isinstance(text_obj.symbol, str):
+#             text = text_obj.symbol
+#         else:
+#             text = text_obj.symbol[0]
+#         label_width, label_height = STYLE_TEMPLATE.get_text_size(text, text_obj.font, text_obj.size)
+#         try:
+#             x_new, y_new = general_math.find_rectangle_intersection(
+#                 np.array(
+#                     [
+#                         [text_obj.x-label_width/2, text_obj.x+label_width/2],
+#                         [text_obj.y, text_obj.y+label_height],
+#                     ]
+#                 ),
+#                 np.vstack((x,y))
+#             )
+#         except Exception:
+#             return x, y
+#         x[1] = x_new
+#         y[1] = y_new
+#
+#     return x, y
+
 
 
 def determine_if_show_atom_label(atom: Atom) -> bool:

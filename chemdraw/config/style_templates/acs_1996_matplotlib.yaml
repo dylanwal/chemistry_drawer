@@ -1,7 +1,7 @@
 atom_H_offset_x: 0.3
-atom_H_offset_y: 0
+atom_H_offset_y: -0.5
 atom_alignment: best
-atom_charge_offset: 0.3
+atom_charge_offset: 0.25
 atom_color_scheme:
   C: black
   N: green
@@ -12,7 +12,7 @@ atom_font_color: black
 atom_font_family: Arial
 atom_font_size: 1
 atom_global_offset_x: 0
-atom_global_offset_y: -0.3
+atom_global_offset_y: -0.32
 atom_show_carbons: false
 atom_text_x_offset: 0.1
 atom_text_y_offset: 0.07
@@ -20,17 +20,17 @@ auto_center: true
 auto_rotate: false
 bond_alignment: best
 bond_color: black
-bond_double_center_length: 0.6
+bond_double_center_length: 0.7
 bond_double_offset: 0.25
 bond_double_offset_length: 0.7
 bond_length: 1
-bond_offset: 0.63
+bond_offset: 0.6
 bond_stereo_offset: 0.23
 bond_stereo_wedge_number_lines: 6
 bond_triple_length: 1
-bond_triple_offset: 0.23
+bond_triple_offset: 0.18
 bond_width: 2
-debug: true
+debug: false
 debug_atom_vector_color: red
 debug_atom_vector_dash: null
 debug_atom_vector_head_height: 0.1

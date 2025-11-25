@@ -132,11 +132,12 @@ def draw_fills(ax: plt.Axes, fills: list[Fills]):
 #             )
 
 
-def draw_texts(ax: plt.Axes, text_objs: list):
+def draw_texts(ax: plt.Axes, text_objs: list[Texts]):
     paths = []
     colors = []
 
     for t in text_objs:
+        t.prepare_for_drawing("\n")
         xs = t.x if isinstance(t.x, (list, np.ndarray)) else [t.x]
         ys = t.y if isinstance(t.y, (list, np.ndarray)) else [t.y]
         syms = t.symbols if isinstance(t.symbols, (list, np.ndarray)) else [t.symbols]
@@ -177,7 +178,7 @@ def create_multiline_textpath(x, y, s, size, prop, ha='center', va='center'):
     widths = []
 
     # Standard line spacing (approx 1.2x font size)
-    line_spacing = size * 1.2
+    line_spacing = size * 0.9
 
     for line in lines:
         # Create path for this line
