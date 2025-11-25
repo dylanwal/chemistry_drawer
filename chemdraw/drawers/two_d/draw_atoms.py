@@ -1,7 +1,7 @@
-
 from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.objects.molecule import Molecule
 from chemdraw.objects.atoms import Atom
+from chemdraw.objects.bonds import BondType
 
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
@@ -33,8 +33,21 @@ def draw_atoms(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
     return container
 
 
+def between_two_double_bonds(atom: Atom) -> bool:
+    atom._get_bonds()
+    if len(atom._bonds) != 2:
+        return False
+    return all(b.type_ == BondType.double for b in atom._bonds)
+
+
 def draw_atom(atom: Atom) -> Text | None:
-    if not STYLE_TEMPLATE.atom_show_carbons and atom.symbol == "C" and atom.charge == 0 and not atom.radical:
+    if (
+            not STYLE_TEMPLATE.atom_show_carbons and
+            atom.symbol == "C" and
+            atom.charge == 0 and
+            not atom.radical and
+            not between_two_double_bonds(atom)
+    ):
         return None  # skip drawing carbons
 
     # symbol
@@ -62,22 +75,23 @@ def draw_atom(atom: Atom) -> Text | None:
     else:
         if direction == "up":
             symbol = [h_text, symbol]
-        else: # direction == "down":
+        else:  # direction == "down":
             symbol = [symbol, h_text]
 
     # adjust position to account for charge and hydrogens
     x = atom.coordinates[0] + STYLE_TEMPLATE.atom_global_offset_x
     y = atom.coordinates[1] + STYLE_TEMPLATE.atom_global_offset_y
-    x += charge_offset*STYLE_TEMPLATE.atom_charge_offset
+    x += charge_offset * STYLE_TEMPLATE.atom_charge_offset
     if direction is None:
-        x += h_offset*STYLE_TEMPLATE.atom_H_offset_x
+        x += h_offset * STYLE_TEMPLATE.atom_H_offset_x
     else:
         if direction == "up":
             y -= STYLE_TEMPLATE.atom_H_offset_y
         else:
             y += STYLE_TEMPLATE.atom_H_offset_y
 
-    return Text(x, y, symbol, color=atom.style.color, font=atom.style.family, size=atom.style.size, bold=atom.style.bold)
+    return Text(x, y, symbol, color=atom.style.color, font=atom.style.family, size=atom.style.size,
+                bold=atom.style.bold)
 
 
 def get_hydrogen_data(atom: Atom) -> tuple[str, int, str | None]:

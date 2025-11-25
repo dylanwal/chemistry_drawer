@@ -14,8 +14,8 @@ ATOM_VALENCY = {
     "O": 2,
     "F": 1,
     "Si": 4,
-    "P": 3,
-    "S": 2,
+    # "P": 3,
+    # "S": 2,
     "Cl": 1,
     "Br": 1,
     "I": 1,
@@ -108,6 +108,19 @@ class Atom:
         h_count -= self.number_bonds()
         h_count += self.charge
         h_count -= 1 if self.radical else 0
+        if self.symbol == "S":
+            if h_count == -2:
+                h_count = 0
+            if h_count == -4:
+                h_count = 0
+            if h_count == -6:
+                h_count = 0
+        if self.symbol == "P":
+            if h_count == -3:
+                h_count = 0
+            if h_count == -5:
+                h_count = 0
+
         return  h_count
 
     def vector(self) -> np.ndarray:

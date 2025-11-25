@@ -4,7 +4,7 @@ from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.objects.molecule import Molecule
 from chemdraw.objects.atoms import Atom
 from chemdraw.objects.bonds import Bond, BondType, BondAlignment, BondStereoChem
-from chemdraw.drawers.two_d.draw_atoms import draw_atom
+from chemdraw.drawers.two_d.draw_atoms import between_two_double_bonds
 import chemdraw.utils.math_vectors as math_vectors
 import chemdraw.utils.general_math as general_math
 
@@ -58,7 +58,7 @@ def draw_single_bond(bond: Bond) -> Line | Fill | list[Line]:
 
 
 def draw_stereo_bond(bond: Bond) -> Line | Fill | list[Line]:
-    x, y = bond.coordinates
+    x, y = shorten_bond_for_atom_label(bond)
     # bond_vector = bond.vector
     # bond_center = bond.center
     perpendicular = bond.perpendicular
@@ -90,7 +90,7 @@ def draw_stereo_bond(bond: Bond) -> Line | Fill | list[Line]:
 
 
 def draw_double_bond(bond: Bond):
-    x, y = bond.coordinates
+    x, y = shorten_bond_for_atom_label(bond)
     # bond_vector = bond.vector
     # bond_center = bond.center
     perpendicular = bond.perpendicular
@@ -105,20 +105,6 @@ def draw_double_bond(bond: Bond):
         x_right = x - perpendicular[0] * double_bond_offset / 2
         y_left = y + perpendicular[1] * double_bond_offset / 2
         y_right = y - perpendicular[1] * double_bond_offset / 2
-
-        short1 = determine_if_show_atom_label(bond.parent.atoms[bond.atom1_id])
-        short2 = determine_if_show_atom_label(bond.parent.atoms[bond.atom2_id])
-
-        if short1 and short2:
-            x_left, y_left = math_vectors.shorten_line(x_left, y_left, STYLE_TEMPLATE.bond_double_center_length_double, None)
-            x_right, y_right = math_vectors.shorten_line(x_right, y_right, STYLE_TEMPLATE.bond_double_center_length_double, None)
-        elif short1:
-            x_left, y_left = math_vectors.shorten_line(x_left, y_left, STYLE_TEMPLATE.bond_double_center_length, 0)
-            x_right, y_right = math_vectors.shorten_line(x_right, y_right, STYLE_TEMPLATE.bond_double_center_length, 0)
-        elif short2:
-            x_left, y_left = math_vectors.shorten_line(x_left, y_left, STYLE_TEMPLATE.bond_double_center_length, 1)
-            x_right, y_right = math_vectors.shorten_line(x_right, y_right, STYLE_TEMPLATE.bond_double_center_length, 1)
-
         return [
             Line(x_left, y_left, bond.style.color, bond.style.width),  # left
             Line(x_right, y_right, bond.style.color, bond.style.width),  # right
@@ -142,8 +128,7 @@ def draw_double_bond(bond: Bond):
 
 
 def determine_double_bond_alignment(bond: Bond):
-    if bond.type_ != BondType.double:
-        return BondAlignment.center
+    assert bond.type_ == BondType.double
 
     mol = bond.parent
     atom1 = mol.atoms[bond.atom1_id]
@@ -167,6 +152,10 @@ def determine_double_bond_alignment(bond: Bond):
     # general
     num_bonds_atom1 = atom1.number_bonds()
     num_bonds_atom2 = atom2.number_bonds()
+
+    if between_two_double_bonds(atom1) or between_two_double_bonds(atom2):
+        # two doubles in a row
+        return BondAlignment.center
 
     if num_bonds_atom1 == 2 and num_bonds_atom2 == 2:
         return BondAlignment.center
@@ -203,7 +192,7 @@ def alignment_decision(vector: np.ndarray, bond_perpendicular: np.ndarray) -> Bo
 
 
 def draw_triple_bond(bond: Bond) -> list[Line]:
-    x, y = bond.coordinates
+    x, y = shorten_bond_for_atom_label(bond)
     perpendicular = bond.perpendicular
     triple_bond_offset = STYLE_TEMPLATE.bond_triple_offset
     triple_bond_length = STYLE_TEMPLATE.bond_triple_length
@@ -356,7 +345,7 @@ def shorten_bond_for_atom_label(bond: Bond) -> tuple[np.ndarray, np.ndarray]:
 def determine_if_show_atom_label(atom: Atom) -> bool:
     if atom._show is False:
         return False
-    if not STYLE_TEMPLATE.atom_show_carbons and atom.symbol == "C" and atom.charge == 0 and not atom.radical:
+    if not STYLE_TEMPLATE.atom_show_carbons and atom.symbol == "C" and atom.charge == 0 and not atom.radical and not between_two_double_bonds(atom):
         return False
 
     return True

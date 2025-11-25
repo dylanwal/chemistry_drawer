@@ -41,7 +41,7 @@ def apply_layout(ax: plt.Axes, container: DrawingContainer):
     ax.set_ylim(y_span[0] - dy * scale, y_span[1] + dy * scale)
 
     # 3. Turn off axes (ticks, spines, labels)
-    # ax.axis('off')
+    ax.axis('off')
 
     # 4. Aspect Ratio
     # Chemical drawings usually require an equal aspect ratio to prevent distortion
@@ -56,7 +56,10 @@ def draw_containers(ax: plt.Axes, container: DrawingContainer):
     draw_dots(ax, container.dots)
     draw_lines(ax, container.lines)
     draw_fills(ax, container.fills)
-    draw_texts(ax, container.texts)
+    if STYLE_TEMPLATE.sub_plotter == "path":
+        draw_texts_path(ax, container.texts)
+    else:
+        draw_texts(ax, container.texts)
 
 def draw_dots(ax: plt.Axes, dots: list[Dots]):
     for d in dots:
@@ -107,32 +110,46 @@ def draw_fills(ax: plt.Axes, fills: list[Fills]):
         )
 
 
+def get_ax_text_dims(ax, text_obj):
+    # 1. You must have a canvas (fig.canvas)
+    # 2. You must get the renderer
+    renderer = ax.figure.canvas.get_renderer()
+
+    # 3. Get the bounding box in Display Coordinates (Pixels)
+    bbox = text_obj.get_window_extent(renderer)
+
+    # 4. (Optional) Convert pixels back to Data Coordinates
+    bbox_data = bbox.transformed(ax.transData.inverted())
+
+    return bbox_data.width, bbox_data.height
+
 # ISSUE: ax.text scales with fig size
-# def draw_texts(ax: plt.Axes, text_objs: list[Texts]):
-#     for t in text_objs:
-#         # Matplotlib text() does not accept arrays for x/y/text.
-#         # We must iterate if the primitive contains lists of coordinates.
-#
-#         # Normalize inputs to lists if they are scalars
-#         xs = t.x if isinstance(t.x, (list, np.ndarray)) else [t.x]
-#         ys = t.y if isinstance(t.y, (list, np.ndarray)) else [t.y]
-#         syms = t.symbols if isinstance(t.symbols, (list, np.ndarray)) else [t.symbols]
-#
-#         for x, y, s in zip(xs, ys, syms):
-#             ax.text(
-#                 x,
-#                 y,
-#                 s,
-#                 color=t.color,
-#                 fontsize=t.size,
-#                 fontfamily=t.font,
-#                 ha='center', # Horizontal alignment: center (matches Plotly text mode default)
-#                 va='center', # Vertical alignment: center
-#                 clip_on=False # Allow text to overlap edges slightly like Plotly
-#             )
-
-
 def draw_texts(ax: plt.Axes, text_objs: list[Texts]):
+    text_scaler = 65
+
+    for t in text_objs:
+        # Normalize inputs to lists if they are scalars
+        xs = t.x if isinstance(t.x, (list, np.ndarray)) else [t.x]
+        ys = t.y if isinstance(t.y, (list, np.ndarray)) else [t.y]
+        syms = t.symbols if isinstance(t.symbols, (list, np.ndarray)) else [t.symbols]
+
+        for x, y, s in zip(xs, ys, syms):
+            tt = ax.text(
+                x,
+                y,
+                f"{STYLE_TEMPLATE.get_text_break()}".join(s) if isinstance(s, (list, tuple)) else s,
+                color=t.color,
+                fontsize=t.size * text_scaler,
+                fontfamily=t.font,
+                linespacing=0.9 if isinstance(s, list) and len(s[0]) == 1 else 1.1, # 0.9 for H and 1.1 for titles
+                ha='center', # Horizontal alignment: center (matches Plotly text mode default)
+                va='center', # Vertical alignment: center
+                clip_on=False # Allow text to overlap edges slightly like Plotly
+            )
+
+
+
+def draw_texts_path(ax: plt.Axes, text_objs: list[Texts]):
     paths = []
     colors = []
 

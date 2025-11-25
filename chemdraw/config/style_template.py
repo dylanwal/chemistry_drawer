@@ -9,6 +9,7 @@ class StyleTemplate:
 
     def __init__(self):
         self.plotter = "matplotlib"  # "plotly"
+        self.sub_plotter = None  # None or {"matplotlib": ("paths",)}
         self.auto_rotate = False # rotates molecule longest axis to [1,0]  or [1,0,0]
         self.auto_center = True  # move bound box center to [0, 0]
 
@@ -194,20 +195,20 @@ class StyleTemplate:
         style.set_style(filename)
         return style
 
-    def get_text_size(self, text: str, font_family: str, size: int | float) -> float:
-        if self.plotter != "matplotlib":
-            raise ValueError("Only support matplotlib plotter.")
-
-        from matplotlib.text import TextPath
-        from matplotlib.font_manager import FontProperties
-
-        fp = FontProperties(family=font_family)
-        # Create the path (position doesn't matter for size)
-        tp = TextPath((0, 0), text, size=size, prop=fp)
-
-        # Get the bounding box
-        bbox = tp.get_extents()
-        return bbox.width, bbox.height
+    # def get_text_size(self, text: str, font_family: str, size: int | float) -> float:
+    #     if self.plotter != "matplotlib":
+    #         raise ValueError("Only support matplotlib plotter.")
+    #
+    #     from matplotlib.text import TextPath
+    #     from matplotlib.font_manager import FontProperties
+    #
+    #     fp = FontProperties(family=font_family)
+    #     # Create the path (position doesn't matter for size)
+    #     tp = TextPath((0, 0), text, size=size, prop=fp)
+    #
+    #     # Get the bounding box
+    #     bbox = tp.get_extents()
+    #     return bbox.width, bbox.height
 
 
 def determine_which_plotting_lib_installed() -> list[str]:
