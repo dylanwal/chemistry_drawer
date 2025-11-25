@@ -547,7 +547,7 @@ class DrawingContainerGrid:
         for i, c in enumerate(prep_containers):
             row = i // grid_shape[0]
             col = i % grid_shape[0]
-            c.move(col*cell_width, row*cell_height)
+            c.move(col*cell_width, -row*cell_height)
 
         for container in prep_containers:
             for obj in container.dots:

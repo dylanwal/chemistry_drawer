@@ -97,7 +97,8 @@ class Molecule:
         # if  self._add_parenthesis(s_block)
         #     pass
         if STYLE_TEMPLATE.auto_rotate:
-            self.coordinates = math_points.set_largest_axis(self.coordinates)
+            # self.coordinates = math_points.set_largest_axis(self.coordinates)
+            self.coordinates = math_points.find_min_bbox_rotation_vector(self.coordinates.T).T
         if STYLE_TEMPLATE.auto_center:
             self.coordinates = math_points.transform_points(
                 points=self.coordinates,

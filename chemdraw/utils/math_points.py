@@ -199,6 +199,101 @@ def get_bounding_box_center(points: np.ndarray) -> np.ndarray:
     return np.mean(get_bounding_box(points), axis=1)
 
 
+from scipy.spatial import ConvexHull
+
+def find_min_bbox_rotation_vector(points):
+    """
+    Finds the rotation vector (and angle) that minimizes the axis-aligned
+    bounding box area for a set of 2D points.
+
+    Args:
+        points (list or np.array): A list of (x, y) coordinates.
+
+    Returns:
+        dict: A dictionary containing:
+            - 'min_area': The area of the best fit box.
+            - 'rotation_angle_deg': The angle to rotate points (in degrees).
+            - 'rotation_matrix': The 2x2 matrix to apply to the points.
+            - 'transformed_points': The points after rotation (axis-aligned).
+            - 'bbox_width': Width of the box.
+            - 'bbox_height': Height of the box.
+    """
+    points = np.array(points)
+
+    # Edge case: Not enough points to form a shape
+    if len(points) < 3:
+        raise ValueError("At least 3 points are required.")
+
+    # 1. Compute Convex Hull
+    # We only need to check alignment with the edges of the convex hull,
+    # not every pair of points.
+    hull = ConvexHull(points)
+    hull_points = points[hull.vertices]
+
+    min_area = float('inf')
+    best_rotation_matrix = None
+    best_angle = 0
+    best_transformed_points = None
+    best_dims = (0, 0)
+
+    # 2. Iterate over all edges of the convex hull
+    # The minimum area rectangle must be collinear with one of the hull edges.
+    num_hull_vertices = len(hull_points)
+
+    for i in range(num_hull_vertices):
+        # Get two adjacent vertices forming an edge
+        p1 = hull_points[i]
+        p2 = hull_points[(i + 1) % num_hull_vertices]
+
+        # Calculate the angle of this edge relative to the X-axis
+        edge_vector = p2 - p1
+        # Angle of the edge
+        angle = np.arctan2(edge_vector[1], edge_vector[0])
+
+        # We want to rotate this edge to be flat (horizontal) to measure AABB.
+        # So we rotate by -angle.
+        rotation_angle = -angle
+
+        # Create Rotation Matrix (2D)
+        # | cos  -sin |
+        # | sin   cos |
+        c, s = np.cos(rotation_angle), np.sin(rotation_angle)
+        R = np.array([[c, -s], [s, c]])
+
+        # Rotate all hull points (sufficient to find bounds)
+        # Using matrix multiplication: (N, 2) dot (2, 2).T -> (N, 2)
+        rotated_hull = np.dot(hull_points, R.T)
+
+        # Calculate Axis-Aligned Bounding Box (AABB) of rotated points
+        min_xy = np.min(rotated_hull, axis=0)
+        max_xy = np.max(rotated_hull, axis=0)
+
+        width = max_xy[0] - min_xy[0]
+        height = max_xy[1] - min_xy[1]
+        area = width * height
+
+        # Track minimum
+        if area < min_area:
+            min_area = area
+            best_rotation_matrix = R
+            best_angle = rotation_angle
+            best_dims = (width, height)
+
+            # For the final return, we rotate ALL original points, not just hull
+            best_transformed_points = np.dot(points, R.T)
+
+    # return {
+    #     'min_area': min_area,
+    #     'rotation_angle_rad': best_angle,
+    #     'rotation_angle_deg': np.degrees(best_angle),
+    #     'rotation_matrix': best_rotation_matrix,
+    #     'transformed_points': best_transformed_points,
+    #     'bbox_width': best_dims[0],
+    #     'bbox_height': best_dims[1]
+    # }
+    return best_transformed_points
+
+
 def tests():
     import plotly.graph_objects as go
 

@@ -9,7 +9,7 @@ class StyleTemplate:
 
     def __init__(self):
         self.plotter = "matplotlib"  # "plotly"
-        self.auto_rotate = False  # rotates molecule longest axis to [1,0]  or [1,0,0]
+        self.auto_rotate = False # rotates molecule longest axis to [1,0]  or [1,0,0]
         self.auto_center = True  # move bound box center to [0, 0]
 
         # self.show_hydrogens = False

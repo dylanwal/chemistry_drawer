@@ -15,7 +15,7 @@ except ImportError:
 
 def draw_single_2d(container: DrawingContainer) -> plt.Figure:
     box = container.bounding_box()
-    fig, ax = plt.subplots(figsize=(max(box[0]),  max(box[1])), dpi=STYLE_TEMPLATE.matplotlib_dpi)
+    fig, ax = plt.subplots(figsize=(max(box[0])-min(box[0]),  max(box[1])-min(box[1])), dpi=STYLE_TEMPLATE.matplotlib_dpi)
 
     draw_containers(ax, container)
     apply_layout(ax, container)
@@ -41,7 +41,7 @@ def apply_layout(ax: plt.Axes, container: DrawingContainer):
     ax.set_ylim(y_span[0] - dy * scale, y_span[1] + dy * scale)
 
     # 3. Turn off axes (ticks, spines, labels)
-    ax.axis('off')
+    # ax.axis('off')
 
     # 4. Aspect Ratio
     # Chemical drawings usually require an equal aspect ratio to prevent distortion
