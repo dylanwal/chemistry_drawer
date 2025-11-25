@@ -99,3 +99,6 @@ class Bond:
     @property
     def center(self) -> np.ndarray:
         return np.mean(self.coordinates, axis=1)
+
+    def in_rings(self) -> list[int]:
+        return self.parent.bond_in_ring(self)

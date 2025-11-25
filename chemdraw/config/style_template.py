@@ -28,7 +28,6 @@ class StyleTemplate:
         self.plot_buffer = 0.1  # in percent
 
         ## bond
-        self.bond_length = 1  # global scaling
         self.bond_color = "black"
         self.bond_width = 2
         self.bond_offset = 0.67
@@ -39,7 +38,7 @@ class StyleTemplate:
         self.bond_triple_offset = 0.125  # of triple bond perpendicular
         self.bond_triple_length = 1
         self.bond_stereo_offset = 0.23  # how wide is the triangle
-        self.bond_stereo_wedge_number_lines = 6
+        self.bond_stereo_wedge_number_distance = 0.2
         # self.bond_stereo_wedge_line_width = 6
 
         ## atom

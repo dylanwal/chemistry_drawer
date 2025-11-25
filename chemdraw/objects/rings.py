@@ -1,24 +1,20 @@
 import numpy as np
 
 from chemdraw.objects.style_objects import StyleHighlight
-from chemdraw.objects.atoms import Atom
-from chemdraw.objects.bonds import Bond
 
 
 class Ring:
-    def __init__(self, atom_ids: list[int], id_: int, parent, aromatic: bool = None):
+    def __init__(self, atom_ids: np.ndarray, id_: int, parent, aromatic: bool = None):
         self.id_ = id_
         self.atom_ids = atom_ids
         self.aromatic = aromatic
-        self.atoms: list[Atom] = []
-        self.bonds: list[Bond] = []
         self.parent = parent
 
         self._center = None
 
         # for drawing
         self.highlight = StyleHighlight()
-        self.number = id_
+        self.label = id_
 
     def __repr__(self) -> str:
         return f"Atoms: {self.atom_ids}"
@@ -29,17 +25,17 @@ class Ring:
 
     @property
     def center(self) -> np.ndarray:
-        return np.mean(self.parent.atom_coordinates[self.atom_ids, :], axis=0)
+        return np.mean(self.parent.coordinates[:, self.atom_ids], axis=1)
 
-    @property
-    def coordinates(self) -> np.ndarray:
-        coordinates = np.empty((self.ring_size, 2))
-        for i, atom in enumerate(self.atoms):
-            coordinates[i] = atom.coordinates
-
-        return coordinates
-
-    def add_atoms(self, atoms: list[Atom]):
-        for atom in atoms:
-            if atom not in self.atoms:
-                self.atoms.append(atom)
+    # @property
+    # def coordinates(self) -> np.ndarray:
+    #     coordinates = np.empty((self.ring_size, 2))
+    #     for i, atom in enumerate(self.atoms):
+    #         coordinates[i] = atom.coordinates
+    #
+    #     return coordinates
+    #
+    # def add_atoms(self, atoms: list[Atom]):
+    #     for atom in atoms:
+    #         if atom not in self.atoms:
+    #             self.atoms.append(atom)

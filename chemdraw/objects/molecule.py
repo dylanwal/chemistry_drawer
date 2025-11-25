@@ -97,7 +97,6 @@ class Molecule:
         # if  self._add_parenthesis(s_block)
         #     pass
         if STYLE_TEMPLATE.auto_rotate:
-            # self.coordinates = math_points.set_largest_axis(self.coordinates)
             self.coordinates = math_points.find_min_bbox_rotation_vector(self.coordinates.T).T
         if STYLE_TEMPLATE.auto_center:
             self.coordinates = math_points.transform_points(
@@ -149,6 +148,20 @@ class Molecule:
     def bounding_box(self) -> np.ndarray:
         return math_points.get_bounding_box(self.coordinates)
 
+    def bond_in_ring(self, bond: Bond) -> list[int]:
+        """ returns ring ids """
+        rings = []
+        for r in self.rings:
+            hits = 0
+            for a_ids in r.atom_ids:
+                atom = self.atoms[a_ids]
+                atom._get_bonds()
+                if any(b.id_ == bond.id_ for b in atom._bonds):
+                    hits += 1
+            if hits > 1:
+                rings.append(r.id_)
+        return rings
+
     def _add_atoms(self, atom_symbols: list[str], sblock: dict[str, dict]) -> list[Atom]:
         atoms = [Atom(symbol=symbol, id_=i, parent=self) for i, symbol in enumerate(atom_symbols)]
 
@@ -179,4 +192,4 @@ class Molecule:
     def _add_rings(self) -> list[Ring]:
         ring_list = [[i for i in list(ring)] for ring in Chem.GetSymmSSSR(self._rdkit_molecule)]
         aromatic = [self._rdkit_molecule.GetAtomWithIdx(ring[0]).GetIsAromatic() for ring in ring_list]
-        return [Ring(ring_list[i], i, self, aromatic[i]) for i in range(len(ring_list))]
+        return [Ring(np.array(ring_list[i]), i, self, aromatic[i]) for i in range(len(ring_list))]

@@ -76,7 +76,8 @@ def draw_stereo_bond(bond: Bond) -> Line | Fill | list[Line]:
         return Fill(x_plot, y_plot, color=bond.style.color)
 
     # hash
-    num_lines = STYLE_TEMPLATE.bond_stereo_wedge_number_lines
+    length = np.linalg.norm(np.array([x[0],y[0]]) - np.array([x[1],y[1]]))
+    num_lines = int(length // STYLE_TEMPLATE.bond_stereo_wedge_number_distance)
     xy = general_math.points_along_line((x[0], y[0]), (x[1], y[1]), num_lines + 2)  # the +2  is for the ends
     xy = xy[1:-1, :]  # remove the ends
     hash_lengths = np.linspace(1 / num_lines, 1, num_lines) * stereo_offset
@@ -111,7 +112,7 @@ def draw_double_bond(bond: Bond):
         ]
 
     # offset double bond
-    if bond.alignment == BondAlignment.perpendicular:  # same side as perpendicular
+    if alignment == BondAlignment.perpendicular:  # same side as perpendicular
         x_off = x + perpendicular[0] * double_bond_offset
         y_off = y + perpendicular[1] * double_bond_offset
     else:  # opposite side perpendicular
@@ -137,17 +138,24 @@ def determine_double_bond_alignment(bond: Bond):
     perpendicular = bond.perpendicular
 
     # rings
-    # in_ring = None
-    # for ring in mol.rings:
-    #     if bond in ring:
-    #         if in_ring is None:
-    #             in_ring = ring
-    #         elif ring.aromatic:
-    #             in_ring = ring
-    #             break
-    # if in_ring is not None:
-    #     bond_ring_vector = in_ring.center - bond_center
-    #     return alignment_decision(perpendicular, bond_ring_vector)
+    rings = bond.in_rings()
+    if len(rings) != 0:
+        rings = [bond.parent.rings[i] for i in rings]
+        if len(rings) == 1:
+            ring_center = rings[0].center
+            vec =  np.array([ring_center[0]-bond.center[0], ring_center[1]-bond.center[1]])
+            return alignment_decision(perpendicular, vec)
+        if len(rings) == 2:
+            aromatic = [r.aromatic for r in rings]
+            if not any(aromatic):
+                return BondAlignment.center  # two aliphatic rings
+            if not aromatic[1]:
+                ring_center = rings[0].center
+            else:
+                ring_center = rings[1].center
+            vec =  np.array([ring_center[0]-bond.center[0], ring_center[1]-bond.center[1]])
+            return alignment_decision(perpendicular, vec)
+
 
     # general
     num_bonds_atom1 = atom1.number_bonds()
@@ -247,8 +255,6 @@ def _shorten_bond_triple(x: np.ndarray, y: np.ndarray, triple_bond_length) \
 
 def shorten_bond_for_atom_label(bond: Bond) -> tuple[np.ndarray, np.ndarray]:
     x, y = bond.coordinates
-    # if STYLE_TEMPLATE.plotter == "matplotlib":
-    #     return matplotlib_shorten_bond_for_atom_label(bond)
 
     atom1 = bond.parent.atoms[bond.atom1_id]
     atom2 = bond.parent.atoms[bond.atom2_id]
@@ -270,6 +276,15 @@ def shorten_bond_for_atom_label(bond: Bond) -> tuple[np.ndarray, np.ndarray]:
         x, y = math_vectors.shorten_line(x, y, STYLE_TEMPLATE.bond_offset*multiplier2, 1)
 
     return x, y
+
+
+def determine_if_show_atom_label(atom: Atom) -> bool:
+    if atom._show is False:
+        return False
+    if not STYLE_TEMPLATE.atom_show_carbons and atom.symbol == "C" and atom.charge == 0 and not atom.radical and not between_two_double_bonds(atom):
+        return False
+
+    return True
 
 # def matplotlib_shorten_bond_for_atom_label(bond: Bond) -> tuple[np.ndarray, np.ndarray]:
 #     x, y = bond.coordinates
@@ -339,13 +354,3 @@ def shorten_bond_for_atom_label(bond: Bond) -> tuple[np.ndarray, np.ndarray]:
 #         y[1] = y_new
 #
 #     return x, y
-
-
-
-def determine_if_show_atom_label(atom: Atom) -> bool:
-    if atom._show is False:
-        return False
-    if not STYLE_TEMPLATE.atom_show_carbons and atom.symbol == "C" and atom.charge == 0 and not atom.radical and not between_two_double_bonds(atom):
-        return False
-
-    return True

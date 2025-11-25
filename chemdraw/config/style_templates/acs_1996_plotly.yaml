@@ -38,7 +38,7 @@ bond_numbers_offset: 0.3
 bond_numbers_show: false
 bond_offset: 0.67
 bond_stereo_offset: 0.23
-bond_stereo_wedge_number_lines: 6
+bond_stereo_wedge_number_distance: 0.2
 bond_triple_length: 1
 bond_triple_offset: 0.23
 bond_width: 2
