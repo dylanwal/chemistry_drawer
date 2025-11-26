@@ -9,9 +9,9 @@ import chemdraw.drawers.two_d.draw_atoms as draw_atoms
 import chemdraw.drawers.two_d.draw_bonds as draw_bonds
 import chemdraw.drawers.two_d.draw_atom_numbers as draw_atom_numbers
 import chemdraw.drawers.two_d.draw_bond_numbers as draw_bond_numbers
-# import chemdraw.drawers.draw_ring_numbers as draw_ring_numbers
+import chemdraw.drawers.two_d.draw_ring_numbers as draw_ring_numbers
 # import chemdraw.drawers.draw_parenthesis as draw_parenthesis
-# import chemdraw.drawers.draw_highlights as draw_highlights
+import chemdraw.drawers.two_d.draw_highlights as draw_highlights
 # import chemdraw.drawers.draw_ring_highlights as draw_ring_highlights
 
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, DrawingContainerGrid
@@ -24,8 +24,8 @@ DRAWERS = {
         "debug": draw_debug.draw_debug,
         "atom_numbers": draw_atom_numbers.draw_atom_numbers,
         "bond_numbers": draw_bond_numbers.draw_bond_numbers,
-        # "ring_numbers": draw_ring_numbers.draw_ring_numbers,
-        # "highlights": draw_highlights.draw_highlights,
+        "ring_numbers": draw_ring_numbers.draw_ring_numbers,
+        "highlights": draw_highlights.draw_highlights,
         # "ring_highlights": draw_ring_highlights.draw_ring_highlight,
         # "parenthesis": draw_parenthesis.draw_parenthesis,
     }

@@ -68,16 +68,18 @@ debug_molecule_color: gray
 debug_molecule_dash: dash
 debug_molecule_line_width: 3
 debug_molecule_size: 15
-debug_show_atom_vector: true
-debug_show_bond_perpendicular: true
-debug_show_bond_vector: true
-debug_show_molecule: true
+debug_atom_vector_show: true
+debug_bond_perpendicular_show: true
+debug_bond_vector_show: true
+debug_molecule_show: true
 draw_order:
+- highlights
 - bonds
 - atoms
 - debug
 - bond_numbers
 - atom_numbers
+- ring_numbers
 - label
 label_auto_wrap: true
 label_auto_wrap_length: 25

@@ -1,72 +1,29 @@
 
-import numpy as np
-import plotly.graph_objs as go
-
-from chemdraw.drawers.general_classes import Font
-from chemdraw.objects.rings import Ring
+from chemdraw.config.style_template import STYLE_TEMPLATE
+from chemdraw.objects.molecule import Molecule
+from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
 
-class ConfigDrawerRingNumber:
-    def __init__(self, parent):
-        self.parent = parent
 
-        self.show = False
-        self.method = True  # True uses go.Scatter; very fast less options  || False uses add_annotations; slower
-        self.font = Font(parent, family="Arial", size=15, bold=True, color="maroon")
-        self.scatter_kwargs = dict(hoverinfo="skip", cliponaxis=False)
+def draw_ring_numbers(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
+    if not STYLE_TEMPLATE.ring_numbers_show:
+        return container
 
-    def __repr__(self):
-        return f"show: {self.show}"
+    for ring in mol.rings:
+        x = ring.center[0] + STYLE_TEMPLATE.ring_numbers_offset_x
+        y = ring.center[1] + STYLE_TEMPLATE.ring_numbers_offset_y
 
-
-def draw_ring_numbers(fig: go.Figure, config: ConfigDrawerRingNumber, rings: list[Ring]) -> go.Figure:
-    if not config.show:
-        return fig
-
-    if config.method:
-        return _add_ring_numbers_with_scatter(fig, config, rings)
-    else:
-        return _add_ring_numbers_with_annotation(fig, config, rings)
-
-
-def _add_ring_numbers_with_annotation(fig: go.Figure, config: ConfigDrawerRingNumber, rings: list[Ring]) -> go.Figure:
-    for ring in rings:
-        xy = ring.center
-
-        fig.add_annotation(
-            x=xy[0],
-            y=xy[1],
-            text=_get_ring_number_text(config, ring),
-            showarrow=False,
-            font=dict(
-                family=config.font.family,
-                size=config.font.size,
-                color=config.font.color
-            ),
-            # bgcolor=self.config.ring_bgcolor if self.config.ring_background_shape == "tight" else None,
-            # borderwidth=self.config.ring_borderwidth,
-            # borderpad=self.config.ring_borderpad,
-            # opacity=0.8
+        container.add_objects(
+            Text(
+                x=x,
+                y=y,
+                symbol=str(ring.label),
+                color=STYLE_TEMPLATE.ring_numbers_font_color,
+                font=STYLE_TEMPLATE.ring_numbers_font_family,
+                size=STYLE_TEMPLATE.ring_numbers_font_size,
+                bold=STYLE_TEMPLATE.ring_numbers_font_bold,
+            )
         )
 
-    return fig
+    return container
 
-
-def _add_ring_numbers_with_scatter(fig: go.Figure, config: ConfigDrawerRingNumber, rings: list[Ring]) -> go.Figure:
-    symbols = [_get_ring_number_text(config, ring) for ring in rings]
-    xy = np.array([ring.center for ring in rings])
-
-    fig.add_trace(go.Scatter(x=xy[:, 0], y=xy[:, 1], mode="text", text=symbols,
-                             textfont=dict(family=config.font.family, color=config.font.color, size=config.font.size),
-                             **config.scatter_kwargs))
-
-    return fig
-
-
-def _get_ring_number_text(config: ConfigDrawerRingNumber, ring: Ring) -> str:
-    symbol = str(ring.number)
-
-    if config.font.bold:
-        symbol = "<b>" + symbol + "</b>"
-
-    return symbol

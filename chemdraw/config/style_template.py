@@ -18,8 +18,8 @@ class StyleTemplate:
 
         ### drawing (first in list is drawn at the bottom)
         # 'label' should be last as it needs the molecule built to know where it should be.
-        # self.draw_order = ["ring_highlights", "highlights", "parenthesis", "ring_numbers"]
-        self.draw_order = ["bonds", "atoms", "debug", "bond_numbers", "atom_numbers", "label"]
+        # self.draw_order = ["ring_highlights", "highlights", "parenthesis", ]
+        self.draw_order = ["highlights", "bonds", "atoms", "debug", "bond_numbers", "atom_numbers", "ring_numbers", "label"]
 
         ## plotting
         self.plot_width = 700
@@ -64,7 +64,7 @@ class StyleTemplate:
         self.atom_H_offset_y = 0
         # self.margin = 0.1  # space around atom label (how much to shorten bond)
 
-        ## atom and bond numbers
+        ## atom, bond, and ring numbers
         self.bond_numbers_show = False
         self.bond_numbers_offset = 0.2
         self.bond_alignment = "best"  # ["best", "left", "right", "top", "bottom"]
@@ -87,6 +87,14 @@ class StyleTemplate:
         self.atom_numbers_box_x = 0.4
         self.atom_numbers_box_y = 0.4
 
+        self.ring_numbers_show = False
+        self.ring_numbers_offset_x = 0
+        self.ring_numbers_offset_y = 0
+        self.ring_numbers_font_family = 'Arial'
+        self.ring_numbers_font_bold = False
+        self.ring_numbers_font_size = 0.5
+        self.ring_numbers_font_color = "darkgreen"
+
         ## label
         self.label_show = True
         self.label_location = "bottom"  # options = ["top", "bottom"]
@@ -98,16 +106,26 @@ class StyleTemplate:
         self.label_auto_wrap_length = 20
         self.label_pad = 0.75  # distance between molecule and text
 
+
+        ##
+        self.highlight_atom_color = 'red'
+        self.highlight_atom_size = 60
+        self.highlight_bond_color = 'blue'
+        self.highlight_bond_size = 30
+        # self.highlight_bonds_between_atoms = False
+        # self.highlight_atoms_on_bonds = False
+
+
         ## debug
         self.debug = False
-        self.debug_show_molecule = True
+        self.debug_molecule_show = True
         self.debug_molecule_color = 'gray'
         self.debug_molecule_size = 15
         self.debug_molecule_line_width = 3
         self.debug_molecule_dash = "dash"  # None or "dash"
 
-        self.debug_show_bond_vector = True
-        self.debug_show_bond_perpendicular = True
+        self.debug_bond_vector_show = True
+        self.debug_bond_perpendicular_show = True
         self.debug_bond_vector_length = 0.3
         self.debug_bond_vector_color = "green"
         self.debug_bond_vector_perp_color = "blue"
@@ -117,7 +135,7 @@ class StyleTemplate:
         self.debug_bond_vector_dash = None
         self.debug_bond_vector_style = 0
 
-        self.debug_show_atom_vector = True
+        self.debug_atom_vector_show = True
         self.debug_atom_vector_length = 0.3
         self.debug_atom_vector_color = "red"
         self.debug_atom_vector_line_width = 2
@@ -125,6 +143,10 @@ class StyleTemplate:
         self.debug_atom_vector_head_height = 0.1
         self.debug_atom_vector_dash = None
         self.debug_atom_vector_style = 0
+
+        self.debug_ring_center_show = True
+        self.debug_ring_center_size = 10
+        self.debug_ring_center_color = "black"
 
         # self.debug_show_parenthesis = False
 

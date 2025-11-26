@@ -326,9 +326,16 @@ class DrawingContainer:
             text += f"containers: {len(self.containers)} |"
         return text
 
+    def is_empty(self) -> bool:
+        return (len(self.dots) == 0 and len(self.lines) == 0 and len(self.fills) == 0 and len(self.texts) == 0 and
+                len(self.arrows) == 0 and len(self.containers) == 1)
+
     def coordinates(self) -> np.ndarray:
         if self._coordinates is not None:
             return self._coordinates
+
+        if self.is_empty():
+            return np.array([])
 
         if len(self.containers) > 1:
             container = self.prepare_for_drawing()
@@ -351,6 +358,14 @@ class DrawingContainer:
             xs.append(c[0, :])
             ys.append(c[1, :])
 
+        # 3. Handle containers separately
+        for c in self.containers:
+            if c is None or c.is_empty():
+                continue
+            cc = c.coordinates()
+            xs.append(cc[0])
+            ys.append(cc[1])
+
         # 4. Concatenate and Stack
         # np.vstack creates a (2, N) array.
         x = np.concatenate(xs)
@@ -359,7 +374,7 @@ class DrawingContainer:
         y = y[y != None]
         coords = np.vstack((x, y))
 
-        container._coordinates = coords
+        container._coordinates = np.asarray(coords, dtype=float)
         return container._coordinates
 
     def center(self) -> np.ndarray:
@@ -479,24 +494,12 @@ class DrawingContainer:
             self_obj.fills.append(a_fill)
 
         # resolve containers and merge into a new one
-        new_obj = self.__class__()
         for container in self.containers:
             if container is None:
-                container = self_obj
-            else:
-                container = container.prepare_for_drawing()
+                continue
+            container.prepare_for_drawing()
 
-            for obj in container.dots:
-                new_obj.add_dots(obj)
-            for obj in container.lines:
-                new_obj.add_lines(obj)
-            for obj in container.fills:
-                new_obj.add_fills(obj)
-            for obj in container.texts:
-                new_obj.add_texts(obj)
-            # arrows should be converted to text/fills already
-
-        return new_obj
+        return self_obj
 
     def move(self, x: float, y: float):
         if len(self.arrows) > 0 or len(self.containers) > 1:

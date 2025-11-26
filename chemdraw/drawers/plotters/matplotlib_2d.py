@@ -15,12 +15,14 @@ except ImportError:
 
 def draw_single_2d(container: DrawingContainer) -> plt.Figure:
     box = container.bounding_box()
-    fig, ax = plt.subplots(figsize=(max(box[0])-min(box[0]),  max(box[1])-min(box[1])), dpi=STYLE_TEMPLATE.matplotlib_dpi)
+    fig, ax = plt.subplots(figsize=(max(box[0]) - min(box[0]), max(box[1]) - min(box[1])),
+                           dpi=STYLE_TEMPLATE.matplotlib_dpi)
 
     draw_containers(ax, container)
     apply_layout(ax, container)
 
     return fig
+
 
 def apply_layout(ax: plt.Axes, container: DrawingContainer):
     # 1. Colors
@@ -52,6 +54,14 @@ def apply_layout(ax: plt.Axes, container: DrawingContainer):
 
 
 def draw_containers(ax: plt.Axes, container: DrawingContainer):
+    for c in container.containers:
+        if c is None:
+            draw_one_layer_of_container(ax, container)
+        else:
+            draw_containers(ax, c) # recursive call
+
+
+def draw_one_layer_of_container(ax: plt.Axes, container: DrawingContainer):
     # Order matters for z-index (painters algorithm)
     draw_dots(ax, container.dots)
     draw_lines(ax, container.lines)
@@ -60,6 +70,7 @@ def draw_containers(ax: plt.Axes, container: DrawingContainer):
         draw_texts_path(ax, container.texts)
     else:
         draw_texts(ax, container.texts)
+
 
 def draw_dots(ax: plt.Axes, dots: list[Dots]):
     for d in dots:
@@ -70,10 +81,11 @@ def draw_dots(ax: plt.Axes, dots: list[Dots]):
             d.x,
             d.y,
             c=d.color,
-            s=np.array(d.size)**2, # Squaring assuming input is diameter
+            s=np.array(d.size) ** 2,  # Squaring assuming input is diameter
             edgecolors='none',
-            zorder=10 # Ensure dots sit on top if needed
+            # zorder=10  # Ensure dots sit on top if needed
         )
+
 
 def draw_lines(ax: plt.Axes, lines: list[Lines]):
     # Map Plotly dash styles to Matplotlib styles
@@ -81,12 +93,12 @@ def draw_lines(ax: plt.Axes, lines: list[Lines]):
         "solid": "-",
         "dot": ":",
         "dash": "--",
-        "longdash": "--", # MPL doesn't have distinct longdash
+        "longdash": "--",  # MPL doesn't have distinct longdash
         "dashdot": "-.",
     }
 
     for l in lines:
-        linestyle = dash_map.get(l.dash, "-") # Default to solid
+        linestyle = dash_map.get(l.dash, "-")  # Default to solid
 
         # Plotly separates lines in a list if there are gaps, or uses None.
         # Assuming l.x and l.y are continuous segments here.
@@ -99,13 +111,14 @@ def draw_lines(ax: plt.Axes, lines: list[Lines]):
             solid_capstyle='round'
         )
 
+
 def draw_fills(ax: plt.Axes, fills: list[Fills]):
     for f in fills:
         ax.fill(
             f.x,
             f.y,
             color=f.color,
-            edgecolor=None, # line width 0 equivalent
+            edgecolor=None,  # line width 0 equivalent
             linewidth=0
         )
 
@@ -122,6 +135,7 @@ def get_ax_text_dims(ax, text_obj):
     bbox_data = bbox.transformed(ax.transData.inverted())
 
     return bbox_data.width, bbox_data.height
+
 
 # ISSUE: ax.text scales with fig size
 def draw_texts(ax: plt.Axes, text_objs: list[Texts]):
@@ -141,12 +155,11 @@ def draw_texts(ax: plt.Axes, text_objs: list[Texts]):
                 color=t.color,
                 fontsize=t.size * text_scaler,
                 fontfamily=t.font,
-                linespacing=0.9 if isinstance(s, list) and len(s[0]) == 1 else 1.1, # 0.9 for H and 1.1 for titles
-                ha='center', # Horizontal alignment: center (matches Plotly text mode default)
-                va='center', # Vertical alignment: center
-                clip_on=False # Allow text to overlap edges slightly like Plotly
+                linespacing=0.9 if isinstance(s, list) and len(s[0]) == 1 else 1.1,  # 0.9 for H and 1.1 for titles
+                ha='center',  # Horizontal alignment: center (matches Plotly text mode default)
+                va='center',  # Vertical alignment: center
+                clip_on=False  # Allow text to overlap edges slightly like Plotly
             )
-
 
 
 def draw_texts_path(ax: plt.Axes, text_objs: list[Texts]):
@@ -182,6 +195,7 @@ def draw_texts_path(ax: plt.Axes, text_objs: list[Texts]):
     pc.set_transform(ax.transData)
     ax.add_collection(pc)
 
+
 def create_multiline_textpath(x, y, s, size, prop, ha='center', va='center'):
     """
     Creates a single compound Path for multiline text, centered at (x,y).
@@ -216,7 +230,7 @@ def create_multiline_textpath(x, y, s, size, prop, ha='center', va='center'):
 
     # Starting Y position (top line) relative to vertical center
     # We shift up by half the total height to center the block
-    current_y = (total_block_height / 2) - (size / 2) # Adjust to align baseline roughly
+    current_y = (total_block_height / 2) - (size / 2)  # Adjust to align baseline roughly
 
     for i, (tp, w) in enumerate(zip(paths, widths)):
         # Get vertices (must copy because they are read-only)

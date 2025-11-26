@@ -9,14 +9,16 @@ def draw_debug(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
     if not STYLE_TEMPLATE.debug:
         return container
 
-    if STYLE_TEMPLATE.debug_show_molecule:
+    if STYLE_TEMPLATE.debug_molecule_show:
         draw_molecule_center(container, mol)
-    if STYLE_TEMPLATE.debug_show_bond_vector:
+    if STYLE_TEMPLATE.debug_bond_vector_show:
         draw_bond_vector(container, mol)
-    if STYLE_TEMPLATE.debug_show_bond_perpendicular:
+    if STYLE_TEMPLATE.debug_bond_perpendicular_show:
         draw_bond_perpendicular(container, mol)
-    if STYLE_TEMPLATE.debug_show_atom_vector:
+    if STYLE_TEMPLATE.debug_atom_vector_show:
         draw_atom_vector(container, mol)
+    if STYLE_TEMPLATE.debug_ring_center_show:
+        draw_ring_center(container, mol)
 
     return container
 
@@ -83,6 +85,15 @@ def draw_atom_vector(container: DrawingContainer, mol: Molecule):
         )
         container.add_objects(a)
 
+def draw_ring_center(container: DrawingContainer, mol: Molecule):
+    for ring in mol.rings:
+        d = Dot(
+            x=ring.center[0],
+            y=ring.center[1],
+            color=STYLE_TEMPLATE.debug_ring_center_color,
+            size=STYLE_TEMPLATE.debug_ring_center_size,
+        )
+        container.add_objects(d)
 
 # def _add_parenthesis(fig: go.Figure, parenthesis: list[Parenthesis]) -> go.Figure:
 #     for parenthesis in parenthesis:

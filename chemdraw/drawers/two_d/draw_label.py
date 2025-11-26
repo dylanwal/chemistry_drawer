@@ -12,7 +12,7 @@ def draw_label(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
         return container
 
     new_container = DrawingContainer()
-    new_container.containers.append(container)
+    new_container.containers.insert(0, container)
 
     if STYLE_TEMPLATE.label_auto_wrap:
         number_lines = math.ceil(len(label)/ STYLE_TEMPLATE.label_auto_wrap_length)
