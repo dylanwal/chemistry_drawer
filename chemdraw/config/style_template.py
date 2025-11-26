@@ -108,9 +108,9 @@ class StyleTemplate:
 
 
         ##
-        self.highlight_atom_color = 'red'
+        self.highlight_atom_color = (1,0,0,0.25) # RGBA
         self.highlight_atom_size = 60
-        self.highlight_bond_color = 'blue'
+        self.highlight_bond_color = "rgba(0,1,0,0.25)"
         self.highlight_bond_size = 30
         # self.highlight_bonds_between_atoms = False
         # self.highlight_atoms_on_bonds = False

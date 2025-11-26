@@ -2,6 +2,7 @@ import numpy as np
 
 from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.drawers.two_d.primitives_for_drawing import Dots, Fills, Lines, Texts, DrawingContainer
+from chemdraw.drawers.plotters.color_converter import convert_colors
 
 try:
     import matplotlib.pyplot as plt
@@ -26,7 +27,7 @@ def draw_single_2d(container: DrawingContainer) -> plt.Figure:
 
 def apply_layout(ax: plt.Axes, container: DrawingContainer):
     # 1. Colors
-    bg_color = STYLE_TEMPLATE.plot_background_color
+    bg_color = convert_colors(STYLE_TEMPLATE.plot_background_color, "matplotlib")
     ax.set_facecolor(bg_color)
     ax.figure.set_facecolor(bg_color)
 
@@ -80,7 +81,7 @@ def draw_dots(ax: plt.Axes, dots: list[Dots]):
         ax.scatter(
             d.x,
             d.y,
-            c=d.color,
+            c=[convert_colors(d.color, "matplotlib")],
             s=np.array(d.size) ** 2,  # Squaring assuming input is diameter
             edgecolors='none',
             # zorder=10  # Ensure dots sit on top if needed
@@ -105,7 +106,7 @@ def draw_lines(ax: plt.Axes, lines: list[Lines]):
         ax.plot(
             l.x,
             l.y,
-            color=l.color,
+            color=convert_colors(l.color, "matplotlib"),
             linewidth=l.width,
             linestyle=linestyle,
             solid_capstyle='round'
@@ -117,7 +118,7 @@ def draw_fills(ax: plt.Axes, fills: list[Fills]):
         ax.fill(
             f.x,
             f.y,
-            color=f.color,
+            color=convert_colors(f.color, "matplotlib"),
             edgecolor=None,  # line width 0 equivalent
             linewidth=0
         )
@@ -152,7 +153,7 @@ def draw_texts(ax: plt.Axes, text_objs: list[Texts]):
                 x,
                 y,
                 f"{STYLE_TEMPLATE.get_text_break()}".join(s) if isinstance(s, (list, tuple)) else s,
-                color=t.color,
+                color=convert_colors(t.color, "matplotlib"),
                 fontsize=t.size * text_scaler,
                 fontfamily=t.font,
                 linespacing=0.9 if isinstance(s, list) and len(s[0]) == 1 else 1.1,  # 0.9 for H and 1.1 for titles
@@ -179,7 +180,7 @@ def draw_texts_path(ax: plt.Axes, text_objs: list[Texts]):
 
             if path:
                 paths.append(path)
-                colors.append(t.color)
+                colors.append(convert_colors(t.color, "matplotlib"))
 
     if not paths:
         return

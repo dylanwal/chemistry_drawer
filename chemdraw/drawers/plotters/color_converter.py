@@ -1,321 +1,204 @@
-from typing import Sequence
+import re
+from typing import Sequence, Tuple, Union, Literal
+
+# Type aliases for clarity
+ColorValue = Union[str, Sequence[int], Sequence[float]]
+TargetLib = Literal["matplotlib", "plotly"]
 
 COLOR_TYPES = {
-    'rgb',  # string "rgb(0,0,0)"
-    'rgba',  # string "rgba(0,0,0,0)"
-    'rgb_tuple',  # tuple[int] tuple(0,0,0)
-    'rgba_tuple',  # tuple[int] tuple(0,0,0,0)
+    'rgb1',  # string "rgb(1,1,1)"
+    'rgb255',  # string "rgb(255,255,255)"
+    'rgba1',  # string "rgba(1,1,1,1)"
+    'rgba255',  # string "rgba(255,255,255,1)"
+    'rgb_tuple1',  # tuple[int] tuple(1,1,1)
+    'rgba_tuple255',  # tuple[int] tuple(255,255,255,1)
     'hex',
     'word'
 }
 
-COLOR_WORDS = {
-    'aliceblue',
-    'antiquewhite',
-    'aqua',
-    'aquamarine',
-    'azure',
-    'beige',
-    'bisque',
-    'black',
-    'blanchedalmond',
-    'blue',
-    'blueviolet',
-    'brown',
-    'burlywood',
-    'cadetblue',
-    'chartreuse',
-    'chocolate',
-    'coral',
-    'cornflowerblue',
-    'cornsilk',
-    'crimson',
-    'cyan',
-    'darkblue',
-    'darkcyan',
-    'darkgoldenrod',
-    'darkgray',
-    'darkgrey',
-    'darkgreen',
-    'darkkhaki',
-    'darkmagenta',
-    'darkolivegreen',
-    'darkorange',
-    'darkorchid',
-    'darkred',
-    'darksalmon',
-    'darkseagreen',
-    'darkslateblue',
-    'darkslategray',
-    'darkslategrey',
-    'darkturquoise',
-    'darkviolet',
-    'deeppink',
-    'deepskyblue',
-    'dimgray',
-    'dimgrey',
-    'dodgerblue',
-    'firebrick',
-    'floralwhite',
-    'forestgreen',
-    'fuchsia',
-    'gainsboro',
-    'ghostwhite',
-    'gold',
-    'goldenrod',
-    'gray',
-    'grey',
-    'green',
-    'greenyellow',
-    'honeydew',
-    'hotpink',
-    'indianred',
-    'indigo',
-    'ivory',
-    'khaki',
-    'lavender',
-    'lavenderblush',
-    'lawngreen',
-    'lemonchiffon',
-    'lightblue',
-    'lightcoral',
-    'lightcyan',
-    'lightgoldenrodyellow',
-    'lightgray',
-    'lightgrey',
-    'lightgreen',
-    'lightpink',
-    'lightsalmon',
-    'lightseagreen',
-    'lightskyblue',
-    'lightslategray',
-    'lightslategrey',
-    'lightsteelblue',
-    'lightyellow',
-    'lime',
-    'limegreen',
-    'linen',
-    'magenta',
-    'maroon',
-    'mediumaquamarine',
-    'mediumblue',
-    'mediumorchid',
-    'mediumpurple',
-    'mediumseagreen',
-    'mediumslateblue',
-    'mediumspringgreen',
-    'mediumturquoise',
-    'mediumvioletred',
-    'midnightblue',
-    'mintcream',
-    'mistyrose',
-    'moccasin',
-    'navajowhite',
-    'navy',
-    'oldlace',
-    'olive',
-    'olivedrab',
-    'orange',
-    'orangered',
-    'orchid',
-    'palegoldenrod',
-    'palegreen',
-    'paleturquoise',
-    'palevioletred',
-    'papayawhip',
-    'peachpuff',
-    'peru',
-    'pink',
-    'plum',
-    'powderblue',
-    'purple',
-    'red',
-    'rosybrown',
-    'royalblue',
-    'saddlebrown',
-    'salmon',
-    'sandybrown',
-    'seagreen',
-    'seashell',
-    'sienna',
-    'silver',
-    'skyblue',
-    'slateblue',
-    'slategray',
-    'slategrey',
-    'snow',
-    'springgreen',
-    'steelblue',
-    'tan',
-    'teal',
-    'thistle',
-    'tomato',
-    'turquoise',
-    'violet',
-    'wheat',
-    'white',
-    'whitesmoke',
-    'yellow',
-    'yellowgreen',
+# --- 1. FULL CSS4 COLOR MAP (Name -> Hex) ---
+# This includes all named colors supported by Plotly/Browsers
+NAMED_COLORS = {
+    'aliceblue': '#f0f8ff', 'antiquewhite': '#faebd7', 'aqua': '#00ffff', 'aquamarine': '#7fffd4',
+    'azure': '#f0ffff', 'beige': '#f5f5dc', 'bisque': '#ffe4c4', 'black': '#000000',
+    'blanchedalmond': '#ffebcd', 'blue': '#0000ff', 'blueviolet': '#8a2be2', 'brown': '#a52a2a',
+    'burlywood': '#deb887', 'cadetblue': '#5f9ea0', 'chartreuse': '#7fff00', 'chocolate': '#d2691e',
+    'coral': '#ff7f50', 'cornflowerblue': '#6495ed', 'cornsilk': '#fff8dc', 'crimson': '#dc143c',
+    'cyan': '#00ffff', 'darkblue': '#00008b', 'darkcyan': '#008b8b', 'darkgoldenrod': '#b8860b',
+    'darkgray': '#a9a9a9', 'darkgreen': '#006400', 'darkgrey': '#a9a9a9', 'darkkhaki': '#bdb76b',
+    'darkmagenta': '#8b008b', 'darkolivegreen': '#556b2f', 'darkorange': '#ff8c00', 'darkorchid': '#9932cc',
+    'darkred': '#8b0000', 'darksalmon': '#e9967a', 'darkseagreen': '#8fbc8f', 'darkslateblue': '#483d8b',
+    'darkslategray': '#2f4f4f', 'darkslategrey': '#2f4f4f', 'darkturquoise': '#00ced1', 'darkviolet': '#9400d3',
+    'deeppink': '#ff1493', 'deepskyblue': '#00bfff', 'dimgray': '#696969', 'dimgrey': '#696969',
+    'dodgerblue': '#1e90ff', 'firebrick': '#b22222', 'floralwhite': '#fffaf0', 'forestgreen': '#228b22',
+    'fuchsia': '#ff00ff', 'gainsboro': '#dcdcdc', 'ghostwhite': '#f8f8ff', 'gold': '#ffd700',
+    'goldenrod': '#daa520', 'gray': '#808080', 'green': '#008000', 'greenyellow': '#adff2f',
+    'grey': '#808080', 'honeydew': '#f0fff0', 'hotpink': '#ff69b4', 'indianred': '#cd5c5c',
+    'indigo': '#4b0082', 'ivory': '#fffff0', 'khaki': '#f0e68c', 'lavender': '#e6e6fa',
+    'lavenderblush': '#fff0f5', 'lawngreen': '#7cfc00', 'lemonchiffon': '#fffacd', 'lightblue': '#add8e6',
+    'lightcoral': '#f08080', 'lightcyan': '#e0ffff', 'lightgoldenrodyellow': '#fafad2', 'lightgray': '#d3d3d3',
+    'lightgreen': '#90ee90', 'lightgrey': '#d3d3d3', 'lightpink': '#ffb6c1', 'lightsalmon': '#ffa07a',
+    'lightseagreen': '#20b2aa', 'lightskyblue': '#87cefa', 'lightslategray': '#778899', 'lightslategrey': '#778899',
+    'lightsteelblue': '#b0c4de', 'lightyellow': '#ffffe0', 'lime': '#00ff00', 'limegreen': '#32cd32',
+    'linen': '#faf0e6', 'magenta': '#ff00ff', 'maroon': '#800000', 'mediumaquamarine': '#66cdaa',
+    'mediumblue': '#0000cd', 'mediumorchid': '#ba55d3', 'mediumpurple': '#9370db', 'mediumseagreen': '#3cb371',
+    'mediumslateblue': '#7b68ee', 'mediumspringgreen': '#00fa9a', 'mediumturquoise': '#48d1cc',
+    'mediumvioletred': '#c71585', 'midnightblue': '#191970', 'mintcream': '#f5fffa', 'mistyrose': '#ffe4e1',
+    'moccasin': '#ffe4b5', 'navajowhite': '#ffdead', 'navy': '#000080', 'oldlace': '#fdf5e6',
+    'olive': '#808000', 'olivedrab': '#6b8e23', 'orange': '#ffa500', 'orangered': '#ff4500',
+    'orchid': '#da70d6', 'palegoldenrod': '#eee8aa', 'palegreen': '#98fb98', 'paleturquoise': '#afeeee',
+    'palevioletred': '#db7093', 'papayawhip': '#ffefd5', 'peachpuff': '#ffdab9', 'peru': '#cd853f',
+    'pink': '#ffc0cb', 'plum': '#dda0dd', 'powderblue': '#b0e0e6', 'purple': '#800080',
+    'red': '#ff0000', 'rosybrown': '#bc8f8f', 'royalblue': '#4169e1', 'saddlebrown': '#8b4513',
+    'salmon': '#fa8072', 'sandybrown': '#f4a460', 'seagreen': '#2e8b57', 'seashell': '#fff5ee',
+    'sienna': '#a0522d', 'silver': '#c0c0c0', 'skyblue': '#87ceeb', 'slateblue': '#6a5acd',
+    'slategray': '#708090', 'slategrey': '#708090', 'snow': '#fffafa', 'springgreen': '#00ff7f',
+    'steelblue': '#4682b4', 'tan': '#d2b48c', 'teal': '#008080', 'thistle': '#d8bfd8',
+    'tomato': '#ff6347', 'turquoise': '#40e0d0', 'violet': '#ee82ee', 'wheat': '#f5deb3',
+    'white': '#ffffff', 'whitesmoke': '#f5f5f5', 'yellow': '#ffff00', 'yellowgreen': '#9acd32',
+    'transparent': '#00000000'  # Special case for transparency
+}
+
+PLOTTER_PREFERENCES = {
+    # Matplotlib prefers tuples (0-1) or hex
+    "matplotlib": ["rgba_tuple1", "rgb_tuple1", "hex"],
+    # Plotly prefers CSS strings (0-255) or hex
+    "plotly": ["rgba255_str", "rgb255_str", "hex"]
 }
 
 
-def convert_colors(color: str | Sequence[int] | Sequence[float], lib: str) -> str:
-    color_type, range_ = get_color_type(color)
-    if lib == 'matplotlib':
-        if 'tuple' in color_type and range_ == 1:
-            return color
-
-        # Otherwise, convert to a tuple with range 0-1
-        target_type = 'rgba_tuple' if 'rgba' in color_type or len(color) == 4 else 'rgb_tuple'
-        return convert_color(color, target_type, 1)
-
-    if lib == 'plotly':
-        p
-
-
-def get_color_type(color: str | Sequence[int] | Sequence[float]) -> tuple[str, int]:
+def convert_colors(color: ColorValue, lib: TargetLib) -> ColorValue:
     """
-
-    Parameters
-    ----------
-    color
-
-    Returns
-    -------
-    color_type:
-    range_:
-        0: unknown
-        1: zero-1
-        2: zero-255
-
+    Main entry point. Converts any color format to the library's preferred format.
     """
-    if isinstance(color, str):
-        color = color.lower().strip()
-        if color.startswith('rgba'):
-            type_ = 'rgba'
-            color = color.replace('rgba(', '').replace(')', '').split(",")
-            values = (float(c) for c in color)
-        elif color.startswith('rgb'):
-            type_ = 'rgb'
-            color = color.replace('rgba(', '').replace(')', '').split(",")
-            values = (float(c) for c in color)
-        elif color.startswith('#'):
-            return 'hex', 0
-        elif color in COLOR_WORDS:
-            return 'word', 0
-        else:
-            raise ValueError("not a valid color type")
+    # 1. Normalize input to Intermediate Representation (r, g, b, a) floats 0-1
+    rgba_norm = normalize_color(color)
 
-    elif isinstance(color, (list, tuple, np.ndarray)):
-        length = len(color)
-        type_ = 'rgba_tuple' if length == 4 else 'rgb_tuple'
-        values = color
+    # 2. Get the target format list for the library
+    target = PLOTTER_PREFERENCES.get(lib)[0]
 
-    else:
-        raise ValueError("not a valid color type")
-
-    if max(values) == 0:
-        range_ = 0
-    elif any(0 < v < 1 for v in values):
-        range_ = 1
-    else:
-        range_ = 2
-
-    return type_, range_
+    return format_color(rgba_norm, target)
 
 
-def convert_color(color: str | Sequence[int] | Sequence[float], color_type: str, range_: int) -> str:
+def normalize_color(color: ColorValue) -> tuple[float, float, float, float]:
     """
-    Converts any supported color format to the target type and range.
+    Parses any input (hex, string, tuple, name) and returns a normalized
+    (r, g, b, a) tuple where values are floats between 0.0 and 1.0.
     """
-    current_type, current_range = get_color_type(color)
+    try:
+        # 1. Handle Strings
+        if isinstance(color, str):
+            color = color.lower().strip()
 
-    r, g, b, a = 0.0, 0.0, 0.0, 1.0
+            # Hex
+            if color.startswith('#'):
+                return hex_to_rgba_norm(color)
 
-    # --- STEP 1: EXTRACT VALUES & NORMALIZE TO 0-1 FLOATS ---
+            # Named Colors
+            if color in NAMED_COLORS:
+                return hex_to_rgba_norm(NAMED_COLORS[color])
 
-    if 'tuple' in current_type:
-        # Unpack tuple
-        vals = list(color)
-        if len(vals) == 3:
-            r, g, b = vals
-        elif len(vals) == 4:
-            r, g, b, a = vals
+            # CSS Strings (rgb/rgba)
+            # Regex to capture numbers inside parenthesis
+            match = re.search(r'rgba?\(([\d\s\.,%]+)\)', color)
+            if match:
+                parts = [float(x.strip()) for x in match.group(1).split(',')]
+                # Detect scale based on string content
+                is_255 = any(c > 1.0 for c in parts[:3]) or "255" in color
 
-        # Normalize if currently 0-255
-        if current_range == 2:
-            r, g, b = r / 255.0, g / 255.0, b / 255.0
-            # Alpha in 255-tuples is rare, but if present, normalize it too
-            if len(vals) == 4 and a > 1.0:
-                a = a / 255.0
+                r = parts[0] / 255.0 if is_255 else parts[0]
+                g = parts[1] / 255.0 if is_255 else parts[1]
+                b = parts[2] / 255.0 if is_255 else parts[2]
+                a = parts[3] if len(parts) > 3 else 1.0
+                return (r, g, b, a)
 
-    elif 'rgb' in current_type:  # String formats
-        # Parse "rgba(r, g, b, a)" or "rgb(r, g, b)"
-        # Remove prefix and parentheses
-        content = color.split('(')[1].split(')')[0]
-        parts = [float(x.strip()) for x in content.split(',')]
+        # 2. Handle Tuples / Lists
+        if isinstance(color, Sequence) and not isinstance(color, str):
+            # Heuristic: If any value > 1.0, assume 0-255 scale.
+            # Otherwise assume 0-1 scale.
+            is_255 = any(c > 1.0 for c in color[:3])
 
-        r = parts[0] / 255.0
-        g = parts[1] / 255.0
-        b = parts[2] / 255.0
+            r = float(color[0])
+            g = float(color[1])
+            b = float(color[2])
+            a = float(color[3]) if len(color) > 3 else 1.0
 
-        if len(parts) > 3:
-            # CSS Alpha is usually 0-1 already, even in rgb(255,255,255, 0.5) strings
-            a = parts[3]
-
-    # --- STEP 2: CONVERT TO TARGET FORMAT ---
-
-    # Scale values if target range is 255
-    if target_range == 2:
-        r_out, g_out, b_out = int(r * 255), int(g * 255), int(b * 255)
-        a_out = a  # Alpha usually stays 0-1 in strings, but maybe 255 in tuples?
-        # Let's keep alpha 0-1 for strings, and standard behavior for tuples
-    else:
-        r_out, g_out, b_out, a_out = r, g, b, a
-
-    # Construct Output
-    if target_type == 'rgb_tuple':
-        return (r_out, g_out, b_out)
-
-    elif target_type == 'rgba_tuple':
-        return (r_out, g_out, b_out, a_out)
-
-    elif target_type == 'rgb':
-        return f"rgb({int(r * 255)}, {int(g * 255)}, {int(b * 255)})"
-
-    elif target_type == 'rgba':
-        return f"rgba({int(r * 255)}, {int(g * 255)}, {int(b * 255)}, {a})"
-
-    return color
+            if is_255:
+                return (r / 255, g / 255, b / 255, a)
+            return (r, g, b, a)
+    except Exception as e:
+        raise ValueError(f"Unsupported color format: {color}")
 
 
-def to_mpl_color(color_str: str):
+def format_color(rgba: Tuple[float, float, float, float], fmt: str) -> ColorValue:
     """
-    Converts Plotly/CSS color strings (rgba/rgb) to Matplotlib tuples.
+    Converts normalized (0-1) RGBA tuple to specific target string/tuple format.
     """
-    if not isinstance(color_str, str):
-        return color_str
+    r, g, b, a = rgba
 
-    color_str = color_str.lower().strip()
+    # Scale to 255 for integer formats
+    r255, g255, b255 = round(r * 255), round(g * 255), round(b * 255)
 
-    # Handle rgba(r, g, b, a)
-    if color_str.startswith('rgba'):
-        # Remove 'rgba(' and ')' and split
-        parts = color_str[5:-1].split(',')
-        r = float(parts[0]) / 255.0
-        g = float(parts[1]) / 255.0
-        b = float(parts[2]) / 255.0
-        a = float(parts[3])  # Alpha is usually already 0-1 in CSS
+    if fmt == "hex":
+        # Ignore alpha for standard hex, or use {:02x} for alpha if needed
+        return f"#{r255:02x}{g255:02x}{b255:02x}"
+
+    elif fmt == "rgba255_str":
+        return f"rgba({r255}, {g255}, {b255}, {a})"
+
+    elif fmt == "rgb255_str":
+        return f"rgb({r255}, {g255}, {b255})"
+
+    elif fmt == "rgba1_str":
+        return f"rgba({r:.2f}, {g:.2f}, {b:.2f}, {a:.2f})"
+
+    elif fmt == "rgba_tuple1":
         return (r, g, b, a)
 
-    # Handle rgb(r, g, b)
-    elif color_str.startswith('rgb'):
-        parts = color_str[4:-1].split(',')
-        r = float(parts[0]) / 255.0
-        g = float(parts[1]) / 255.0
-        b = float(parts[2]) / 255.0
-        return (r, g, b, 1.0)  # Default alpha to 1.0
+    elif fmt == "rgb_tuple1":
+        return (r, g, b)
 
-    # Return original if it's hex or named color (e.g. 'red', '#FFF')
-    return color_str
+    return f"#{r255:02x}{g255:02x}{b255:02x}"  # Default to hex
+
+
+def hex_to_rgba_norm(hex_str: str) -> Tuple[float, float, float, float]:
+    hex_str = hex_str.lstrip('#')
+    if len(hex_str) == 3:
+        hex_str = "".join(c * 2 for c in hex_str)
+
+    # Parse RGB
+    r = int(hex_str[0:2], 16) / 255.0
+    g = int(hex_str[2:4], 16) / 255.0
+    b = int(hex_str[4:6], 16) / 255.0
+
+    # Parse Alpha if exists (Hex8)
+    a = 1.0
+    if len(hex_str) == 8:
+        a = int(hex_str[6:8], 16) / 255.0
+
+    return (r, g, b, a)
+
+
+def run_local():
+    # 1. Matplotlib prefers tuples of floats (0-1)
+    print(f"Matplotlib Input: 'rgb(0, 255, 0)'")
+    print(f"Result: {convert_colors('rgb(0, 255, 0)', 'matplotlib')}")
+    # Output: (0.0, 1.0, 0.0, 1.0) -> Standard Tuple
+
+    print("-" * 20)
+
+    # 2. Plotly prefers CSS Strings "rgb(...)" or "rgba(...)"
+    print(f"Plotly Input: (0.5, 0.5, 0.5)")
+    print(f"Result: {convert_colors((0.5, 0.5, 0.5), 'plotly')}")
+    # Output: rgba(128, 128, 128, 1.0) -> String
+
+    print("-" * 20)
+
+    # 3. Handling Hex and Named Colors
+    print(f"Plotly Input: 'red'")
+    print(f"Result: {convert_colors('red', 'plotly')}")
+    # Output: rgba(255, 0, 0, 1.0)
+
+
+if __name__ == "__main__":
+    run_local()
