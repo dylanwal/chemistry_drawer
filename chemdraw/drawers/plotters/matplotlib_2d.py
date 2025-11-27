@@ -40,8 +40,9 @@ def apply_layout(ax: plt.Axes, container: DrawingContainer):
     scale = STYLE_TEMPLATE.plot_buffer
 
     # Apply limits with buffer
-    ax.set_xlim(x_span[0] - dx * scale, x_span[1] + dx * scale)
-    ax.set_ylim(y_span[0] - dy * scale, y_span[1] + dy * scale)
+    abs_buffer = STYLE_TEMPLATE.plot_buffer_abs
+    ax.set_xlim(x_span[0] - dx * scale - abs_buffer, x_span[1] + dx * scale + abs_buffer)
+    ax.set_ylim(y_span[0] - dy * scale - abs_buffer, y_span[1] + dy * scale +abs_buffer)
 
     # 3. Turn off axes (ticks, spines, labels)
     ax.axis('off')

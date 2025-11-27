@@ -72,15 +72,6 @@ debug_atom_vector_show: true
 debug_bond_perpendicular_show: true
 debug_bond_vector_show: true
 debug_molecule_show: true
-draw_order:
-- highlights
-- bonds
-- atoms
-- debug
-- bond_numbers
-- atom_numbers
-- ring_numbers
-- label
 label_auto_wrap: true
 label_auto_wrap_length: 25
 label_font_bold: false

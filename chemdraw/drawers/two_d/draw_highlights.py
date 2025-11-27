@@ -5,16 +5,14 @@ from chemdraw.objects.molecule import Molecule
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Line, Dot
 
 
-def draw_highlights(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
+def draw_highlights(container: DrawingContainer, mol: Molecule):
     if not mol.has_highlights:
-        return container
+        return
 
-    new_container = DrawingContainer()
+    new_container = DrawingContainer("highlights")
     add_highlight_to_bonds(new_container, mol)
     add_highlight_to_atoms(new_container, mol)
-    container.containers.insert(0, new_container) # make it the bottom layer
-
-    return container
+    container.containers.append(new_container)
 
 
 def add_highlight_to_atoms(container: DrawingContainer, mol: Molecule):

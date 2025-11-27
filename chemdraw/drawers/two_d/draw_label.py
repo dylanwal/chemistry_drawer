@@ -6,14 +6,12 @@ from chemdraw.objects.molecule import Molecule
 
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
-def draw_label(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
+def draw_label(container: DrawingContainer, mol: Molecule):
     label = mol.label
     if not STYLE_TEMPLATE.label_show or label is None:
-        return container
+        return
 
-    new_container = DrawingContainer()
-    new_container.containers.insert(0, container)
-
+    new_container = DrawingContainer("label")
     if STYLE_TEMPLATE.label_auto_wrap:
         number_lines = math.ceil(len(label)/ STYLE_TEMPLATE.label_auto_wrap_length)
     else:
@@ -47,4 +45,5 @@ def draw_label(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
                 bold=STYLE_TEMPLATE.label_font_bold,
             )
         )
-    return new_container
+
+    container.containers.append(new_container)

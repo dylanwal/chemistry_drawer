@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+from enum import Enum
 from typing import Sequence
 import copy
 from itertools import chain
@@ -9,6 +10,8 @@ import numpy as np
 
 import chemdraw.utils.math_vectors as math_vectors
 import chemdraw.utils.math_points as math_points
+import chemdraw.utils.text_size as text_size
+from chemdraw.config.style_template import STYLE_TEMPLATE
 
 
 class Dot:
@@ -42,6 +45,24 @@ class Dots:
     def join(self, other: Dots) -> None:
         self.x = np.append(self.x, other.x)
         self.y = np.append(self.y, other.y)
+
+    def box_coordinates(self) -> np.ndarray:
+        pts = np.vstack((self.x, self.y))
+        min_vals = np.min(pts, axis=1)
+        max_vals = np.max(pts, axis=1)
+        if STYLE_TEMPLATE.plotter == "matplotlib":
+            radius = (self.size/3.145)**0.5 * STYLE_TEMPLATE.dot_scaler  # area related
+        else:
+            radius = self.size * STYLE_TEMPLATE.dot_scaler # diameter related
+
+        corners = np.array(
+            [
+                [min_vals[0]-radius, min_vals[0]-radius, max_vals[0]+radius, max_vals[0]+radius],
+                [min_vals[1]-radius, max_vals[1]-radius, max_vals[1]+radius, min_vals[1]+radius],
+            ]
+        )
+
+        return corners
 
     def matches(self, color: str, size: float | int) -> bool:
         """Return True if style matches."""
@@ -175,6 +196,17 @@ class Texts:
                 and self.size == size
         )
 
+    def box_coordinates(self) -> np.ndarray:
+        xs = []
+        ys = []
+        for i in range(len(self.symbols)):
+            width, height = text_size.get_text_dimensions(self.symbols[i], self.font, self.size)
+            xs.append((self.x[i]-width/2, self.x[i]-width/2, self.x[i]+width/2, self.x[i]+width/2))
+            ys.append((self.y[i]-height/2, self.y[i]+height/2, self.y[i]+height/2, self.y[i]-height/2))
+
+        points = np.vstack((np.concatenate(xs), np.concatenate(ys)))
+        return math_points.get_bounding_box(points)
+
     def prepare_for_drawing(self, new_line: str):
         symbols = []
         for i in self.symbols:
@@ -263,6 +295,9 @@ class Arrows:
     def add(self, a: Arrow) -> None:
         self.arrows.append(a)
 
+    def join(self, other: Arrows) -> None:
+        self.arrows.extend(other.arrows)
+
     def matches(self, color: str, line_width: float, dash: str, style: int) -> bool:
         """Return True if style matches."""
         return (
@@ -299,19 +334,22 @@ class Arrows:
 class DrawingContainer:
     """Unified container for lines, fills, and text, with Plotly export."""
 
-    def __init__(self):
+    def __init__(self, layer_type: str | None = None):
         self.dots: list[Dots] = []
         self.lines: list[Lines] = []
         self.fills: list[Fills] = []
         self.texts: list[Texts] = []
         self.arrows: list[Arrows] = []
         # the location of None is when to draw itself (this allows layering)
-        self.containers: list[DrawingContainer | None] = [None]
+        self.containers: list[DrawingContainer | None] = [None]  # limit to one layer deep
+        self.layer_type = layer_type
 
-        self._coordinates = None
+        self._box_coordinates = None
 
     def __str__(self):
         text = ""
+        if self.layer_type is not None:
+            text += f"layer_type: {self.layer_type} |"
         if self.dots:
             text += f"dots: {len(self.dots)} |"
         if self.lines:
@@ -330,9 +368,9 @@ class DrawingContainer:
         return (len(self.dots) == 0 and len(self.lines) == 0 and len(self.fills) == 0 and len(self.texts) == 0 and
                 len(self.arrows) == 0 and len(self.containers) == 1)
 
-    def coordinates(self) -> np.ndarray:
-        if self._coordinates is not None:
-            return self._coordinates
+    def bounding_box(self) -> np.ndarray:
+        if self._box_coordinates is not None:
+            return self._box_coordinates
 
         if self.is_empty():
             return np.array([])
@@ -346,9 +384,7 @@ class DrawingContainer:
         ys = []
 
         # 1. Group standard objects together to reduce code repetition
-        standard_objects = container.dots + container.lines + container.fills + container.texts
-
-        for obj in standard_objects:
+        for obj in (container.lines + container.fills):
             xs.append(obj.x)
             ys.append(obj.y)
 
@@ -358,11 +394,16 @@ class DrawingContainer:
             xs.append(c[0, :])
             ys.append(c[1, :])
 
+        for text in (container.texts + container.dots):
+            c = text.box_coordinates()
+            xs.append(c[0, :])
+            ys.append(c[1, :])
+
         # 3. Handle containers separately
         for c in self.containers:
             if c is None or c.is_empty():
                 continue
-            cc = c.coordinates()
+            cc = c.bounding_box()
             xs.append(cc[0])
             ys.append(cc[1])
 
@@ -374,15 +415,13 @@ class DrawingContainer:
         y = y[y != None]
         coords = np.vstack((x, y))
 
-        container._coordinates = np.asarray(coords, dtype=float)
-        return container._coordinates
+        coords = np.asarray(coords, dtype=float)
+
+        return math_points.get_bounding_box(coords)
 
     def center(self) -> np.ndarray:
         """ center of bounding box of molecule """
-        return math_points.get_bounding_box_center(self.coordinates())
-
-    def bounding_box(self) -> np.ndarray:
-        return math_points.get_bounding_box(self.coordinates())
+        return np.mean(self.bounding_box(), axis=1)
 
     def add_dot(self, dot: Dot):
         for d in self.dots:
@@ -465,7 +504,13 @@ class DrawingContainer:
         new_arrow.add(arrow)
         self.arrows.append(new_arrow)
 
-    # Do not add add_arrows; it should not be needed as they are converted to lines/fills
+    def add_arrows(self, arrows: Arrows):
+        for a in self.arrows:
+            if a.matches(arrows.color, arrows.line_width, arrows.dash, arrows.style):
+                a.join(arrows)
+                return
+
+        self.arrows.append(copy.deepcopy(arrows))
 
     def add_objects(self, objs: Dot | Line | Fill | Text | Arrow | Sequence[Dot | Line | Fill | Text | Arrow]):
         if not isinstance(objs, Sequence):
@@ -494,21 +539,51 @@ class DrawingContainer:
             self_obj.fills.append(a_fill)
 
         # resolve containers and merge into a new one
-        for container in self.containers:
-            if container is None:
+        for c in self_obj.containers:
+            if c is None:
                 continue
-            container.prepare_for_drawing()
+            c.prepare_for_drawing()
 
         return self_obj
 
     def move(self, x: float, y: float):
-        if len(self.arrows) > 0 or len(self.containers) > 1:
+        if len(self.arrows) > 0:
             raise RuntimeError("Call prepare_for_drawing() first.")
 
         for obj in chain(self.dots, self.lines, self.fills, self.texts):
             mask_none = (obj.x != None)
             obj.x[mask_none] += x
             obj.y[mask_none] += y
+
+        for c in self.containers:
+            if c is None:
+                continue
+            c.move(x, y)
+
+
+    def join(self, container: DrawingContainer) -> None:
+        # join current layer
+        for obj in container.dots:
+            self.add_dots(obj)
+        for obj in container.lines:
+            self.add_lines(obj)
+        for obj in container.fills:
+            self.add_fills(obj)
+        for obj in container.texts:
+            self.add_texts(obj)
+        for obj in container.arrows:
+            self.add_arrows(obj)
+        for c in container.containers:
+            if c is None:
+                continue
+            for cc in self.containers:  # only join containers from same layer
+                if cc is None:
+                    continue
+                if c.layer_type == cc.layer_type:
+                    cc.join(c)
+                    break
+            else:
+                self.containers.append(c)
 
 
 class DrawingContainerGrid:
@@ -547,20 +622,14 @@ class DrawingContainerGrid:
         grid_shape = self._get_shape()
         # grid_size = (cell_width * grid_shape[0], cell_height * grid_shape[1])
 
+        # move container
         for i, c in enumerate(prep_containers):
             row = i // grid_shape[0]
             col = i % grid_shape[0]
             c.move(col*cell_width, -row*cell_height)
 
-        for container in prep_containers:
-            for obj in container.dots:
-                new_obj.add_dots(obj)
-            for obj in container.lines:
-                new_obj.add_lines(obj)
-            for obj in container.fills:
-                new_obj.add_fills(obj)
-            for obj in container.texts:
-                new_obj.add_texts(obj)
-            # arrows should be converted to text/fills already
+        # join similar layers
+        for c in prep_containers:
+            new_obj.join(c)
 
         return new_obj

@@ -6,10 +6,11 @@ from chemdraw.drawers.two_d.draw_bonds import determine_if_show_atom_label
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
 
-def draw_atom_numbers(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
+def draw_atom_numbers(container: DrawingContainer, mol: Molecule):
     if not STYLE_TEMPLATE.atom_numbers_show:
-        return container
+        return
 
+    new_container = DrawingContainer("atom_numbers")
     alignment = STYLE_TEMPLATE.atom_alignment
     offset = STYLE_TEMPLATE.atom_numbers_offset
     for atom in mol.atoms:
@@ -43,7 +44,7 @@ def draw_atom_numbers(container: DrawingContainer, mol: Molecule) -> DrawingCont
                     atom.vector()
                 )
 
-        container.add_objects(
+        new_container.add_objects(
             Text(
                 x=x,
                 y=y,
@@ -55,7 +56,7 @@ def draw_atom_numbers(container: DrawingContainer, mol: Molecule) -> DrawingCont
             )
         )
 
-    return container
+    container.containers.append(new_container)
 
 
 def text_box_adjustment_bottom_center(

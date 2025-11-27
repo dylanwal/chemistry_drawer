@@ -178,7 +178,6 @@ def get_bounding_box(points: np.ndarray) -> np.ndarray:
             [min_vals[1], max_vals[1], max_vals[1], min_vals[1]],
         ]
     )
-
     return np.array(corners)
 
 def get_bounding_box_center(points: np.ndarray) -> np.ndarray:

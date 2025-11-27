@@ -5,22 +5,23 @@ from chemdraw.objects.molecule import Molecule
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Dot, Arrow, Line
 
 
-def draw_debug(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
+def draw_debug(container: DrawingContainer, mol: Molecule):
     if not STYLE_TEMPLATE.debug:
-        return container
+        return
 
+    new_container = DrawingContainer("debug")
     if STYLE_TEMPLATE.debug_molecule_show:
-        draw_molecule_center(container, mol)
+        draw_molecule_center(new_container, mol)
     if STYLE_TEMPLATE.debug_bond_vector_show:
-        draw_bond_vector(container, mol)
+        draw_bond_vector(new_container, mol)
     if STYLE_TEMPLATE.debug_bond_perpendicular_show:
-        draw_bond_perpendicular(container, mol)
+        draw_bond_perpendicular(new_container, mol)
     if STYLE_TEMPLATE.debug_atom_vector_show:
-        draw_atom_vector(container, mol)
+        draw_atom_vector(new_container, mol)
     if STYLE_TEMPLATE.debug_ring_center_show:
-        draw_ring_center(container, mol)
+        draw_ring_center(new_container, mol)
 
-    return container
+    container.containers.append(new_container)
 
 
 def draw_molecule_center(container: DrawingContainer, mol: Molecule):

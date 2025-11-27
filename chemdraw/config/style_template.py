@@ -16,16 +16,13 @@ class StyleTemplate:
         # self.show_hydrogens = False
         # self.methyl = None # or "Me"
 
-        ### drawing (first in list is drawn at the bottom)
-        # 'label' should be last as it needs the molecule built to know where it should be.
-        # self.draw_order = ["ring_highlights", "highlights", "parenthesis", ]
-        self.draw_order = ["highlights", "bonds", "atoms", "debug", "bond_numbers", "atom_numbers", "ring_numbers", "label"]
 
         ## plotting
         self.plot_width = 700
         self.plot_height = 560
         self.plot_background_color = "white"  # "rgba(0,0,0,0)"
-        self.plot_buffer = 0.1  # in percent
+        self.plot_buffer = 0  # in percent
+        self.plot_buffer_abs = 0.2 # in absolute
 
         ## bond
         self.bond_color = "black"
@@ -149,6 +146,11 @@ class StyleTemplate:
         self.debug_ring_center_color = "black"
 
         # self.debug_show_parenthesis = False
+
+        # these are to estimate size of these things for clearance
+        self.text_width = 10
+        self.text_height = 10
+        self.dot_scaler = 0.1
 
         ## matplotlib
         self.matplotlib_dpi = 100

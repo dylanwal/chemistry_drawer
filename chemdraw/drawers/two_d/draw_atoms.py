@@ -6,7 +6,8 @@ from chemdraw.objects.bonds import BondType
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
 
-def draw_atoms(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
+def draw_atoms(container: DrawingContainer, mol: Molecule):
+    new_container = DrawingContainer("atoms")
     for atom in mol.atoms:
         if atom._show is False:
             continue
@@ -28,9 +29,9 @@ def draw_atoms(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
             if obj.size is None:
                 obj.size = STYLE_TEMPLATE.atom_font_size
 
-        container.add_objects(objs)
+        new_container.add_objects(objs)
 
-    return container
+    container.containers.append(new_container)
 
 
 def between_two_double_bonds(atom: Atom) -> bool:

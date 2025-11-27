@@ -30,6 +30,11 @@ DRAWERS = {
         # "parenthesis": draw_parenthesis.draw_parenthesis,
     }
 
+### drawing (first in list is drawn at the bottom)
+# 'label' should be last as it needs the molecule built to know where it should be.
+# self.draw_order = ["ring_highlights", "highlights", "parenthesis", ]
+DRAW_ORDER = ["highlights", "bonds", "atoms", "debug", "bond_numbers", "atom_numbers", "ring_numbers", "label"]
+
 
 def draw(molecule: str | Molecule):
     """
@@ -50,16 +55,15 @@ def draw(molecule: str | Molecule):
     if isinstance(molecule, str):
         molecule = Molecule(molecule, label=molecule)
 
-    container = DrawingContainer()
-    for key in STYLE_TEMPLATE.draw_order:
+    container = DrawingContainer("base")
+    for key in DRAW_ORDER:
         drawer = DRAWERS[key]
-        container = drawer(container, molecule)
+        drawer(container, molecule)
 
     container = container.prepare_for_drawing()
     plotter = STYLE_TEMPLATE.get_plotter()
 
     return plotter(container)
-
 
 
 def draw_grid(molecules: Sequence[str] | Sequence[Molecule], shape: Sequence[int] | None = None):
@@ -68,10 +72,10 @@ def draw_grid(molecules: Sequence[str] | Sequence[Molecule], shape: Sequence[int
 
     container_grid = DrawingContainerGrid(shape)
     for m in molecules:
-        container = DrawingContainer()
-        for key in STYLE_TEMPLATE.draw_order:
+        container = DrawingContainer("base")
+        for key in DRAW_ORDER:
             drawer = DRAWERS[key]
-            container = drawer(container, m)
+            drawer(container, m)
         container_grid.add(container)
 
     container_grid = container_grid.prepare_for_drawing()

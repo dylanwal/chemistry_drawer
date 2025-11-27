@@ -7,10 +7,11 @@ from chemdraw.objects.bonds import BondType
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Text
 
 
-def draw_bond_numbers(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
+def draw_bond_numbers(container: DrawingContainer, mol: Molecule):
     if not STYLE_TEMPLATE.bond_numbers_show:
-        return container
+        return
 
+    new_container = DrawingContainer("bond_numbers")
     alignment = STYLE_TEMPLATE.bond_alignment
     offset = STYLE_TEMPLATE.bond_numbers_offset
     for bond in mol.bonds:
@@ -46,8 +47,7 @@ def draw_bond_numbers(container: DrawingContainer, mol: Molecule) -> DrawingCont
                 )
 
 
-
-        container.add_objects(
+        new_container.add_objects(
             Text(
                 x=x,
                 y=y,
@@ -59,7 +59,7 @@ def draw_bond_numbers(container: DrawingContainer, mol: Molecule) -> DrawingCont
             )
         )
 
-    return container
+    container.containers.append(new_container)
 
 
 def text_box_adjustment_bottom_center(

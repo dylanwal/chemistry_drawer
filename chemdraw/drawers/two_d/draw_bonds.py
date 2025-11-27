@@ -11,7 +11,8 @@ import chemdraw.utils.general_math as general_math
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, Line, Fill
 
 
-def draw_bonds(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
+def draw_bonds(container: DrawingContainer, mol: Molecule):
+    new_container = DrawingContainer("bonds")
     for bond in mol.bonds:
         if not bond._show:
             continue
@@ -42,11 +43,9 @@ def draw_bonds(container: DrawingContainer, mol: Molecule) -> DrawingContainer:
                 if obj.color is None:
                     obj.color = STYLE_TEMPLATE.bond_color
 
-        container.add_objects(objs)
+        new_container.add_objects(objs)
 
-    return container
-
-
+    container.containers.append(new_container)
 
 
 def draw_single_bond(bond: Bond) -> Line | Fill | list[Line]:
