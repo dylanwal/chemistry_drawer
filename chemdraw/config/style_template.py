@@ -148,8 +148,9 @@ class StyleTemplate:
         # self.debug_show_parenthesis = False
 
         # these are to estimate size of these things for clearance
-        self.text_width = 10
-        self.text_height = 10
+        self.text_calculator = "manual"  # "auto" or "manual"  manual can be way faster but less robust
+        self.text_width = 6.8  # at 10 pt font
+        self.text_height = 7.84 # at 10 pt font
         self.dot_scaler = 0.1
 
         ## matplotlib

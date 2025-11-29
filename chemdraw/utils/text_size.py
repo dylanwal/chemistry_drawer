@@ -60,9 +60,10 @@ def _measure_pil(text: str, font_path: str, size: float) -> tuple[float, float]:
     return width, height
 
 
-def _measure_heuristic(text: str) -> tuple[float, float]:
+def _measure_heuristic(text: str, size: int | float) -> tuple[float, float]:
     """Fallback calculation based on average character size."""
-    return STYLE_TEMPLATE.text_width * len(text), STYLE_TEMPLATE.text_height
+    multiplier = size/10
+    return STYLE_TEMPLATE.text_width * len(text) * multiplier, STYLE_TEMPLATE.text_height * multiplier
 
 
 def get_text_dimensions(text: str | Sequence[str], font: str, size: float) -> tuple[float, float]:
@@ -83,12 +84,12 @@ def get_text_dimensions(text: str | Sequence[str], font: str, size: float) -> tu
 
     # 2. Define the measurement strategy
     def measure_line(line_str):
-        if HAS_MATPLOTLIB:
+        if HAS_MATPLOTLIB and STYLE_TEMPLATE.text_calculator == "auto":
             return _measure_matplotlib(line_str, font, size)
-        elif HAS_PIL:
+        elif HAS_PIL and STYLE_TEMPLATE.text_calculator == "auto":
             return _measure_pil(line_str, font, size)
         else:
-            return _measure_heuristic(line_str)
+            return _measure_heuristic(line_str, size)
 
     # 3. Calculate dimensions for all lines
     # If list is empty, return 0
@@ -110,3 +111,29 @@ def get_text_dimensions(text: str | Sequence[str], font: str, size: float) -> tu
     total_height = sum(heights)
 
     return total_width, total_height
+
+
+def get_max_of_all_letters(font: str, size: float):
+    import string
+    upper_letter = list(string.ascii_uppercase)
+    width = []
+    height = []
+    for letter in upper_letter:
+        w, h = _measure_matplotlib(letter, font, size)
+        width.append(w)
+        height.append(h)
+
+    return max(width), max(height)
+
+
+
+def run_local():
+    for i in (2,4,8, 10, 16, 28):
+        print(i, get_max_of_all_letters("arial", i))
+
+    for i in (2,4,8, 10, 16, 28):
+        print(i, _measure_matplotlib("O", "arial", i))
+
+
+if __name__ == "__main__":
+    run_local()

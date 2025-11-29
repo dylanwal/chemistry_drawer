@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import warnings
-from enum import Enum
 from typing import Sequence
 import copy
 from itertools import chain
@@ -179,6 +178,9 @@ class Texts:
         self.size = size
         self.bold = bold
 
+        self._up_to_date = False
+        self.text_dim: tuple[float] = ()
+
     def add_segment(self, x: float, y: float, symbol: str):
         self.x = np.concatenate((self.x, np.array([x])))
         self.y = np.concatenate((self.y, np.array([y])))
@@ -196,16 +198,31 @@ class Texts:
                 and self.size == size
         )
 
-    def box_coordinates(self) -> np.ndarray:
-        xs = []
-        ys = []
-        for i in range(len(self.symbols)):
+    def box_coordinates(self):
+        # if len(self.symbols) > 10:
+        #     # get the outermost points
+        #     top_index = np.argmax(self.y)
+        #     bottom_index = np.argmin(self.y)
+        #     left_index = np.argmin(self.x)
+        #     right_index = np.argmax(self.x)
+        #     indexes = [top_index, bottom_index, left_index, right_index]
+        #
+        #     # get any large strings
+        #     for i, s in enumerate(self.symbols):
+        #         if len(self.symbols) > 10 or isinstance(self.symbols[i], list) and len(self.symbols[0]) > 10:
+        #             indexes.append(i)
+        # else:
+        indexes = range(len(self.symbols))
+
+        xs, ys = [], []
+        for i in indexes:
             width, height = text_size.get_text_dimensions(self.symbols[i], self.font, self.size)
             xs.append((self.x[i]-width/2, self.x[i]-width/2, self.x[i]+width/2, self.x[i]+width/2))
             ys.append((self.y[i]-height/2, self.y[i]+height/2, self.y[i]+height/2, self.y[i]-height/2))
 
         points = np.vstack((np.concatenate(xs), np.concatenate(ys)))
         return math_points.get_bounding_box(points)
+
 
     def prepare_for_drawing(self, new_line: str):
         symbols = []
