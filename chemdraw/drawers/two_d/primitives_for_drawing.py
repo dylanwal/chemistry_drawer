@@ -178,9 +178,6 @@ class Texts:
         self.size = size
         self.bold = bold
 
-        self._up_to_date = False
-        self.text_dim: tuple[float] = ()
-
     def add_segment(self, x: float, y: float, symbol: str):
         self.x = np.concatenate((self.x, np.array([x])))
         self.y = np.concatenate((self.y, np.array([y])))

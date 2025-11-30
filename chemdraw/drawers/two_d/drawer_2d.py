@@ -1,3 +1,5 @@
+import os
+import pathlib
 from typing import Sequence
 
 
@@ -73,6 +75,8 @@ def draw_grid(
     """
     Returns a figure object for a grid of molecules.
 
+    Recommendation: show or generate svg file. If you need png file, use 'draw_grid_png'.
+
     Parameters
     ----------
     molecules: Sequence[str | Molecule]
@@ -104,3 +108,103 @@ def draw_grid(
     plotter = STYLE_TEMPLATE.get_plotter()
 
     return plotter(container_grid)
+
+
+def draw_multiple_images(
+        molecules: Sequence[str] | Sequence[Molecule],
+        type_: str = "png",
+        out_folder: str | pathlib.Path = "imgs",
+        num_processes: int | None = None,
+) -> None:
+    """
+
+    Parameters
+    ----------
+    molecules: Sequence[str | Molecule]
+        molecules to draw
+    type_:
+        image type (default: "png" or "svg")
+    out_folder:
+        location where images will be saved to
+    num_processes:
+        number of processes to use
+
+    """
+    output_path = pathlib.Path(out_folder).resolve()
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    if (num_processes is not None and num_processes <= 1) or len(molecules) < 100:
+        for i, m in enumerate(molecules):
+            create_image(m, type_, output_path,  str(i))
+    else:
+        import multiprocessing as mp
+        map_ = ((m, type_, output_path, str(i)) for i, m in enumerate(molecules))
+        with mp.Pool(processes=num_processes) as pool:
+            pool.starmap(create_image, map_)
+
+
+def create_image(
+        molecule: str | Molecule,
+        type_: str,
+        path: pathlib.Path,
+        name: str
+):
+    fig = draw(molecule)
+
+    if STYLE_TEMPLATE.plotter == "matplotlib" and type_ == "png":
+        path = path / f"{name}.png"
+        fig.savefig(path, transparent=True)
+    elif STYLE_TEMPLATE.plotter == "matplotlib" and type_ == "svg":
+        path = path / f"{name}.svg"
+        fig.savefig(path, transparent=True, format='svg')
+    elif STYLE_TEMPLATE.plotter == "plotly" and type_ == "png":
+        path = path / f"{name}.png"
+        fig.write_image(path)
+    elif STYLE_TEMPLATE.plotter == "plotly" and type_ == "svg":
+        path = path / f"{name}.svg"
+        fig.write_image(path)
+    else:
+        raise NotImplementedError("Not implemented yet.")
+
+
+def draw_grid_png(
+        molecules: Sequence[str] | Sequence[Molecule],
+        output_path: str | pathlib.Path,
+        shape: Sequence[int] | None = None,
+        num_processes: int | None = None,
+):
+    """
+    Generates a png for a grid of molecules.
+
+    This method generates png of each molecule separately and combines them at the end.
+    This method exists because Matplotlib and Plotly are extremely slow or fail completely when
+    generating large png files. So this is a workaround with Pillow (need to be installed).
+
+    Parameters
+    ----------
+    molecules: Sequence[str | Molecule]
+        molecules to draw
+        str = SMILES string
+    output_path: str | pathlib.Path
+        location where image will be saved to
+    shape: Sequence[int]
+        if len(shape) == 2: it will be interpreted as (number of rows, number of columns)
+        Sequence of integers representing the number of molecules in each row
+        None = auto-determine
+    num_processes:
+        number of processes to use
+    """
+    imgs_path = pathlib.Path("temp_imgs")
+    try:
+        output_path = pathlib.Path(output_path).resolve()
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        draw_multiple_images(molecules, type_="png", out_folder=imgs_path, num_processes=num_processes)
+
+        import chemdraw.utils.png_grid
+        chemdraw.utils.png_grid.png_grid(imgs_path, output_path, shape)
+
+    finally:
+        # delete temp folder of images
+        import shutil
+        shutil.rmtree(imgs_path)

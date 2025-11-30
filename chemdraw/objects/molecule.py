@@ -61,7 +61,6 @@ def _process_molecule_inputs(input_: str | None):
 
 
 class Molecule:
-
     def __init__(self,
                  input_: str | pathlib.Path | Chem.Mol,
                  label: str = None,
