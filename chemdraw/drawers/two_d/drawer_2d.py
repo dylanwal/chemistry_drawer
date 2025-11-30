@@ -66,7 +66,29 @@ def draw(molecule: str | Molecule):
     return plotter(container)
 
 
-def draw_grid(molecules: Sequence[str] | Sequence[Molecule], shape: Sequence[int] | None = None):
+def draw_grid(
+        molecules: Sequence[str] | Sequence[Molecule],
+        shape: Sequence[int] | None = None,
+):
+    """
+    Returns a figure object for a grid of molecules.
+
+    Parameters
+    ----------
+    molecules: Sequence[str | Molecule]
+        molecules to draw
+        str = SMILES string
+    shape: Sequence[int]
+        if len(shape) == 2: it will be interpreted as (number of rows, number of columns)
+        Sequence of integers representing the number of molecules in each row
+        None = auto-determine
+
+    Returns
+    -------
+    Plotly: go.Figure
+    Matplotlib: plt.subplots
+
+    """
     if isinstance(molecules[0], str):
         molecules = (Molecule(m) for m in molecules)
 

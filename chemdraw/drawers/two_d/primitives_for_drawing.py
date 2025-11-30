@@ -606,27 +606,32 @@ class DrawingContainer:
 class DrawingContainerGrid:
     def __init__(self, shape: Sequence[int] | None = None):
         self.containers: list[DrawingContainer] = []
-
-        if shape is not None:
-            if len(shape) != 2 and isinstance(shape[0], int):
-                raise ValueError("'shape' must be a tuple(integer, integer).")
-        self.shape: Sequence[int] | None = None
+        self.shape: Sequence[int] | None = shape
 
     def add(self, container: DrawingContainer):
         self.containers.append(container)
 
     def _get_shape(self) -> Sequence[int]:
-        if self.shape is not None:
+        if self.shape is not None and len(self.shape) == 2:
             if self.shape[0] * self.shape[1] > len(self.containers):
+                return [self.shape[1]] * self.shape[0]
+            warnings.warn(
+                f"`shape` for grid drawing does not match number of molecules. "
+                f"Reverting to default shape."
+            )
+        elif self.shape is not None:
+            total_grid_spots = sum(self.shape)
+            if total_grid_spots > len(self.containers):
                 return self.shape
             warnings.warn(
                 f"`shape` for grid drawing does not match number of molecules. "
                 f"Reverting to default shape."
             )
 
+        # auto determine shape
         num_cols = int(np.sqrt(len(self.containers)))
         num_rows = len(self.containers) // num_cols + (1 if len(self.containers) % num_cols else 0)
-        return num_rows, num_cols
+        return [num_cols] * num_rows
 
     def prepare_for_drawing(self) -> DrawingContainer:
         new_obj = DrawingContainer()
@@ -637,13 +642,19 @@ class DrawingContainerGrid:
         cell_width = max(np.max(b[0]) - np.min(b[0]) for b in bounding_box)
         cell_height = max(np.max(b[1]) - np.min(b[1]) for b in bounding_box)
         grid_shape = self._get_shape()
-        # grid_size = (cell_width * grid_shape[0], cell_height * grid_shape[1])
 
-        # move container
-        for i, c in enumerate(prep_containers):
-            row = i // grid_shape[0]
-            col = i % grid_shape[0]
-            c.move(col*cell_width, -row*cell_height)
+        # loop through containers and move them
+        count = 0
+        DONE = False
+        for i, len_row in enumerate(grid_shape):
+            if DONE:
+                break
+            for j in range(len_row):
+                prep_containers[count].move(cell_width*j, cell_height*i)
+                count += 1
+                if count == len(prep_containers):
+                    DONE = True
+                    break
 
         # join similar layers
         for c in prep_containers:
