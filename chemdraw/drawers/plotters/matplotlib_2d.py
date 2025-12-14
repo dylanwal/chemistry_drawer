@@ -2,7 +2,7 @@ import numpy as np
 
 from chemdraw.config.style_template import STYLE_TEMPLATE
 from chemdraw.drawers.two_d.primitives_for_drawing import Dots, Fills, Lines, Texts, DrawingContainer
-from chemdraw.drawers.plotters.color_converter import convert_colors
+from chemdraw.utils.color_converter import convert_colors
 
 try:
     import matplotlib.pyplot as plt

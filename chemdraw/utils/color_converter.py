@@ -11,7 +11,10 @@ COLOR_TYPES = {
     'rgba1',  # string "rgba(1,1,1,1)"
     'rgba255',  # string "rgba(255,255,255,1)"
     'rgb_tuple1',  # tuple[int] tuple(1,1,1)
-    'rgba_tuple255',  # tuple[int] tuple(255,255,255,1)
+    'rgba_tuple1',  # tuple[int] tuple(1,1,1,1)
+    'rgb_tuple255',  # tuple[int] tuple(255,255,255)
+    'rgba_tuple255_1',  # tuple[int] tuple(255,255,255,1)
+    'rgba_tuple255',  # tuple[int] tuple(255,255,255,255)
     'hex',
     'word'
 }
@@ -157,6 +160,16 @@ def format_color(rgba: Tuple[float, float, float, float], fmt: str) -> ColorValu
 
     elif fmt == "rgb_tuple1":
         return (r, g, b)
+
+    elif fmt == "rgba_tuple255_1":
+        return (r255, g255, b255, a)
+
+    elif fmt == "rgba_tuple255":
+        return (r255, g255, b255, a*255)
+
+    elif fmt == "rgb_tuple255":
+        return (r255, g255, b255)
+
 
     return f"#{r255:02x}{g255:02x}{b255:02x}"  # Default to hex
 

@@ -87,27 +87,6 @@ def _clean_file_list(file_list: list[str]) -> list[str]:
     raise MoleParsingError("First row not found. (looking for 'V2000')")
 
 
-class Sgroup(enum.Enum):
-    SUP = 1  # superatom
-    MUL = 2  # multiple group
-    SRU = 3  # structural repeat unit
-    MON = 4  # monomer
-    MER = 5  # mer type
-    GRA = 6  # graft
-    COM = 7  # component
-    MIX = 8  # mixture
-    FOR = 9  # formulation
-    DAT = 10  # data
-    ANY = 11  # any polymer
-    GEN = 12  # generic
-
-
-class SgroupConnectivity(enum.Enum):
-    HH = 1  # head-to-head
-    HT = 2  # head-to-tail
-    EU = 3  # unknown
-
-
 def _get_s_block(s_block: list[str]) -> dict[str, dict]:
     rows: dict[str, dict] = dict()
     for i in range(len(s_block)):
@@ -118,12 +97,6 @@ def _get_s_block(s_block: list[str]) -> dict[str, dict]:
 
         if "END" in line:
             break
-        # if "STY" in line:
-        #     line = line.split()
-        #     id_ = int(line[3])
-        #     type_ = Sgroup[line[4].strip()]
-        #     attr_ = _get_s_block_attr(s_block)
-        #     rows[id_] = dict(type_=type_) | attr_
         if "CHG" in line:
             line_split = line.split()
             dict_ = dict()
@@ -158,8 +131,8 @@ def _get_s_block_attr(s_block: list[str]) -> dict:
             del s_block[:i - 1]
             break
 
-        if "SCN" in line:
-            out["connectivity"] = SgroupConnectivity[line.split()[4]]
+        # if "SCN" in line:
+        #     out["connectivity"] = SgroupConnectivity[line.split()[4]]
         elif "SMT" in line:
             out["label"] = line.split()[3]
         elif "SAL" in line:

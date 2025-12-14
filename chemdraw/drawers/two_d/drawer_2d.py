@@ -1,4 +1,3 @@
-import os
 import pathlib
 from typing import Sequence
 
@@ -16,6 +15,7 @@ import chemdraw.drawers.two_d.draw_ring_numbers as draw_ring_numbers
 import chemdraw.drawers.two_d.draw_highlights as draw_highlights
 # import chemdraw.drawers.draw_ring_highlights as draw_ring_highlights
 
+import chemdraw.utils.color_converter as color_converter
 from chemdraw.drawers.two_d.primitives_for_drawing import DrawingContainer, DrawingContainerGrid
 
 
@@ -202,7 +202,8 @@ def draw_grid_png(
         draw_multiple_images(molecules, type_="png", out_folder=imgs_path, num_processes=num_processes)
 
         import chemdraw.utils.png_grid
-        chemdraw.utils.png_grid.png_grid(imgs_path, output_path, shape)
+        color = color_converter.convert_colors(STYLE_TEMPLATE.plot_background_color, "rgba_tuple255")
+        chemdraw.utils.png_grid.png_grid(imgs_path, output_path, shape, color)
 
     finally:
         # delete temp folder of images

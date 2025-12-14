@@ -1,7 +1,7 @@
 
 
 class StyleFont:
-    __slots__ = ['show', 'family', 'bold', 'size', 'color', 'offset', 'alignment', 'top_offset', 'parent']
+    __slots__ = ['show', 'family', 'bold', 'size', 'color', 'alignment', 'parent']
     def __init__(self,
                  parent=None,
                  show: bool = None,
@@ -9,18 +9,14 @@ class StyleFont:
                  size: int = None,
                  bold: bool = None,
                  color: str = None,
-                 # offset: float = None,
                  alignment: str = None,
-                 # top_offset: float = None,
                  ):
         self.show = show
         self.family = family
         self.bold = bold
         self.size = size
         self.color = color
-        # self.offset = offset
         self.alignment = alignment
-        # self.top_offset = top_offset
         self.parent = parent
 
 

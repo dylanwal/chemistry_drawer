@@ -4,7 +4,12 @@ import warnings
 from typing import Sequence
 
 
-def png_grid(imgs_path: str | pathlib.Path, output_path: str | pathlib.Path, shape: Sequence[int] = None):
+def png_grid(
+        imgs_path: str | pathlib.Path,
+        output_path: str | pathlib.Path,
+        shape: Sequence[int] = None,
+        background_color: tuple = (255, 255, 255, 255),
+):
     """
     Stitches PNGs from a directory into a single grid image.
 
@@ -18,6 +23,8 @@ def png_grid(imgs_path: str | pathlib.Path, output_path: str | pathlib.Path, sha
         None: an approximate square grid is calculated automatically
         Sequence len(2): (num_rows, num_columns)
         Sequence not len(2): each int is a row the value is the number of molecules in that row.
+    background_color:
+        background color, tuple (0-255, 0-255, 0-255, 0-255)
     """
     try:
         from PIL import Image
@@ -31,7 +38,7 @@ def png_grid(imgs_path: str | pathlib.Path, output_path: str | pathlib.Path, sha
         raise FileNotFoundError(imgs_path)
     output_path = pathlib.Path(output_path).resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    img_files = sorted(imgs_path.glob('*.png'))
+    img_files = sorted(imgs_path.glob('*.png'), key=lambda x: int(x.stem))
     if not img_files:
         print(f"No .png files found in {imgs_path}")
         return
@@ -75,7 +82,7 @@ def png_grid(imgs_path: str | pathlib.Path, output_path: str | pathlib.Path, sha
     grid_height = max_h * rows
 
     # Create transparent background
-    canvas = Image.new('RGBA', (grid_width, grid_height), (0, 0, 0, 0))
+    canvas = Image.new('RGBA', (grid_width, grid_height), background_color)
 
     # 6. Paste Images
     count = 0
@@ -86,10 +93,10 @@ def png_grid(imgs_path: str | pathlib.Path, output_path: str | pathlib.Path, sha
         for j in range(len_row):
             x_pos = j * max_w
             y_pos = i * max_h
-            with Image.open(img_files[count]) as img:
+            with Image.open(img_files[count]).convert("RGBA") as img:
                 center_x = (max_w - img.width) // 2
                 center_y = (max_h - img.height) // 2
-                canvas.paste(img, (x_pos+center_x, y_pos+center_y))
+                canvas.paste(img, (x_pos+center_x, y_pos+center_y), img)
             count += 1
             if count == total_images:
                 DONE = True
