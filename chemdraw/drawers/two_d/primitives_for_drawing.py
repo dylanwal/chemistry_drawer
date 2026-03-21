@@ -382,7 +382,7 @@ class DrawingContainer:
 
     def is_empty(self) -> bool:
         return (len(self.dots) == 0 and len(self.lines) == 0 and len(self.fills) == 0 and len(self.texts) == 0 and
-                len(self.arrows) == 0 and len(self.containers) == 1)
+                len(self.arrows) == 0 and len(self.containers) == 0)
 
     def bounding_box(self) -> np.ndarray:
         if self._box_coordinates is not None:
@@ -425,8 +425,11 @@ class DrawingContainer:
 
         # 4. Concatenate and Stack
         # np.vstack creates a (2, N) array.
-        x = np.concatenate(xs)
-        y = np.concatenate(ys)
+        if len(xs) == 1 and len(ys) == 1:
+            x, y = xs[0], ys[0]
+        else:
+            x = np.concatenate(xs)
+            y = np.concatenate(ys)
         x = x[x != None]
         y = y[y != None]
         coords = np.vstack((x, y))

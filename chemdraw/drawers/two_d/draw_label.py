@@ -20,9 +20,9 @@ def draw_label(container: DrawingContainer, mol: Molecule):
     bounding_box = container.bounding_box()
     x = float(np.mean(bounding_box[0,:])) # center it
     if STYLE_TEMPLATE.label_location == "top":
-        y = np.max(bounding_box[1,:]) + STYLE_TEMPLATE.label_pad + number_lines * STYLE_TEMPLATE.label_font_size * 0.5
+        y = np.max(bounding_box[1,:]) + STYLE_TEMPLATE.label_pad + number_lines * STYLE_TEMPLATE.text_height
     elif STYLE_TEMPLATE.label_location == "bottom":
-        y = np.min(bounding_box[1,:]) - STYLE_TEMPLATE.label_pad - number_lines * STYLE_TEMPLATE.label_font_size * 0.5
+        y = np.min(bounding_box[1,:]) - STYLE_TEMPLATE.label_pad - number_lines * STYLE_TEMPLATE.text_height
     else:
         raise ValueError("Invalid label location")
 

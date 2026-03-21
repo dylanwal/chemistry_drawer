@@ -19,6 +19,7 @@ def draw_single_2d(container: DrawingContainer) -> go.Figure:
 
     return fig
 
+import numpy as np
 
 def apply_layout(fig: go.Figure, container: DrawingContainer):
     kwargs = {
@@ -29,34 +30,48 @@ def apply_layout(fig: go.Figure, container: DrawingContainer):
         "margin": dict(l=0, r=0, b=0, t=0, pad=0),
     }
 
+    # 1. Get the raw bounds
+    points = container.bounding_box()
+    x_min, x_max = np.min(points[0]), np.max(points[0])
+    y_min, y_max = np.min(points[1]), np.max(points[1])
+
+    dx = x_max - x_min
+    dy = y_max - y_min
+
+    # 2. Calculate the center points
+    x_mid = (x_max + x_min) / 2
+    y_mid = (y_max + y_min) / 2
+
+    # 3. Determine the larger span to force a square aspect ratio
+    max_span = max(dx, dy)
+
+    # Apply the buffer scale to the max_span
+    # If buffer is 0.1, we increase the span by 10% on each side
+    half_span = (max_span / 2) * (1 + STYLE_TEMPLATE.plot_buffer)
+
     xaxes_kwargs = {
         "visible": False,
-        # "fixedrange": True,
         "layer": "below traces",
+        "range": [x_mid - half_span, x_mid + half_span],
+        "constrain": "domain", # Keeps the axis within the plot area
     }
 
     yaxes_kwargs = {
         "visible": False,
-        # "fixedrange": True,
-        "layer": "below traces"
+        "layer": "below traces",
+        "range": [y_mid - half_span, y_mid + half_span],
+        "scaleanchor": "x",    # CRITICAL: Forces 1 unit of y to equal 1 unit of x
+        "scaleratio": 1,
     }
 
-    # zooming
+    # Zooming / Figure Size
     kwargs["width"] = STYLE_TEMPLATE.plot_width
     kwargs["height"] = STYLE_TEMPLATE.plot_height
-
-    points = container.bounding_box()
-    x_span = np.array([np.min(points[0]), np.max(points[0])])
-    y_span = np.array([np.min(points[1]), np.max(points[1])])
-    dx = x_span[1] - x_span[0]
-    dy = y_span[1] - y_span[0]
-    scale = STYLE_TEMPLATE.plot_buffer  # add a buffer for text
-    xaxes_kwargs["range"] = x_span[0] - dx * scale, x_span[1] + dx * scale
-    yaxes_kwargs["range"] = y_span[0] - dy * scale, y_span[1] + dy * scale
 
     fig.update_layout(**kwargs)
     fig.update_xaxes(**xaxes_kwargs)
     fig.update_yaxes(**yaxes_kwargs)
+
 
 def draw_containers(fig: go.Figure, container: DrawingContainer):
     for c in container.containers:
@@ -71,7 +86,7 @@ def draw_one_layer_of_container(fig: go.Figure, container: DrawingContainer):
     draw_lines(fig, container.lines)
     draw_fills(fig, container.fills)
     draw_texts(fig, container.texts)
-
+    # draw_texts_span(fig, container.texts)
 
 def draw_dots(fig: go.Figure, dots: list[Dots]):
     for d in dots:
@@ -120,6 +135,33 @@ def draw_texts(fig: go.Figure, text: list[Texts]):
             text=t.symbols,
             mode="text",
             textfont=dict(color=t.color, family=t.font, size=t.size),
+            hoverinfo="skip",
+            showlegend=False,
+        )
+
+
+def draw_texts_span(fig: go.Figure, text: list[Texts], max_span: float):
+    # Reference: A "standard" span where size 12 looks good
+    # Adjust this 'reference_span' based on your typical drawing size
+    reference_span = 20.0
+    scale_factor = reference_span / max_span
+
+    for t in text:
+        t.prepare_for_drawing("\n")
+
+        # Adjust the size based on how "zoomed in" the coordinates are
+        dynamic_size = t.size * scale_factor
+
+        fig.add_scatter(
+            x=t.x,
+            y=t.y,
+            text=t.symbols,
+            mode="text",
+            textfont=dict(
+                color=t.color,
+                family=t.font,
+                size=dynamic_size
+            ),
             hoverinfo="skip",
             showlegend=False,
         )
