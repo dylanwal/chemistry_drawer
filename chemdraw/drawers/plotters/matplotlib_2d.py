@@ -57,10 +57,10 @@ def apply_layout(ax: plt.Axes, container: DrawingContainer):
 
 def draw_containers(ax: plt.Axes, container: DrawingContainer):
     for c in container.containers:
-        if c is None:
-            draw_one_layer_of_container(ax, container)
-        else:
+        draw_one_layer_of_container(ax, c)
+        if len(c.containers) != 0:
             draw_containers(ax, c) # recursive call
+    draw_one_layer_of_container(ax, container)
 
 
 def draw_one_layer_of_container(ax: plt.Axes, container: DrawingContainer):
@@ -88,17 +88,16 @@ def draw_dots(ax: plt.Axes, dots: list[Dots]):
             # zorder=10  # Ensure dots sit on top if needed
         )
 
+# Map Plotly dash styles to Matplotlib styles
+dash_map = {
+    "solid": "-",
+    "dot": ":",
+    "dash": "--",
+    "longdash": "--",  # MPL doesn't have distinct longdash
+    "dashdot": "-.",
+}
 
 def draw_lines(ax: plt.Axes, lines: list[Lines]):
-    # Map Plotly dash styles to Matplotlib styles
-    dash_map = {
-        "solid": "-",
-        "dot": ":",
-        "dash": "--",
-        "longdash": "--",  # MPL doesn't have distinct longdash
-        "dashdot": "-.",
-    }
-
     for l in lines:
         linestyle = dash_map.get(l.dash, "-")  # Default to solid
 

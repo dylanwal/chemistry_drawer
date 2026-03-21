@@ -58,8 +58,15 @@ def apply_layout(fig: go.Figure, container: DrawingContainer):
     fig.update_xaxes(**xaxes_kwargs)
     fig.update_yaxes(**yaxes_kwargs)
 
-
 def draw_containers(fig: go.Figure, container: DrawingContainer):
+    for c in container.containers:
+        draw_one_layer_of_container(fig, c)
+        if len(c.containers) != 0:
+            draw_containers(fig, c) # recursive call
+    draw_one_layer_of_container(fig, container)
+
+
+def draw_one_layer_of_container(fig: go.Figure, container: DrawingContainer):
     draw_dots(fig, container.dots)
     draw_lines(fig, container.lines)
     draw_fills(fig, container.fills)

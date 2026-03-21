@@ -8,7 +8,7 @@ class StyleTemplate:
     """ For styling the molecule's look (no parameters that are plotting package dependent). """
 
     def __init__(self):
-        self.plotter = "matplotlib"  # "plotly"
+        self._plotter = "matplotlib"  # "plotly"
         self.sub_plotter = None  # None or {"matplotlib": ("paths",)}
         self.auto_rotate = False # rotates molecule longest axis to [1,0]  or [1,0,0]
         self.auto_center = True  # move bound box center to [0, 0]
@@ -152,6 +152,21 @@ class StyleTemplate:
         ## matplotlib
         self.matplotlib_dpi = 100
 
+    @property
+    def plotter(self):
+        return self._plotter
+
+    @plotter.setter
+    def plotter(self, value: str):
+        if value == "plotly":
+            self._plotter = "plotly"
+            self.set_style(PLOTLY_STYLE)
+        elif value == "matplotlib":
+            self._plotter = "matplotlib"
+            self.set_style(MATPLOTLIB_STYLE)
+        else:
+            raise Exception(f"Unknown plotter {value}")
+
     def set_style(self, filename: str | pathlib.Path):
         with open(filename, 'r') as f:
             text = f.read()
@@ -163,6 +178,9 @@ class StyleTemplate:
             return
 
         for k, v in data.items():
+            if k == "plotter":
+                self._plotter = v
+                continue
             if hasattr(self, k):
                 setattr(self, k, v)
             else:
@@ -173,23 +191,23 @@ class StyleTemplate:
             yaml.dump(self.__dict__, f)
 
     def make_subscript(self, text: str) -> str:
-        if self.plotter == "plotly":
+        if self._plotter == "plotly":
             return f"<sub>{text}</sub>"
-        if self.plotter == "matplotlib":
+        if self._plotter == "matplotlib":
             return "$_{" + f"{text}" + "}$"
 
         return text
 
     def make_superscript(self, text: str) -> str:
-        if self.plotter == "plotly":
+        if self._plotter == "plotly":
             return f"<sup>{text}</sup>"
-        if self.plotter == "matplotlib":
+        if self._plotter == "matplotlib":
             return "$^{" + f"{text}" + "}$"
 
         return text
 
     def get_text_break(self) -> str:
-        if self.plotter == "plotly":
+        if self._plotter == "plotly":
             return f"<br>"
 
         return "\n"
@@ -200,10 +218,10 @@ class StyleTemplate:
         return self.atom_font_color
 
     def get_plotter(self):
-        if self.plotter == "plotly":
+        if self._plotter == "plotly":
             from chemdraw.drawers.plotters.plotly_2d import draw_single_2d
             return draw_single_2d
-        elif self.plotter == "matplotlib":
+        elif self._plotter == "matplotlib":
             from chemdraw.drawers.plotters.matplotlib_2d import draw_single_2d
             return draw_single_2d
 
@@ -239,4 +257,7 @@ def determine_which_plotting_lib_installed() -> list[str]:
 
 plotting_libs = determine_which_plotting_lib_installed()
 current_folder = pathlib.Path(__file__).absolute().parent
-STYLE_TEMPLATE = StyleTemplate.from_file(current_folder / "style_templates" / f"acs_1996_{plotting_libs[0]}.yaml")
+MATPLOTLIB_STYLE = current_folder / "style_templates" / f"acs_1996_matplotlib.yaml"
+PLOTLY_STYLE = current_folder / "style_templates" / f"acs_1996_plotly.yaml"
+STYLE_TEMPLATE = StyleTemplate()
+STYLE_TEMPLATE.plotter = plotting_libs[0]

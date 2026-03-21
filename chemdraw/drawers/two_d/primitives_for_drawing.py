@@ -355,7 +355,7 @@ class DrawingContainer:
         self.texts: list[Texts] = []
         self.arrows: list[Arrows] = []
         # the location of None is when to draw itself (this allows layering)
-        self.containers: list[DrawingContainer | None] = [None]  # limit to one layer deep
+        self.containers: list[DrawingContainer | None] = []  # limit to one layer deep
         self.layer_type = layer_type
 
         self._box_coordinates = None
@@ -376,6 +376,8 @@ class DrawingContainer:
             text += f"arrows: {len(self.arrows)} |"
         if self.containers:
             text += f"containers: {len(self.containers)} |"
+            for i,c in enumerate(self.containers):
+                text += f"\n\tcontainer {i}: {c}"
         return text
 
     def is_empty(self) -> bool:
